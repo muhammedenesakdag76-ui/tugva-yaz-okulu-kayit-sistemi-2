@@ -4,9 +4,7 @@
 <head>
 
 <meta charset="UTF-8">
-
-<meta name="viewport"
-content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 
 <title>Yönetici Paneli</title>
 
@@ -26,7 +24,7 @@ content="width=device-width, initial-scale=1.0">
 
 <h2>Yönetici Paneli</h2>
 
-<p>Kayıt Yönetim Sistemi</p>
+<p>Yaz Okulu Kayıt Sistemi</p>
 
 </div>
 
@@ -38,7 +36,7 @@ content="width=device-width, initial-scale=1.0">
 
 <div class="stat-card">
 
-<p>Toplam Kayıt</p>
+<p>👥 Toplam Kayıt</p>
 
 <h3 id="totalCount">0</h3>
 
@@ -46,7 +44,7 @@ content="width=device-width, initial-scale=1.0">
 
 <div class="stat-card">
 
-<p>Check-in</p>
+<p>✅ Check-in</p>
 
 <h3 id="checkedCount">0</h3>
 
@@ -54,7 +52,7 @@ content="width=device-width, initial-scale=1.0">
 
 <div class="stat-card">
 
-<p>Bekleyen</p>
+<p>⏳ Bekleyen</p>
 
 <h3 id="waitingCount">0</h3>
 
@@ -62,7 +60,7 @@ content="width=device-width, initial-scale=1.0">
 
 <div class="stat-card">
 
-<p>Kalan Kontenjan</p>
+<p>🎟️ Kalan Kontenjan</p>
 
 <h3 id="remainingAdmin">85</h3>
 
@@ -75,15 +73,15 @@ content="width=device-width, initial-scale=1.0">
 <div class="toolbar">
 
 <input
-type="text"
 id="searchInput"
-placeholder="Ad Soyad, T.C. veya Telefon Ara...">
+type="text"
+placeholder="🔍 Ad, T.C., Telefon veya Kayıt No Ara">
 
 <button
 class="btn"
 id="excelBtn">
 
-Excel
+📥 Excel
 
 </button>
 
@@ -91,7 +89,7 @@ Excel
 class="btn"
 id="refreshBtn">
 
-Yenile
+🔄 Yenile
 
 </button>
 
@@ -99,7 +97,7 @@ Yenile
 class="btn"
 id="checkinPage">
 
-QR Check-in
+📷 QR Check-in
 
 </button>
 
@@ -107,7 +105,7 @@ QR Check-in
 class="btn secondary"
 id="logoutBtn">
 
-Çıkış Yap
+🚪 Çıkış Yap
 
 </button>
 
@@ -121,6 +119,8 @@ id="logoutBtn">
 
 <tr>
 
+<th>#</th>
+
 <th>Kayıt No</th>
 
 <th>Ad Soyad</th>
@@ -131,7 +131,7 @@ id="logoutBtn">
 
 <th>Cinsiyet</th>
 
-<th>Check-in</th>
+<th>Durum</th>
 
 <th>İşlem</th>
 
@@ -140,6 +140,16 @@ id="logoutBtn">
 </thead>
 
 <tbody id="tableBody">
+
+<tr>
+
+<td colspan="8" style="text-align:center;padding:30px;">
+
+Yükleniyor...
+
+</td>
+
+</tr>
 
 </tbody>
 
@@ -156,4 +166,5 @@ id="logoutBtn">
 <script type="module" src="js/admin.js"></script>
 
 </body>
+
 </html>
