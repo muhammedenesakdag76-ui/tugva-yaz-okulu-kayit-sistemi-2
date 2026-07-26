@@ -111,7 +111,19 @@ async(decodedText)=>{
 
 try{
 
-const veri = JSON.parse(decodedText);
+let veri;
+
+try{
+
+    veri=JSON.parse(decodedText);
+
+}catch{
+
+    alert("Geçersiz QR Kod");
+
+    return;
+
+}
 
 await ara(veri.kayitNo);
 
