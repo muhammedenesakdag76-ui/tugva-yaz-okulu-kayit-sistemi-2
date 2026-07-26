@@ -236,3 +236,28 @@ id:belge.id,
 };
 
 }
+export function kayitlariDinle(callback){
+
+    const q=query(collection(db,"kayitlar"));
+
+    return onSnapshot(q,(snapshot)=>{
+
+        const liste=[];
+
+        snapshot.forEach(doc=>{
+
+            liste.push({
+
+                id:doc.id,
+
+                ...doc.data()
+
+            });
+
+        });
+
+        callback(liste);
+
+    });
+
+}
