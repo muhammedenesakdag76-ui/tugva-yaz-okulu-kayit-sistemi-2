@@ -202,3 +202,7 @@ id:belge.id,
 };
 
 }
+import {
+...
+limit
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
