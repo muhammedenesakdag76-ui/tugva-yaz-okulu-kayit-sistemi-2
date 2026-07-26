@@ -4,7 +4,8 @@ import {
 } from "./firebase.js";
 
 let aktifKayit = null;
-let scannerAktif = true;
+let scanner = null;
+let scannerAktif = false;
 
 const resultCard = document.getElementById("resultCard");
 
@@ -41,6 +42,13 @@ function goster(kayit){
 
     }
 
+    resultCard.scrollIntoView({
+
+        behavior:"smooth",
+        block:"center"
+
+    });
+
 }
 
 async function ara(kayitNo){
@@ -61,7 +69,7 @@ async function ara(kayitNo){
     }catch(err){
 
         console.error(err);
-        alert("Katılımcı aranırken bir hata oluştu.");
+        alert("Katılımcı aranırken hata oluştu.");
 
     }
 
@@ -71,7 +79,7 @@ manualSearch.addEventListener("click",()=>{
 
     const kayitNo = manualCode.value.trim().toUpperCase();
 
-    if(kayitNo===""){
+    if(!kayitNo){
 
         alert("Kayıt numarası giriniz.");
         return;
@@ -82,10 +90,11 @@ manualSearch.addEventListener("click",()=>{
 
 });
 
-manualCode.addEventListener("keypress",(e)=>{
+manualCode.addEventListener("keydown",(e)=>{
 
     if(e.key==="Enter"){
 
+        e.preventDefault();
         manualSearch.click();
 
     }
@@ -114,6 +123,12 @@ checkinButton.addEventListener("click",async()=>{
 
         goster(aktifKayit);
 
+        if(navigator.vibrate){
+
+            navigator.vibrate(200);
+
+        }
+
         alert("Check-in başarıyla tamamlandı.");
 
     }catch(err){
@@ -121,74 +136,100 @@ checkinButton.addEventListener("click",async()=>{
         console.error(err);
         alert("Check-in sırasında hata oluştu.");
 
-        checkinButton.disabled = false;
-        checkinButton.textContent = "Check-in Yap";
+    }finally{
+
+        if(!aktifKayit?.checkin){
+
+            checkinButton.disabled = false;
+            checkinButton.textContent = "Check-in Yap";
+
+        }
 
     }
 
 });
 
-const scanner = new Html5Qrcode("reader");
+async function kameraBaslat(){
 
-scanner.start(
+    scanner = new Html5Qrcode("reader");
 
-    { facingMode:"environment" },
+    scannerAktif = true;
 
-    {
-        fps:10,
-        qrbox:250
-    },
+    await scanner.start(
 
-    async(decodedText)=>{
+        {facingMode:"environment"},
 
-        if(!scannerAktif) return;
+        {
+            fps:10,
+            qrbox:{width:250,height:250}
+        },
 
-        scannerAktif = false;
+        async(decodedText)=>{
 
-        try{
+            if(!scannerAktif) return;
 
-            let veri;
+            scannerAktif=false;
 
             try{
 
-                veri = JSON.parse(decodedText);
+                let veri;
 
-            }catch{
+                try{
 
-                alert("Geçersiz QR Kod");
+                    veri=JSON.parse(decodedText);
 
-                scannerAktif = true;
-                return;
+                }catch{
+
+                    alert("Geçersiz QR Kod");
+
+                    scannerAktif=true;
+                    return;
+
+                }
+
+                if(!veri.kayitNo){
+
+                    alert("QR Kod geçersiz.");
+
+                    scannerAktif=true;
+                    return;
+
+                }
+
+                if(navigator.vibrate){
+
+                    navigator.vibrate(100);
+
+                }
+
+                await ara(veri.kayitNo);
+
+                await scanner.stop();
+                await scanner.clear();
+
+                document.getElementById("reader").innerHTML="";
+
+            }catch(err){
+
+                console.error(err);
+                alert("QR okunurken hata oluştu.");
+
+                scannerAktif=true;
 
             }
 
-            if(!veri.kayitNo){
+        },
 
-                alert("QR Kod geçersiz.");
+        ()=>{}
 
-                scannerAktif = true;
-                return;
+    );
 
-            }
+}
 
-            await ara(veri.kayitNo);
+kameraBaslat().catch(err=>{
 
-            await scanner.stop();
-            await scanner.clear();
+    console.error(err);
 
-            document.getElementById("reader").innerHTML="";
+    alert("Kamera başlatılamadı. Kamera izni verdiğinizden emin olun.");
 
-        }catch(err){
-
-            console.error(err);
-            alert("QR okunurken hata oluştu.");
-
-            scannerAktif = true;
-
-        }
-
-    },
-
-    ()=>{}
-
-);
+});
