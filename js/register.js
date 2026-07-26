@@ -5,125 +5,66 @@ import {
     MAX_KONTENJAN
 } from "./firebase.js";
 
-function temizle(veri){
+export async function yeniKayit(veri) {
+    try {
 
-    return{
+        const tc = (veri.tc || "").replace(/\D/g, "");
 
-        name:(veri.name||"").trim(),
-
-        tc:(veri.tc||"").replace(/\D/g,""),
-
-        birth:veri.birth||"",
-
-        phone:(veri.phone||"").trim(),
-
-        email:(veri.email||"").trim().toLowerCase(),
-
-        gender:veri.gender||"",
-
-        emergencyName:(veri.emergencyName||"").trim(),
-
-        emergencyPhone:(veri.emergencyPhone||"").trim(),
-
-        note:(veri.note||"").trim()
-
-    };
-
-}
-
-export async function yeniKayit(veri){
-
-    veri=temizle(veri);
-
-    try{
-
-        const tcKayitli=await tcVarMi(veri.tc);
-
-        if(tcKayitli){
-
-            return{
-
-                basarili:false,
-
-                mesaj:"Bu T.C. Kimlik Numarası ile daha önce kayıt yapılmıştır."
-
+        if (!tc || tc.length !== 11) {
+            return {
+                basarili: false,
+                mesaj: "Geçerli bir T.C. Kimlik Numarası giriniz."
             };
-
         }
 
-        const toplam=await toplamKayit();
+        const varMi = await tcVarMi(tc);
 
-        if(toplam>=MAX_KONTENJAN){
-
-            return{
-
-                basarili:false,
-
-                mesaj:"Kontenjan dolmuştur."
-
+        if (varMi) {
+            return {
+                basarili: false,
+                mesaj: "Bu T.C. Kimlik Numarası ile daha önce kayıt yapılmıştır."
             };
-
         }
 
-        const yil=new Date()
-            .getFullYear()
-            .toString()
-            .slice(2);
+        const toplam = await toplamKayit();
 
-        const kayitNo=`TYG${yil}-${String(toplam+1).padStart(4,"0")}`;
+        if (toplam >= MAX_KONTENJAN) {
+            return {
+                basarili: false,
+                mesaj: "Kontenjan dolmuştur."
+            };
+        }
+
+        const yil = new Date().getFullYear().toString().slice(-2);
+
+        const kayitNo = `TYG${yil}-${String(toplam + 1).padStart(4, "0")}`;
 
         await kayitOlustur({
-
             kayitNo,
-
-            adSoyad:veri.name,
-
-            tc:veri.tc,
-
-            dogumTarihi:veri.birth,
-
-            telefon:veri.phone,
-
-            email:veri.email,
-
-            cinsiyet:veri.gender,
-
-            acilDurumKisi:veri.emergencyName,
-
-            acilDurumTelefonu:veri.emergencyPhone,
-
-            not:veri.note
-
+            adSoyad: veri.name?.trim() || "",
+            tc,
+            dogumTarihi: veri.birth || "",
+            telefon: veri.phone?.trim() || "",
+            email: veri.email?.trim().toLowerCase() || "",
+            cinsiyet: veri.gender || "",
+            acilDurumKisi: veri.emergencyName?.trim() || "",
+            acilDurumTelefonu: veri.emergencyPhone?.trim() || "",
+            not: veri.note?.trim() || ""
         });
 
-        return{
-
-            basarili:true,
-
+        return {
+            basarili: true,
             kayitNo,
-
-            kalanKontenjan:Math.max(
-
-                0,
-
-                MAX_KONTENJAN-(toplam+1)
-
-            )
-
+            kalanKontenjan: MAX_KONTENJAN - (toplam + 1)
         };
 
-    }catch(err){
+    } catch (e) {
 
-        console.error(err);
+        console.error(e);
 
-        return{
-
-            basarili:false,
-
-            mesaj:"Kayıt oluşturulurken bir hata oluştu."
-
+        return {
+            basarili: false,
+            mesaj: "Kayıt oluşturulurken bir hata oluştu."
         };
-
     }
-
 }
