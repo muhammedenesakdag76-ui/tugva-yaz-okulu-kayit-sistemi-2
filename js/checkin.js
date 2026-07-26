@@ -4,6 +4,7 @@ import {
 } from "./firebase.js";
 
 let aktifKayit = null;
+let scannerAktif = true;
 
 const resultCard = document.getElementById("resultCard");
 
@@ -44,16 +45,25 @@ function goster(kayit){
 
 async function ara(kayitNo){
 
-    const kayit = await kayitNoIleBul(kayitNo);
+    try{
 
-    if(!kayit){
+        const kayit = await kayitNoIleBul(kayitNo);
 
-        alert("Katılımcı bulunamadı.");
-        return;
+        if(!kayit){
+
+            alert("Katılımcı bulunamadı.");
+            return;
+
+        }
+
+        goster(kayit);
+
+    }catch(err){
+
+        console.error(err);
+        alert("Katılımcı aranırken bir hata oluştu.");
 
     }
-
-    goster(kayit);
 
 }
 
@@ -72,17 +82,49 @@ manualSearch.addEventListener("click",()=>{
 
 });
 
+manualCode.addEventListener("keypress",(e)=>{
+
+    if(e.key==="Enter"){
+
+        manualSearch.click();
+
+    }
+
+});
+
 checkinButton.addEventListener("click",async()=>{
 
     if(!aktifKayit) return;
 
-    await checkinYap(aktifKayit.id);
+    if(aktifKayit.checkin){
 
-    alert("Check-in başarıyla tamamlandı.");
+        alert("Bu katılımcı zaten giriş yapmış.");
+        return;
 
-    aktifKayit.checkin = true;
+    }
 
-    goster(aktifKayit);
+    try{
+
+        checkinButton.disabled = true;
+        checkinButton.textContent = "Kaydediliyor...";
+
+        await checkinYap(aktifKayit.id);
+
+        aktifKayit.checkin = true;
+
+        goster(aktifKayit);
+
+        alert("Check-in başarıyla tamamlandı.");
+
+    }catch(err){
+
+        console.error(err);
+        alert("Check-in sırasında hata oluştu.");
+
+        checkinButton.disabled = false;
+        checkinButton.textContent = "Check-in Yap";
+
+    }
 
 });
 
@@ -99,27 +141,54 @@ scanner.start(
 
     async(decodedText)=>{
 
-        let veri;
+        if(!scannerAktif) return;
+
+        scannerAktif = false;
 
         try{
 
-            veri = JSON.parse(decodedText);
+            let veri;
 
-        }catch{
+            try{
 
-            alert("Geçersiz QR Kod");
-            return;
+                veri = JSON.parse(decodedText);
+
+            }catch{
+
+                alert("Geçersiz QR Kod");
+
+                scannerAktif = true;
+                return;
+
+            }
+
+            if(!veri.kayitNo){
+
+                alert("QR Kod geçersiz.");
+
+                scannerAktif = true;
+                return;
+
+            }
+
+            await ara(veri.kayitNo);
+
+            await scanner.stop();
+            await scanner.clear();
+
+            document.getElementById("reader").innerHTML="";
+
+        }catch(err){
+
+            console.error(err);
+            alert("QR okunurken hata oluştu.");
+
+            scannerAktif = true;
 
         }
 
-        await ara(veri.kayitNo);
+    },
 
-        await scanner.stop();
-
-        await scanner.clear();
-
-        document.getElementById("reader").innerHTML="";
-
-    }
+    ()=>{}
 
 );
