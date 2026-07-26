@@ -45,7 +45,7 @@ export const auth = getAuth(app);
 
 export const COLLECTION = "kayitlar";
 
-export const MAX_KONTENJAN = 85;
+export const MAX_KONTENJAN = 40;
 
 export const ETKINLIK_BILGISI = {
 
@@ -53,7 +53,7 @@ export const ETKINLIK_BILGISI = {
 
     tarih:"31 Temmuz 2026",
 
-    kontenjan:85
+    kontenjan:40
 
 };
 
