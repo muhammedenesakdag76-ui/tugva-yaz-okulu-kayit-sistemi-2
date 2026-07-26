@@ -76,16 +76,26 @@ try{
 
 const sonuc=await yeniKayit(veri);
 
-registerNumber.textContent=sonuc.kayitNo;
+registerNumber.textContent = sonuc.kayitNo;
 
-await qrOlustur({
+const katilimci = {
     kayitNo: sonuc.kayitNo,
     adSoyad: veri.name,
     tc: veri.tc,
     telefon: veri.phone
-});
+};
 
-remainingCount.textContent=sonuc.kalanKontenjan;
+await qrOlustur(katilimci);
+
+remainingCount.textContent = sonuc.kalanKontenjan;
+
+downloadCard.onclick = async () => {
+
+    const { pdfOlustur } = await import("./pdf.js");
+
+    await pdfOlustur(katilimci);
+
+};
 
 formCard.classList.add("hidden");
 
