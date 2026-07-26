@@ -4,7 +4,7 @@ import {
     kayitOlustur
 } from "./firebase.js";
 
-const MAX_KONTENJAN = 85;
+const MAX_KONTENJAN = import { MAX_KONTENJAN } from "./firebase.js";;
 
 export async function yeniKayit(veri) {
 
