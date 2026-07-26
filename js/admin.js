@@ -123,21 +123,23 @@ function istatistikGuncelle() {
 
 }
 
-searchInput.addEventListener("input", () => {
+searchInput.addEventListener("input",e=>{
 
-    const ara = searchInput.value.toLowerCase();
+    const ara=e.target.value.toLowerCase().trim();
 
-    const filtre = kayitlar.filter(k =>
+    const filtre=kayitlar.filter(k=>
 
-        k.adSoyad.toLowerCase().includes(ara) ||
+        (k.adSoyad||"").toLowerCase().includes(ara) ||
 
-        k.tc.includes(ara) ||
+        (k.tc||"").includes(ara) ||
 
-        k.telefon.includes(ara)
+        (k.kayitNo||"").toLowerCase().includes(ara) ||
+
+        (k.telefon||"").includes(ara)
 
     );
 
-    tabloOlustur(filtre);
+    tabloyuDoldur(filtre);
 
 });
 
