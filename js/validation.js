@@ -1,169 +1,157 @@
-function bosMu(deger){
+export function sadeceRakam(deger) {
 
-return deger===undefined||
-
-deger===null||
-
-String(deger).trim()==="";
+    return deger.replace(/\D/g, "");
 
 }
 
-export function tcKontrol(tc){
+export function tcGecerli(tc) {
 
-if(!/^\d{11}$/.test(tc)){
+    tc = sadeceRakam(tc);
 
-return false;
+    if (tc.length !== 11) return false;
 
-}
+    if (tc[0] === "0") return false;
 
-if(tc[0]==="0"){
+    let tek = 0;
+    let cift = 0;
 
-return false;
+    for (let i = 0; i < 9; i++) {
 
-}
+        if (i % 2 === 0) {
 
-let tek=0;
+            tek += Number(tc[i]);
 
-let cift=0;
+        } else {
 
-for(let i=0;i<9;i++){
+            cift += Number(tc[i]);
 
-if(i%2===0){
+        }
 
-tek+=Number(tc[i]);
+    }
 
-}else{
+    const onuncu = ((tek * 7) - cift) % 10;
 
-cift+=Number(tc[i]);
+    if (onuncu !== Number(tc[9])) {
 
-}
+        return false;
 
-}
+    }
 
-const onuncu=((tek*7)-cift)%10;
+    let toplam = 0;
 
-if(onuncu!==Number(tc[9])){
+    for (let i = 0; i < 10; i++) {
 
-return false;
+        toplam += Number(tc[i]);
 
-}
+    }
 
-let toplam=0;
-
-for(let i=0;i<10;i++){
-
-toplam+=Number(tc[i]);
+    return toplam % 10 === Number(tc[10]);
 
 }
 
-const onBirinci=toplam%10;
+export function telefonGecerli(tel) {
 
-return onBirinci===Number(tc[10]);
+    tel = sadeceRakam(tel);
 
-}
-
-export function telefonKontrol(tel){
-
-return /^05\d{9}$/.test(tel);
+    return tel.length === 10 || tel.length === 11;
 
 }
 
-export function emailKontrol(email){
+export function emailGecerli(email) {
 
-if(email.trim()===""){
-
-return true;
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
 }
 
-return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+export function zorunluAlan(deger) {
+
+    return deger.trim().length > 0;
 
 }
 
-export function yasHesapla(dogum){
+export function bugundenSonraDegil(tarih) {
 
-const tarih=new Date(dogum);
+    if (!tarih) return false;
 
-const bugun=new Date();
+    const secilen = new Date(tarih);
 
-let yas=
+    const bugun = new Date();
 
-bugun.getFullYear()-tarih.getFullYear();
+    bugun.setHours(0, 0, 0, 0);
 
-const ay=
-
-bugun.getMonth()-tarih.getMonth();
-
-if(
-
-ay<0||
-
-(ay===0&&
-
-bugun.getDate()<tarih.getDate())
-
-){
-
-yas--;
+    return secilen <= bugun;
 
 }
 
-return yas;
+export function formKontrol(veri) {
 
-}
+    if (!zorunluAlan(veri.name)) {
 
-export function formKontrol(veri){
+        return {
+            basarili: false,
+            mesaj: "Ad Soyad zorunludur."
+        };
 
-if(bosMu(veri.name)){
+    }
 
-return"Ad Soyad zorunludur.";
+    if (!tcGecerli(veri.tc)) {
 
-}
+        return {
+            basarili: false,
+            mesaj: "Geçerli bir T.C. Kimlik Numarası giriniz."
+        };
 
-if(!tcKontrol(veri.tc)){
+    }
 
-return"Geçerli bir T.C. Kimlik Numarası giriniz.";
+    if (!telefonGecerli(veri.phone)) {
 
-}
+        return {
+            basarili: false,
+            mesaj: "Telefon numarası hatalı."
+        };
 
-if(bosMu(veri.birth)){
+    }
 
-return"Doğum tarihi zorunludur.";
+    if (veri.email && !emailGecerli(veri.email)) {
 
-}
+        return {
+            basarili: false,
+            mesaj: "E-posta adresi geçersiz."
+        };
 
-if(!telefonKontrol(veri.phone)){
+    }
 
-return"Telefon numarası hatalı.";
+    if (!bugundenSonraDegil(veri.birth)) {
 
-}
+        return {
+            basarili: false,
+            mesaj: "Doğum tarihi hatalı."
+        };
 
-if(!emailKontrol(veri.email)){
+    }
 
-return"E-posta adresi geçersiz.";
+    if (!zorunluAlan(veri.emergencyName)) {
 
-}
+        return {
+            basarili: false,
+            mesaj: "Acil durumda aranacak kişi zorunludur."
+        };
 
-if(bosMu(veri.gender)){
+    }
 
-return"Cinsiyet seçiniz.";
+    if (!telefonGecerli(veri.emergencyPhone)) {
 
-}
+        return {
+            basarili: false,
+            mesaj: "Acil durum telefonu hatalı."
+        };
 
-const yas=yasHesapla(veri.birth);
+    }
 
-if(yas<18&&!veri.parent){
+    return {
 
-return"18 yaş altı katılımcılar veli onayını işaretlemelidir.";
+        basarili: true
 
-}
-
-if(!veri.kvkk){
-
-return"KVKK onayı zorunludur.";
-
-}
-
-return null;
+    };
 
 }
