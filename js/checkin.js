@@ -4,6 +4,7 @@ import {
 } from "./firebase.js";
 
 let aktifKayit = null;
+
 let scanner = null;
 let scannerAktif = false;
 
