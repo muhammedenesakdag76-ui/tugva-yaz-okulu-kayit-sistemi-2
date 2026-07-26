@@ -35,3 +35,24 @@ Modern, Firebase tabanlı kayıt ve QR Check-in sistemi.
 - jsPDF
 - html2canvas
 - SheetJS
+
+## Sürüm
+
+v1.0
+
+## Durum
+
+✅ Yayına Hazır
+
+## Özellikler
+
+- Firebase Authentication
+- Firestore
+- Online Kayıt
+- QR Kod
+- QR Check-in
+- PDF Kart
+- Excel Aktarma
+- Yönetici Paneli
+- Mobil Uyum
+- Gerçek Zamanlı Güncelleme
