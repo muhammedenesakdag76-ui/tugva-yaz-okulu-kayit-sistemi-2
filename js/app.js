@@ -1,3 +1,4 @@
+let kayitOluyor = false;
 import { pdfOlustur } from "./pdf.js";
 import { formKontrol } from "./validation.js";
 import { yeniKayit } from "./register.js";
