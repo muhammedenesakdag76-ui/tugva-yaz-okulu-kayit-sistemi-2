@@ -1,3 +1,4 @@
+import { generateQR } from "./qr.js";
 import { downloadPDF } from "./pdf.js";
 import { toplamKayit, MAX_KONTENJAN } from "./firebase.js";
 import { yeniKayit } from "./register.js";
@@ -94,11 +95,7 @@ form.addEventListener("submit", async (e) => {
 
     successCard.classList.remove("hidden");
 
-    if (typeof generateQR === "function") {
-
-        generateQR(aktifKayitNo);
-
-    }
+    generateQR(aktifKayitNo);
 
     if (downloadCard) {
 
