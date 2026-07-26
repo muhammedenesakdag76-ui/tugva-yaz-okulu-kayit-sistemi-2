@@ -1,3 +1,14 @@
+window.addEventListener("beforeunload",(e)=>{
+
+    if(kayitOluyor){
+
+        e.preventDefault();
+
+        e.returnValue="";
+
+    }
+
+});
 let kayitOluyor = false;
 
 import { pdfOlustur } from "./pdf.js";
