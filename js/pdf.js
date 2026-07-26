@@ -1,136 +1,81 @@
-export async function pdfOlustur(katilimci){
+export async function downloadPDF(kayitNo) {
 
-    const kart = document.createElement("div");
+    const kart = document.getElementById("downloadCard");
 
-    kart.style.width = "800px";
-    kart.style.background = "#ffffff";
-    kart.style.padding = "40px";
-    kart.style.fontFamily = "Arial, sans-serif";
-    kart.style.position = "fixed";
-    kart.style.left = "-9999px";
-    kart.style.top = "0";
-    kart.style.boxSizing = "border-box";
-    kart.style.border = "3px solid #0b8f3a";
-    kart.style.borderRadius = "12px";
+    if (!kart) {
 
-    kart.innerHTML = `
+        alert("PDF oluşturulacak alan bulunamadı.");
 
-        <div style="text-align:center;">
+        return;
 
-            <h1 style="margin:0;color:#0b8f3a;">
-                TÜGVA
-            </h1>
+    }
 
-            <h2 style="margin:10px 0;">
-                Yaz Okulu Finali
-            </h2>
+    try {
 
-            <h3 style="margin:0;color:#444;">
-                İstanbul Gezisi Kayıt Kartı
-            </h3>
+        const canvas = await html2canvas(kart, {
 
-        </div>
+            scale: 2,
+            useCORS: true,
+            backgroundColor: "#ffffff"
 
-        <hr style="margin:25px 0;">
+        });
 
-        <table style="width:100%;font-size:18px;border-collapse:collapse;">
+        const imgData = canvas.toDataURL("image/png");
 
-            <tr>
-                <td style="padding:8px 0;"><b>Kayıt No</b></td>
-                <td>${katilimci.kayitNo}</td>
-            </tr>
+        const pdf = new jspdf.jsPDF({
 
-            <tr>
-                <td style="padding:8px 0;"><b>Ad Soyad</b></td>
-                <td>${katilimci.adSoyad}</td>
-            </tr>
+            orientation: "portrait",
+            unit: "mm",
+            format: "a4"
 
-            <tr>
-                <td style="padding:8px 0;"><b>T.C. Kimlik No</b></td>
-                <td>${katilimci.tc}</td>
-            </tr>
+        });
 
-            <tr>
-                <td style="padding:8px 0;"><b>Telefon</b></td>
-                <td>${katilimci.telefon}</td>
-            </tr>
+        const pageWidth = pdf.internal.pageSize.getWidth();
 
-        </table>
+        const pageHeight = pdf.internal.pageSize.getHeight();
 
-        <div style="margin-top:35px;display:flex;justify-content:center;">
+        const imgWidth = pageWidth - 20;
 
-            <div id="pdfQr"></div>
+        const imgHeight = canvas.height * imgWidth / canvas.width;
 
-        </div>
+        let y = 10;
 
-        <p style="margin-top:35px;text-align:center;font-size:14px;color:#666;">
-            Bu QR kod etkinlik girişinde okutulacaktır.
-        </p>
+        if (imgHeight > pageHeight - 20) {
 
-    `;
+            const oran = (pageHeight - 20) / imgHeight;
 
-    document.body.appendChild(kart);
+            pdf.addImage(
+                imgData,
+                "PNG",
+                10,
+                y,
+                imgWidth * oran,
+                imgHeight * oran
+            );
 
-    new QRCode(document.getElementById("pdfQr"), {
+        } else {
 
-        text: JSON.stringify(katilimci),
+            pdf.addImage(
+                imgData,
+                "PNG",
+                10,
+                y,
+                imgWidth,
+                imgHeight
+            );
 
-        width: 220,
+        }
 
-        height: 220,
+        pdf.save(`${kayitNo}.pdf`);
 
-        correctLevel: QRCode.CorrectLevel.H
+    } catch (err) {
 
-    });
+        console.error(err);
 
-    await new Promise(resolve => setTimeout(resolve, 700));
+        alert("PDF oluşturulurken hata oluştu.");
 
-    const canvas = await html2canvas(kart, {
-
-        scale: 2,
-        useCORS: true,
-        backgroundColor: "#ffffff"
-
-    });
-
-    const img = canvas.toDataURL("image/png");
-
-    const { jsPDF } = window.jspdf;
-
-    const pdf = new jsPDF("p", "mm", "a4");
-
-    const pageWidth = pdf.internal.pageSize.getWidth();
-
-    const pageHeight = pdf.internal.pageSize.getHeight();
-
-    const margin = 10;
-
-    const imgWidth = pageWidth - margin * 2;
-
-    const imgHeight = canvas.height * imgWidth / canvas.width;
-
-    pdf.addImage(
-        img,
-        "PNG",
-        margin,
-        margin,
-        imgWidth,
-        Math.min(imgHeight, pageHeight - margin * 2)
-    );
-
-    pdf.setFontSize(10);
-
-    pdf.setTextColor(120);
-
-    pdf.text(
-        "TÜGVA Yaz Okulu Finali ve İstanbul Gezisi",
-        pageWidth / 2,
-        pageHeight - 8,
-        { align: "center" }
-    );
-
-    pdf.save(`${katilimci.kayitNo}.pdf`);
-
-    document.body.removeChild(kart);
+    }
 
 }
+
+window.downloadPDF = downloadPDF;
