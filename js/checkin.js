@@ -96,21 +96,17 @@ async function kameraBaslat() {
 
         const cameras = await Html5Qrcode.getCameras();
 
-        if (!cameras.length) {
+let cameraId = cameras[0].id;
 
-            alert("Kamera bulunamadı.");
+const backCamera = cameras.find(camera =>
+    /back|rear|environment|arka/i.test(
+        camera.label
+    )
+);
 
-            return;
-
-        }
-
-        const cameraId = cameras[0].id;
-
-        await scanner.start(
-
-            cameraId,
-
-            {
+if (backCamera) {
+    cameraId = backCamera.id;
+}
 
                 fps: 10,
 
