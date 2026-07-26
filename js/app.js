@@ -15,24 +15,33 @@ let aktifKayitNo = "";
 
 async function kontenjanGuncelle() {
 
+    if (!remainingCount) return;
+
+    remainingCount.textContent = "...";
+
     try {
 
         const toplam = await toplamKayit();
 
-        remainingCount.textContent = Math.max(
-            0,
-            MAX_KONTENJAN - toplam
-        );
+        const kalan = MAX_KONTENJAN - toplam;
 
-    } catch {
+        remainingCount.textContent = kalan > 0 ? kalan : 0;
 
-        remainingCount.textContent = "-";
+    } catch (err) {
+
+        console.error("Kontenjan okunamadı:", err);
+
+        remainingCount.textContent = "0";
 
     }
 
 }
 
-kontenjanGuncelle();
+window.addEventListener("DOMContentLoaded", () => {
+
+    kontenjanGuncelle();
+
+});
 
 form.addEventListener("submit", async (e) => {
 
@@ -53,7 +62,7 @@ form.addEventListener("submit", async (e) => {
         email: form.email.value,
         gender: form.gender.value,
         emergencyName: form.emergencyName.value,
-                emergencyPhone: form.emergencyPhone.value,
+        emergencyPhone: form.emergencyPhone.value,
         note: form.note.value
 
     };
@@ -61,6 +70,7 @@ form.addEventListener("submit", async (e) => {
     const sonuc = await yeniKayit(veri);
 
     button.disabled = false;
+
     button.textContent = "Kayıt Ol";
 
     if (!sonuc.basarili) {
@@ -72,19 +82,19 @@ form.addEventListener("submit", async (e) => {
         return;
 
     }
-
-    aktifKayitNo = sonuc.kayitNo;
+        aktifKayitNo = sonuc.kayitNo;
 
     registerNumber.textContent = sonuc.kayitNo;
 
     remainingCount.textContent = sonuc.kalanKontenjan;
 
     formCard.classList.add("hidden");
+
     successCard.classList.remove("hidden");
 
     if (typeof generateQR === "function") {
 
-        generateQR(sonuc.kayitNo);
+        generateQR(aktifKayitNo);
 
     }
 
@@ -95,6 +105,7 @@ form.addEventListener("submit", async (e) => {
     }
 
 });
+
 newRegister.addEventListener("click", () => {
 
     form.reset();
@@ -102,6 +113,7 @@ newRegister.addEventListener("click", () => {
     aktifKayitNo = "";
 
     formCard.classList.remove("hidden");
+
     successCard.classList.add("hidden");
 
     const qr = document.getElementById("qrcode");
@@ -117,12 +129,6 @@ newRegister.addEventListener("click", () => {
         downloadCard.classList.add("hidden");
 
     }
-
-    kontenjanGuncelle();
-
-});
-
-window.addEventListener("load", () => {
 
     kontenjanGuncelle();
 
@@ -149,9 +155,21 @@ if (pdfButton) {
 
     pdfButton.addEventListener("click", () => {
 
+        if (!aktifKayitNo) {
+
+            alert("Önce kayıt oluşturulmalıdır.");
+
+            return;
+
+        }
+
         if (typeof downloadPDF === "function") {
 
             downloadPDF(aktifKayitNo);
+
+        } else {
+
+            alert("PDF modülü yüklenemedi.");
 
         }
 
@@ -164,6 +182,14 @@ const qrButton = document.getElementById("downloadQr");
 if (qrButton) {
 
     qrButton.addEventListener("click", () => {
+
+        if (!aktifKayitNo) {
+
+            alert("Önce kayıt oluşturulmalıdır.");
+
+            return;
+
+        }
 
         const canvas = document.querySelector("#qrcode canvas");
 
@@ -181,10 +207,34 @@ if (qrButton) {
 
         link.download = `${aktifKayitNo}-QR.png`;
 
+        document.body.appendChild(link);
+
         link.click();
+
+        document.body.removeChild(link);
 
     });
 
 }
+
+/* Her 30 saniyede bir kontenjanı güncelle */
+
+setInterval(() => {
+
+    if (!document.hidden) {
+
+        kontenjanGuncelle();
+
+    }
+
+}, 30000);
+
+/* Sayfa tamamen yüklendiğinde bir kez daha güncelle */
+
+window.addEventListener("load", () => {
+
+    kontenjanGuncelle();
+
+});
 
 window.aktifKayitNo = () => aktifKayitNo;
