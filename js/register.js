@@ -1,18 +1,18 @@
 import{
-
 tcVarMi,
-
 toplamKayit,
-
 kayitOlustur
-
 }from"./firebase.js";
 
 const MAKSIMUM_KONTENJAN=85;
 
 function kayitNumarasiOlustur(sira){
 
-return"TYG-"+String(sira).padStart(4,"0");
+const tarih=new Date();
+
+const yil=tarih.getFullYear().toString().slice(2);
+
+return `TYG${yil}-${String(sira).padStart(4,"0")}`;
 
 }
 
@@ -23,9 +23,7 @@ const tcKayitli=await tcVarMi(veri.tc);
 if(tcKayitli){
 
 throw new Error(
-
 "Bu T.C. Kimlik Numarası ile daha önce kayıt yapılmış."
-
 );
 
 }
@@ -35,17 +33,13 @@ const toplam=await toplamKayit();
 if(toplam>=MAKSIMUM_KONTENJAN){
 
 throw new Error(
-
 "Kontenjan dolmuştur."
-
 );
 
 }
 
 const kayitNo=kayitNumarasiOlustur(
-
 toplam+1
-
 );
 
 await kayitOlustur({
@@ -79,7 +73,6 @@ basarili:true,
 kayitNo,
 
 kalanKontenjan:
-
 MAKSIMUM_KONTENJAN-(toplam+1)
 
 };
