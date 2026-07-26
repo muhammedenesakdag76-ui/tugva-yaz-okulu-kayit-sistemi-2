@@ -1,24 +1,263 @@
 <!DOCTYPE html>
 <html lang="tr">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>TÜGVA Yaz Okulu Finali ve İstanbul Gezisi</title>
 
-    <link rel="stylesheet" href="css/style.css">
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>TÜGVA Yaz Okulu Finali ve İstanbul Gezisi</title>
+
+<link rel="stylesheet" href="css/style.css">
+
 </head>
 
 <body>
 
-    <!-- Sayfanın geri kalan kısmı burada (senin gönderdiğin form içeriği) -->
+<header class="hero">
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<div class="overlay"></div>
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<div class="hero-content">
 
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<h1>TÜGVA</h1>
 
-    <script type="module" src="js/app.js"></script>
+<h2>Yaz Okulu Finali ve İstanbul Gezisi</h2>
+
+<p>Kayıt Formu</p>
+
+</div>
+
+</header>
+
+<main class="container">
+
+<section class="card">
+
+<div class="remaining">
+
+Kalan Kontenjan:
+
+<strong id="remainingCount">85</strong>
+
+</div>
+
+</section>
+
+<section
+class="card"
+id="formCard">
+
+<form
+id="registerForm"
+autocomplete="off">
+
+<h2>Katılımcı Bilgileri</h2>
+
+<div class="form-group">
+
+<label>Ad Soyad</label>
+
+<input
+id="name"
+type="text"
+required>
+
+</div>
+
+<div class="form-group">
+
+<label>T.C. Kimlik No</label>
+
+<input
+id="tc"
+type="text"
+maxlength="11"
+required>
+
+</div>
+
+<div class="form-group">
+
+<label>Doğum Tarihi</label>
+
+<input
+id="birth"
+type="date"
+required>
+
+</div>
+
+<div class="form-group">
+
+<label>Telefon</label>
+
+<input
+id="phone"
+type="tel"
+required>
+
+</div>
+
+<div class="form-group">
+
+<label>E-Posta</label>
+
+<input
+id="email"
+type="email">
+
+</div>
+
+<div class="form-group">
+
+<label>Cinsiyet</label>
+
+<select
+id="gender"
+required>
+
+<option value="">Seçiniz</option>
+
+<option>Erkek</option>
+
+<option>Kadın</option>
+
+</select>
+
+</div>
+<div class="form-group">
+
+<label>Acil Durum Yakını</label>
+
+<input
+id="emergencyName"
+type="text"
+required>
+
+</div>
+
+<div class="form-group">
+
+<label>Acil Durum Telefonu</label>
+
+<input
+id="emergencyPhone"
+type="tel"
+required>
+
+</div>
+
+<div class="form-group">
+
+<label>Not (İsteğe Bağlı)</label>
+
+<textarea
+id="note"
+rows="4"
+placeholder="Varsa belirtmek istediğiniz bir konu yazınız."></textarea>
+
+</div>
+
+<div class="checkbox-group">
+
+<label>
+
+<input
+id="parent"
+type="checkbox"
+required>
+
+Veli/vasi onayını aldığımı kabul ediyorum.
+
+</label>
+
+</div>
+
+<div class="checkbox-group">
+
+<label>
+
+<input
+id="kvkk"
+type="checkbox"
+required>
+
+KVKK kapsamında kişisel verilerimin işlenmesini kabul ediyorum.
+
+</label>
+
+</div>
+
+<button
+type="submit"
+class="btn">
+
+Kayıt Ol
+
+</button>
+
+</form>
+
+</section>
+
+<section
+id="successCard"
+class="card hidden">
+
+<h2>
+
+✅ Kayıt Başarılı
+
+</h2>
+
+<p>
+
+Kayıt Numaranız
+
+</p>
+
+<h1
+id="registerNumber">
+
+TYG26-0001
+
+</h1>
+
+<div
+id="qrcode"
+style="display:flex;justify-content:center;margin:20px 0;">
+
+</div>
+
+<button
+id="downloadCard"
+class="btn">
+
+📄 PDF Biletini İndir
+
+</button>
+
+<button
+id="newRegister"
+class="btn secondary">
+
+Yeni Kayıt
+
+</button>
+
+</section>
+
+</main>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+<script type="module" src="js/app.js"></script>
 
 </body>
+
 </html>
