@@ -29,12 +29,13 @@ async function kontenjanGuncelle() {
 
     } catch (err) {
 
-        console.error("Kontenjan okunamadı:", err);
+    console.error(err);
 
-        remainingCount.textContent = "0";
+    alert(err.message);
 
-    }
+    remainingCount.textContent = "HATA";
 
+}
 }
 
 window.addEventListener("DOMContentLoaded", () => {
