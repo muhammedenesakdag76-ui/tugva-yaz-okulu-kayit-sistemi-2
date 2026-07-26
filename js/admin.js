@@ -164,3 +164,174 @@ function istatistik() {
         Math.max(0, MAX_KONTENJAN - toplam);
 
 }
+searchInput.addEventListener("input", e => {
+
+    const ara = normalize(e.target.value);
+
+    if (!ara) {
+
+        tabloOlustur(kayitlar);
+
+        return;
+
+    }
+
+    const filtre = kayitlar.filter(k =>
+
+        normalize(k.adSoyad).includes(ara) ||
+
+        normalize(k.kayitNo).includes(ara) ||
+
+        (k.tc || "").includes(ara) ||
+
+        (k.telefon || "").includes(ara)
+
+    );
+
+    tabloOlustur(filtre);
+
+});
+
+tableBody.addEventListener("click", async e => {
+
+    const sil = e.target.dataset.delete;
+    const check = e.target.dataset.check;
+
+    if (!sil && !check) return;
+
+    const btn = e.target;
+
+    btn.disabled = true;
+
+    try {
+
+        if (sil) {
+
+            const kayit = kayitlar.find(x => x.id === sil);
+
+            if (!confirm(`${kayit.adSoyad} adlı kayıt silinsin mi?`)) {
+
+                btn.disabled = false;
+
+                return;
+
+            }
+
+            await kayitSil(sil);
+
+            return;
+
+        }
+
+        const kayit = kayitlar.find(x => x.id === check);
+
+        if (!kayit) return;
+
+        if (kayit.checkin) {
+
+            await checkinIptal(check);
+
+        } else {
+
+            await checkinYap(check);
+
+        }
+
+    } catch (err) {
+
+        console.error(err);
+
+        alert("İşlem başarısız.");
+
+    } finally {
+
+        btn.disabled = false;
+
+    }
+
+});
+
+refreshBtn.addEventListener("click", () => {
+
+    searchInput.value = "";
+
+    tabloOlustur(kayitlar);
+
+    istatistik();
+
+});
+
+excelBtn.addEventListener("click", () => {
+
+    const veri = kayitlar.map(k => ({
+
+        "Kayıt No": k.kayitNo,
+        "Ad Soyad": k.adSoyad,
+        "TC": k.tc,
+        "Telefon": k.telefon,
+        "Cinsiyet": k.cinsiyet,
+        "Check-in": k.checkin ? "Evet" : "Hayır"
+
+    }));
+
+    const wb = XLSX.utils.book_new();
+
+    const ws = XLSX.utils.json_to_sheet(veri);
+
+    XLSX.utils.book_append_sheet(wb, ws, "Katılımcılar");
+
+    XLSX.writeFile(wb, "TUGVA_Katilimcilar.xlsx");
+
+});
+
+logoutBtn.addEventListener("click", async () => {
+
+    try {
+
+        if (unsubscribe) {
+
+            unsubscribe();
+
+            unsubscribe = null;
+
+        }
+
+        sessionStorage.removeItem("admin");
+
+        localStorage.removeItem("adminLoginTime");
+
+        await signOut(auth);
+
+    } finally {
+
+        location.replace("login.html");
+
+    }
+
+});
+
+checkinPage.addEventListener("click", () => {
+
+    location.href = "checkin.html";
+
+});
+
+window.addEventListener("beforeunload", () => {
+
+    if (unsubscribe) {
+
+        unsubscribe();
+
+    }
+
+});
+
+window.addEventListener("pageshow", () => {
+
+    searchInput.value = "";
+
+    tabloOlustur(kayitlar);
+
+    istatistik();
+
+});
