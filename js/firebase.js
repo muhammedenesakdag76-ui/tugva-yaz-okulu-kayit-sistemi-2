@@ -4,31 +4,22 @@ import {
 getAuth
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
-import {
-
+import{
 getFirestore,
-
 collection,
-
 addDoc,
-
-getDocs,
-
-getDoc,
-
-doc,
-
-deleteDoc,
-
-updateDoc,
-
 query,
-
 where,
-
-serverTimestamp
-
-} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+getDocs,
+getCountFromServer,
+serverTimestamp,
+deleteDoc,
+doc,
+updateDoc,
+getDoc,
+limit,
+onSnapshot
+}from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
 const firebaseConfig={
 
