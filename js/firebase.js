@@ -206,3 +206,25 @@ import {
 ...
 limit
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+export async function kayitNoIleBul(kayitNo){
+
+const q=query(
+collection(db,COLLECTION),
+where("kayitNo","==",kayitNo),
+limit(1)
+);
+
+const sonuc=await getDocs(q);
+
+if(sonuc.empty){
+return null;
+}
+
+const belge=sonuc.docs[0];
+
+return{
+id:belge.id,
+...belge.data()
+};
+
+}
