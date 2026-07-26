@@ -1,3 +1,5 @@
+import { pdfOlustur } from "./pdf.js";
+
 import { formKontrol } from "./validation.js";
 
 import { yeniKayit } from "./register.js";
@@ -117,8 +119,18 @@ behavior:"smooth"
 
 });
 
-downloadCard.addEventListener("click",()=>{
+downloadCard.addEventListener("click",async()=>{
 
-window.print();
+    await pdfOlustur({
+
+        kayitNo:registerNumber.textContent,
+
+        adSoyad:veri.name,
+
+        tc:veri.tc,
+
+        telefon:veri.phone
+
+    });
 
 });
