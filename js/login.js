@@ -1,82 +1,109 @@
 import { auth } from "./firebase.js";
 
 import {
-    signInWithEmailAndPassword
+    signInWithEmailAndPassword,
+    onAuthStateChanged
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
 const form = document.getElementById("loginForm");
-const submitButton = form.querySelector("button[type='submit']");
+const email = document.getElementById("email");
+const password = document.getElementById("password");
+const error = document.getElementById("error");
+
+onAuthStateChanged(auth, (user) => {
+
+    if (user) {
+
+        window.location.href = "admin.html";
+
+    }
+
+});
 
 form.addEventListener("submit", async (e) => {
 
     e.preventDefault();
 
-    const email = document.getElementById("email").value.trim().toLowerCase();
-    const password = document.getElementById("password").value;
+    error.style.display = "none";
 
-    if (email === "" || password === "") {
+    const button = form.querySelector("button");
 
-        alert("E-posta ve şifre gereklidir.");
-        return;
+    button.disabled = true;
 
-    }
-
-    submitButton.disabled = true;
-    submitButton.textContent = "Giriş Yapılıyor...";
+    button.textContent = "Giriş Yapılıyor...";
 
     try {
 
         await signInWithEmailAndPassword(
+
             auth,
-            email,
-            password
+            email.value.trim(),
+            password.value
+
         );
 
-        sessionStorage.setItem("admin", "true");
-        localStorage.setItem("adminLoginTime", Date.now().toString());
+        localStorage.setItem(
 
-        window.location.replace("admin.html");
+            "adminLoginTime",
 
-    } catch (error) {
+            Date.now()
+
+        );
+
+        window.location.href = "admin.html";
+
+    } catch (err) {
 
         let mesaj = "Giriş başarısız.";
 
-        switch (error.code) {
+        switch (err.code) {
 
-            case "auth/invalid-email":
-                mesaj = "Geçersiz e-posta adresi.";
-                break;
-
-            case "auth/user-not-found":
             case "auth/invalid-credential":
+            case "auth/wrong-password":
+            case "auth/user-not-found":
+            case "auth/invalid-email":
+
                 mesaj = "E-posta veya şifre hatalı.";
                 break;
 
-            case "auth/wrong-password":
-                mesaj = "Şifre hatalı.";
-                break;
-
             case "auth/too-many-requests":
-                mesaj = "Çok fazla başarısız giriş denemesi yapıldı. Lütfen daha sonra tekrar deneyin.";
+
+                mesaj = "Çok fazla başarısız deneme yapıldı. Lütfen daha sonra tekrar deneyin.";
                 break;
 
             case "auth/network-request-failed":
+
                 mesaj = "İnternet bağlantınızı kontrol edin.";
                 break;
 
-            default:
-                console.error(error);
-                mesaj = "Beklenmeyen bir hata oluştu.";
-
         }
 
-        alert(mesaj);
+        error.textContent = mesaj;
+        error.style.display = "block";
 
     } finally {
 
-        submitButton.disabled = false;
-        submitButton.textContent = "Giriş Yap";
+        button.disabled = false;
+        button.textContent = "Giriş Yap";
 
     }
 
 });
+
+const loginTime = Number(localStorage.getItem("adminLoginTime"));
+
+if (loginTime) {
+
+    const gecenSure = Date.now() - loginTime;
+
+    const onIkiSaat = 12 * 60 * 60 * 1000;
+
+    if (gecenSure > onIkiSaat) {
+
+        auth.signOut();
+
+        localStorage.removeItem("adminLoginTime");
+
+    }
+
+}
