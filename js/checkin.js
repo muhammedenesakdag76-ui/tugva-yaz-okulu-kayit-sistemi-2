@@ -81,6 +81,9 @@ checkinButton.addEventListener("click",async()=>{
     if(!aktifKayit) return;
 
     await checkinYap(aktifKayit.id);
+    scanner.clear();
+
+document.getElementById("reader").innerHTML="";
 
     alert("Check-in başarıyla tamamlandı.");
 
