@@ -233,3 +233,14 @@ kameraBaslat().catch(err=>{
     alert("Kamera başlatılamadı. Kamera izni verdiğinizden emin olun.");
 
 });
+window.addEventListener("beforeunload",async()=>{
+
+    try{
+
+        await scanner.stop();
+
+        await scanner.clear();
+
+    }catch{}
+
+});
