@@ -189,4 +189,12 @@ checkinPage.addEventListener("click", () => {
     window.location.href = "checkin.html";
 
 });
-setInterval(yukle,10000);
+kayitlariDinle((liste)=>{
+
+    kayitlar=liste;
+
+    tabloyuDoldur(kayitlar);
+
+    istatistikleriGuncelle();
+
+});
