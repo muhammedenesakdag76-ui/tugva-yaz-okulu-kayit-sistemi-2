@@ -1,1 +1,130 @@
-d
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>QR Check-in</title>
+
+<link rel="stylesheet" href="css/style.css">
+
+</head>
+
+<body>
+
+<header class="hero">
+
+<div class="overlay"></div>
+
+<div class="hero-content">
+
+<h1>TÜGVA</h1>
+
+<h2>QR Check-in</h2>
+
+<p>Kamera ile katılımcı girişi</p>
+
+</div>
+
+</header>
+
+<main class="container">
+
+<div class="card">
+
+<h2>QR Tarayıcı</h2>
+
+<div id="reader" style="width:100%;max-width:500px;margin:auto;"></div>
+
+</div>
+
+<div class="card">
+
+<h2>Manuel Arama</h2>
+
+<div class="toolbar">
+
+<input
+id="manualCode"
+type="text"
+placeholder="TYG-0001">
+
+<button
+class="btn"
+id="manualSearch">
+
+Bul
+
+</button>
+
+</div>
+
+</div>
+
+<div
+class="card hidden"
+id="resultCard">
+
+<h2>Katılımcı</h2>
+
+<div class="grid">
+
+<div>
+
+<strong>Kayıt No</strong>
+
+<p id="rKayitNo"></p>
+
+</div>
+
+<div>
+
+<strong>Ad Soyad</strong>
+
+<p id="rAd"></p>
+
+</div>
+
+<div>
+
+<strong>Telefon</strong>
+
+<p id="rTelefon"></p>
+
+</div>
+
+<div>
+
+<strong>Durum</strong>
+
+<p id="rDurum"></p>
+
+</div>
+
+</div>
+
+<br>
+
+<button
+class="btn"
+id="checkinButton">
+
+Check-in Yap
+
+</button>
+
+</div>
+
+</main>
+
+<script src="https://unpkg.com/html5-qrcode"></script>
+
+<script type="module"
+src="js/checkin.js"></script>
+
+</body>
+
+</html>
