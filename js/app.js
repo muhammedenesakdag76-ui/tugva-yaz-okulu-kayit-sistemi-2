@@ -1,5 +1,5 @@
-import { generateQR } from "./qr.js";
 import { downloadPDF } from "./pdf.js";
+import { generateQR } from "./qr.js";
 import { toplamKayit, MAX_KONTENJAN } from "./firebase.js";
 import { yeniKayit } from "./register.js";
 
