@@ -1,10 +1,10 @@
-// admin.js (1/2)
 import {
     auth,
     kayitSil,
     checkinYap,
     checkinIptal,
-    kayitlariDinle
+    kayitlariDinle,
+    MAX_KONTENJAN
 } from "./firebase.js";
 
 import {
@@ -12,228 +12,217 @@ import {
     signOut
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
-const MAX_KONTENJAN = 85;
-
-const loginTime = Number(localStorage.getItem("adminLoginTime"));
-
-if (
-    sessionStorage.getItem("admin") !== "true" ||
-    !loginTime ||
-    Date.now() - loginTime > 1000 * 60 * 60 * 12
-) {
-    sessionStorage.removeItem("admin");
-    localStorage.removeItem("adminLoginTime");
-    location.replace("login.html");
-}
-
-let kayitlar = [];
-let unsubscribe = null;
-
-const tableBody = document.getElementById("tableBody");
-const searchInput = document.getElementById("searchInput");
-
 const totalCount = document.getElementById("totalCount");
 const checkedCount = document.getElementById("checkedCount");
 const waitingCount = document.getElementById("waitingCount");
 const remainingAdmin = document.getElementById("remainingAdmin");
 
-const logoutBtn = document.getElementById("logoutBtn");
-const refreshBtn = document.getElementById("refreshBtn");
-const checkinPage = document.getElementById("checkinPage");
+const searchInput = document.getElementById("searchInput");
+const tableBody = document.getElementById("tableBody");
+
 const excelBtn = document.getElementById("excelBtn");
+const refreshBtn = document.getElementById("refreshBtn");
+const logoutBtn = document.getElementById("logoutBtn");
+const checkinPage = document.getElementById("checkinPage");
+
+let tumKayitlar = [];
+let unsubscribe = null;
+
+const loginTime = Number(localStorage.getItem("adminLoginTime"));
+
+if (!loginTime || Date.now() - loginTime > 12 * 60 * 60 * 1000) {
+
+    localStorage.removeItem("adminLoginTime");
+
+    window.location.href = "login.html";
+
+}
+
+onAuthStateChanged(auth, (user) => {
+
+    if (!user) {
+
+        window.location.href = "login.html";
+        return;
+
+    }
+
+    if (unsubscribe) {
+
+        unsubscribe();
+
+    }
+
+    unsubscribe = kayitlariDinle((liste) => {
+
+        tumKayitlar = liste;
+
+        tabloyuGoster(liste);
+
+        istatistikleriGuncelle(liste);
+
+    });
+
+});
 
 function normalize(text = "") {
+
     return text
+        .toString()
         .toLowerCase()
         .replace(/ç/g, "c")
         .replace(/ğ/g, "g")
         .replace(/ı/g, "i")
         .replace(/ö/g, "o")
         .replace(/ş/g, "s")
-        .replace(/ü/g, "u")
-        .trim();
+        .replace(/ü/g, "u");
+
+}
+function istatistikleriGuncelle(liste) {
+
+    const toplam = liste.length;
+
+    const checkin = liste.filter(k => k.checkin).length;
+
+    totalCount.textContent = toplam;
+
+    checkedCount.textContent = checkin;
+
+    waitingCount.textContent = toplam - checkin;
+
+    remainingAdmin.textContent = Math.max(
+        0,
+        MAX_KONTENJAN - toplam
+    );
+
 }
 
-onAuthStateChanged(auth, user => {
-
-    if (!user) {
-
-        sessionStorage.removeItem("admin");
-        location.replace("login.html");
-
-        return;
-    }
-
-    if (unsubscribe) unsubscribe();
-
-    unsubscribe = kayitlariDinle(liste => {
-
-        kayitlar = [...liste].sort((a, b) =>
-            a.kayitNo.localeCompare(b.kayitNo)
-        );
-
-        tabloOlustur(kayitlar);
-
-        istatistik();
-
-    });
-
-});
-
-function tabloOlustur(liste) {
+function tabloyuGoster(liste) {
 
     tableBody.innerHTML = "";
 
-    if (!liste.length) {
+    liste.sort((a, b) =>
+        (a.kayitNo || "").localeCompare(b.kayitNo || "")
+    );
 
-        tableBody.innerHTML = `
-<tr>
-<td colspan="8" style="text-align:center;padding:30px;">
-Kayıt bulunamadı.
-</td>
-</tr>`;
+    liste.forEach(k => {
 
-        return;
+        const tr = document.createElement("tr");
 
-    }
+        tr.innerHTML = `
+            <td>${k.kayitNo || "-"}</td>
+            <td>${k.adSoyad || "-"}</td>
+            <td>${k.tc || "-"}</td>
+            <td>
+                <a href="tel:${k.telefon || ""}">
+                    ${k.telefon || "-"}
+                </a>
+            </td>
+            <td>${k.dogumTarihi || "-"}</td>
+            <td>${k.cinsiyet || "-"}</td>
+            <td>
+                ${k.acilDurumKisi || "-"}<br>
+                <small>${k.acilDurumTelefonu || ""}</small>
+            </td>
 
-    liste.forEach((k, i) => {
+            <td>
+                ${
+                    k.checkin
+                    ? "✅ Yapıldı"
+                    : "⏳ Bekliyor"
+                }
+            </td>
 
-        tableBody.insertAdjacentHTML("beforeend", `
+            <td>
 
-<tr>
+                ${
+                    k.checkin
+                    ? `<button class="cancelBtn" data-cancel="${k.id}">
+                        İptal
+                       </button>`
+                    : `<button class="checkBtn" data-check="${k.id}">
+                        Check-in
+                       </button>`
+                }
 
-<td>${i + 1}</td>
+                <button
+                    class="deleteBtn"
+                    data-delete="${k.id}">
+                    Sil
+                </button>
 
-<td>${k.kayitNo}</td>
+            </td>
+        `;
 
-<td>${k.adSoyad}</td>
-
-<td>${k.tc}</td>
-
-<td>
-<a href="tel:${k.telefon}">
-${k.telefon}
-</a>
-</td>
-
-<td>${k.cinsiyet}</td>
-
-<td>
-
-<button
-class="btn ${k.checkin ? "success" : "warning"}"
-data-check="${k.id}">
-
-${k.checkin ? "✅ Giriş" : "❌ Bekliyor"}
-
-</button>
-
-</td>
-
-<td>
-
-<button
-class="deleteBtn"
-data-delete="${k.id}">
-
-🗑️ Sil
-
-</button>
-
-</td>
-
-</tr>
-
-`);
+        tableBody.appendChild(tr);
 
     });
 
 }
+searchInput.addEventListener("input", () => {
 
-function istatistik() {
-
-    const toplam = kayitlar.length;
-
-    const giren = kayitlar.filter(x => x.checkin).length;
-
-    totalCount.textContent = toplam;
-    checkedCount.textContent = giren;
-    waitingCount.textContent = toplam - giren;
-    remainingAdmin.textContent =
-        Math.max(0, MAX_KONTENJAN - toplam);
-
-}
-searchInput.addEventListener("input", e => {
-
-    const ara = normalize(e.target.value);
+    const ara = normalize(searchInput.value);
 
     if (!ara) {
 
-        tabloOlustur(kayitlar);
+        tabloyuGoster(tumKayitlar);
 
         return;
 
     }
 
-    const filtre = kayitlar.filter(k =>
+    const filtreli = tumKayitlar.filter(k => {
 
-        normalize(k.adSoyad).includes(ara) ||
+        return [
 
-        normalize(k.kayitNo).includes(ara) ||
+            k.adSoyad,
+            k.tc,
+            k.telefon,
+            k.kayitNo
 
-        (k.tc || "").includes(ara) ||
+        ].some(deger =>
+            normalize(deger).includes(ara)
+        );
 
-        (k.telefon || "").includes(ara)
+    });
 
-    );
-
-    tabloOlustur(filtre);
+    tabloyuGoster(filtreli);
 
 });
 
-tableBody.addEventListener("click", async e => {
+tableBody.addEventListener("click", async (e) => {
 
-    const sil = e.target.dataset.delete;
-    const check = e.target.dataset.check;
-
-    if (!sil && !check) return;
-
-    const btn = e.target;
-
-    btn.disabled = true;
+    const checkId = e.target.dataset.check;
+    const cancelId = e.target.dataset.cancel;
+    const deleteId = e.target.dataset.delete;
 
     try {
 
-        if (sil) {
+        if (checkId) {
 
-            const kayit = kayitlar.find(x => x.id === sil);
-
-            if (!confirm(`${kayit.adSoyad} adlı kayıt silinsin mi?`)) {
-
-                btn.disabled = false;
-
-                return;
-
-            }
-
-            await kayitSil(sil);
+            await checkinYap(checkId);
 
             return;
 
         }
 
-        const kayit = kayitlar.find(x => x.id === check);
+        if (cancelId) {
 
-        if (!kayit) return;
+            await checkinIptal(cancelId);
 
-        if (kayit.checkin) {
+            return;
 
-            await checkinIptal(check);
+        }
 
-        } else {
+        if (deleteId) {
 
-            await checkinYap(check);
+            const onay = confirm(
+                "Bu kayıt silinsin mi?"
+            );
+
+            if (!onay) return;
+
+            await kayitSil(deleteId);
 
         }
 
@@ -241,81 +230,72 @@ tableBody.addEventListener("click", async e => {
 
         console.error(err);
 
-        alert("İşlem başarısız.");
-
-    } finally {
-
-        btn.disabled = false;
+        alert("İşlem sırasında hata oluştu.");
 
     }
+
+});
+excelBtn.addEventListener("click", () => {
+
+    const veri = tumKayitlar.map(k => ({
+
+        "Kayıt No": k.kayitNo,
+        "Ad Soyad": k.adSoyad,
+        "T.C.": k.tc,
+        "Telefon": k.telefon,
+        "Doğum Tarihi": k.dogumTarihi,
+        "Cinsiyet": k.cinsiyet,
+        "E-Posta": k.email,
+        "Acil Durum Kişisi": k.acilDurumKisi,
+        "Acil Durum Telefonu": k.acilDurumTelefonu,
+        "Not": k.not,
+        "Check-in": k.checkin ? "Evet" : "Hayır",
+        "Check-in Saati": k.checkinSaati?.toDate?.().toLocaleString("tr-TR") || ""
+
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(veri);
+
+    const wb = XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(
+        wb,
+        ws,
+        "Kayıtlar"
+    );
+
+    XLSX.writeFile(
+        wb,
+        "TUGVA_Yaz_Okulu_Kayitlari.xlsx"
+    );
 
 });
 
 refreshBtn.addEventListener("click", () => {
 
+    tabloyuGoster(tumKayitlar);
+
+    istatistikleriGuncelle(tumKayitlar);
+
     searchInput.value = "";
-
-    tabloOlustur(kayitlar);
-
-    istatistik();
-
-});
-
-excelBtn.addEventListener("click", () => {
-
-    const veri = kayitlar.map(k => ({
-
-        "Kayıt No": k.kayitNo,
-        "Ad Soyad": k.adSoyad,
-        "TC": k.tc,
-        "Telefon": k.telefon,
-        "Cinsiyet": k.cinsiyet,
-        "Check-in": k.checkin ? "Evet" : "Hayır"
-
-    }));
-
-    const wb = XLSX.utils.book_new();
-
-    const ws = XLSX.utils.json_to_sheet(veri);
-
-    XLSX.utils.book_append_sheet(wb, ws, "Katılımcılar");
-
-    XLSX.writeFile(wb, "TUGVA_Katilimcilar.xlsx");
-
-});
-
-logoutBtn.addEventListener("click", async () => {
-
-    try {
-
-        if (unsubscribe) {
-
-            unsubscribe();
-
-            unsubscribe = null;
-
-        }
-
-        sessionStorage.removeItem("admin");
-
-        localStorage.removeItem("adminLoginTime");
-
-        await signOut(auth);
-
-    } finally {
-
-        location.replace("login.html");
-
-    }
 
 });
 
 checkinPage.addEventListener("click", () => {
 
-    location.href = "checkin.html";
+    window.location.href = "checkin.html";
 
 });
 
+logoutBtn.addEventListener("click", async () => {
+
+    await signOut(auth);
+
+    localStorage.removeItem("adminLoginTime");
+
+    window.location.href = "login.html";
+
+});
 window.addEventListener("beforeunload", () => {
 
     if (unsubscribe) {
@@ -326,12 +306,45 @@ window.addEventListener("beforeunload", () => {
 
 });
 
-window.addEventListener("pageshow", () => {
+document.addEventListener("visibilitychange", () => {
 
-    searchInput.value = "";
+    if (document.hidden) {
 
-    tabloOlustur(kayitlar);
+        return;
 
-    istatistik();
+    }
+
+    tabloyuGoster(tumKayitlar);
+
+    istatistikleriGuncelle(tumKayitlar);
 
 });
+
+setInterval(() => {
+
+    const loginTime = Number(
+        localStorage.getItem("adminLoginTime")
+    );
+
+    if (!loginTime) {
+
+        window.location.href = "login.html";
+        return;
+
+    }
+
+    const gecenSure = Date.now() - loginTime;
+
+    if (gecenSure > 12 * 60 * 60 * 1000) {
+
+        signOut(auth);
+
+        localStorage.removeItem("adminLoginTime");
+
+        alert("Oturum süreniz doldu.");
+
+        window.location.href = "login.html";
+
+    }
+
+}, 60000);
