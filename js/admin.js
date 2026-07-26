@@ -1,3 +1,13 @@
+const loginTime = Number(localStorage.getItem("adminLoginTime"));
+
+if(!loginTime || Date.now()-loginTime>1000*60*60*12){
+
+    sessionStorage.removeItem("admin");
+    localStorage.removeItem("adminLoginTime");
+
+    location.href="login.html";
+
+}
 if (sessionStorage.getItem("admin") !== "true") {
     location.href = "login.html";
 }
