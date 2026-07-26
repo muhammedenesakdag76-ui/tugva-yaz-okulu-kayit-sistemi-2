@@ -1,146 +1,93 @@
 import { pdfOlustur } from "./pdf.js";
-
 import { formKontrol } from "./validation.js";
-
 import { yeniKayit } from "./register.js";
-
 import { toplamKayit } from "./firebase.js";
-
 import { qrOlustur } from "./qr.js";
 
-const form=document.getElementById("registerForm");
+const form = document.getElementById("registerForm");
+const formCard = document.getElementById("formCard");
+const successCard = document.getElementById("successCard");
+const remainingCount = document.getElementById("remainingCount");
+const registerNumber = document.getElementById("registerNumber");
+const newRegister = document.getElementById("newRegister");
+const downloadCard = document.getElementById("downloadCard");
 
-const formCard=document.getElementById("formCard");
-
-const successCard=document.getElementById("successCard");
-
-const remainingCount=document.getElementById("remainingCount");
-
-const registerNumber=document.getElementById("registerNumber");
-
-const newRegister=document.getElementById("newRegister");
-
-const downloadCard=document.getElementById("downloadCard");
-
-async function kontenjanGuncelle(){
-
-const toplam=await toplamKayit();
-
-remainingCount.textContent=85-toplam;
-
+async function kontenjanGuncelle() {
+    const toplam = await toplamKayit();
+    remainingCount.textContent = 85 - toplam;
 }
 
 kontenjanGuncelle();
 
-form.addEventListener("submit",async(e)=>{
+form.addEventListener("submit", async (e) => {
 
-e.preventDefault();
+    e.preventDefault();
 
-const veri={
+    const veri = {
+        name: document.getElementById("name").value.trim(),
+        tc: document.getElementById("tc").value.trim(),
+        birth: document.getElementById("birth").value,
+        phone: document.getElementById("phone").value.trim(),
+        email: document.getElementById("email").value.trim(),
+        gender: document.getElementById("gender").value,
+        emergencyName: document.getElementById("emergencyName").value.trim(),
+        emergencyPhone: document.getElementById("emergencyPhone").value.trim(),
+        note: document.getElementById("note").value.trim(),
+        parent: document.getElementById("parent").checked,
+        kvkk: document.getElementById("kvkk").checked
+    };
 
-name:document.getElementById("name").value.trim(),
+    const hata = formKontrol(veri);
 
-tc:document.getElementById("tc").value.trim(),
+    if (hata) {
+        alert(hata);
+        return;
+    }
 
-birth:document.getElementById("birth").value,
+    try {
 
-phone:document.getElementById("phone").value.trim(),
+        const sonuc = await yeniKayit(veri);
 
-email:document.getElementById("email").value.trim(),
+        const katilimci = {
+            kayitNo: sonuc.kayitNo,
+            adSoyad: veri.name,
+            tc: veri.tc,
+            telefon: veri.phone
+        };
 
-gender:document.getElementById("gender").value,
+        registerNumber.textContent = katilimci.kayitNo;
 
-emergencyName:document.getElementById("emergencyName").value.trim(),
+        await qrOlustur(katilimci);
 
-emergencyPhone:document.getElementById("emergencyPhone").value.trim(),
+        remainingCount.textContent = sonuc.kalanKontenjan;
 
-note:document.getElementById("note").value.trim(),
+        downloadCard.onclick = async () => {
+            await pdfOlustur(katilimci);
+        };
 
-parent:document.getElementById("parent").checked,
+        formCard.classList.add("hidden");
+        successCard.classList.remove("hidden");
 
-kvkk:document.getElementById("kvkk").checked
+        form.reset();
 
-};
+    } catch (err) {
 
-const hata=formKontrol(veri);
+        alert(err.message);
 
-if(hata){
-
-alert(hata);
-
-return;
-
-}
-
-try{
-
-const sonuc=await yeniKayit(veri);
-
-registerNumber.textContent = sonuc.kayitNo;
-
-const katilimci = {
-    kayitNo: sonuc.kayitNo,
-    adSoyad: veri.name,
-    tc: veri.tc,
-    telefon: veri.phone
-};
-
-await qrOlustur(katilimci);
-
-remainingCount.textContent = sonuc.kalanKontenjan;
-
-downloadCard.onclick = async () => {
-
-    const { pdfOlustur } = await import("./pdf.js");
-
-    await pdfOlustur(katilimci);
-
-};
-
-formCard.classList.add("hidden");
-
-successCard.classList.remove("hidden");
-
-form.reset();
-
-}catch(err){
-
-alert(err.message);
-
-}
+    }
 
 });
 
-newRegister.addEventListener("click",()=>{
+newRegister.addEventListener("click", () => {
 
-successCard.classList.add("hidden");
+    successCard.classList.add("hidden");
+    formCard.classList.remove("hidden");
 
-formCard.classList.remove("hidden");
+    kontenjanGuncelle();
 
-kontenjanGuncelle();
-
-window.scrollTo({
-
-top:0,
-
-behavior:"smooth"
-
-});
-
-});
-
-downloadCard.addEventListener("click",async()=>{
-
-    await pdfOlustur({
-
-        kayitNo:registerNumber.textContent,
-
-        adSoyad:veri.name,
-
-        tc:veri.tc,
-
-        telefon:veri.phone
-
+    window.scrollTo({
+        top: 0,
+        behavior: "smooth"
     });
 
 });
