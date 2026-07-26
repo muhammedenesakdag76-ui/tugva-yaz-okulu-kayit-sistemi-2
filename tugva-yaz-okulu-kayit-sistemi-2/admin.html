@@ -1,1 +1,159 @@
-d
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0">
+
+<title>Yönetici Paneli</title>
+
+<link rel="stylesheet" href="css/style.css">
+
+</head>
+
+<body>
+
+<header class="hero">
+
+<div class="overlay"></div>
+
+<div class="hero-content">
+
+<h1>TÜGVA</h1>
+
+<h2>Yönetici Paneli</h2>
+
+<p>Kayıt Yönetim Sistemi</p>
+
+</div>
+
+</header>
+
+<main class="container">
+
+<section class="stats">
+
+<div class="stat-card">
+
+<p>Toplam Kayıt</p>
+
+<h3 id="totalCount">0</h3>
+
+</div>
+
+<div class="stat-card">
+
+<p>Check-in</p>
+
+<h3 id="checkedCount">0</h3>
+
+</div>
+
+<div class="stat-card">
+
+<p>Bekleyen</p>
+
+<h3 id="waitingCount">0</h3>
+
+</div>
+
+<div class="stat-card">
+
+<p>Kalan Kontenjan</p>
+
+<h3 id="remainingAdmin">85</h3>
+
+</div>
+
+</section>
+
+<section class="card">
+
+<div class="toolbar">
+
+<input
+type="text"
+id="searchInput"
+placeholder="Ad Soyad, T.C. veya Telefon Ara...">
+
+<button
+class="btn"
+id="excelBtn">
+
+Excel
+
+</button>
+
+<button
+class="btn"
+id="refreshBtn">
+
+Yenile
+
+</button>
+
+<button
+class="btn"
+id="checkinPage">
+
+QR Check-in
+
+</button>
+
+<button
+class="btn secondary"
+id="logoutBtn">
+
+Çıkış Yap
+
+</button>
+
+</div>
+
+<div style="overflow:auto;">
+
+<table>
+
+<thead>
+
+<tr>
+
+<th>Kayıt No</th>
+
+<th>Ad Soyad</th>
+
+<th>T.C.</th>
+
+<th>Telefon</th>
+
+<th>Cinsiyet</th>
+
+<th>Check-in</th>
+
+<th>İşlem</th>
+
+</tr>
+
+</thead>
+
+<tbody id="tableBody">
+
+</tbody>
+
+</table>
+
+</div>
+
+</section>
+
+</main>
+
+<script type="module"
+src="js/admin.js"></script>
+
+</body>
+
+</html>
