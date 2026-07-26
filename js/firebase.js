@@ -261,3 +261,12 @@ export function kayitlariDinle(callback){
 
 }
 export const MAX_KONTENJAN = 85;
+export const ETKINLIK_BILGISI={
+
+    ad:"TÜGVA Yaz Okulu Finali ve İstanbul Gezisi",
+
+    tarih:"31 Temmuz 2026",
+
+    kontenjan:85
+
+};
