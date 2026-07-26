@@ -1,6 +1,6 @@
 export async function downloadPDF(kayitNo) {
 
-    const kart = document.getElementById("downloadCard");
+  const kart = document.getElementById("successCard");
 
     if (!kart) {
 
