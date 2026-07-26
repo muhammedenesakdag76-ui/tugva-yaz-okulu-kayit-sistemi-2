@@ -1,79 +1,65 @@
 import { auth } from "./firebase.js";
 
 import {
-
 signInWithEmailAndPassword
-
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
-const form=document.getElementById("loginForm");
+const form = document.getElementById("loginForm");
 
-form.addEventListener("submit",async(e)=>{
+form.addEventListener("submit", async (e) => {
 
-e.preventDefault();
+    e.preventDefault();
 
-const email=document.getElementById("email").value.trim();
+    const email = document.getElementById("email").value.trim();
 
-const password=document.getElementById("password").value;
+    const password = document.getElementById("password").value;
 
-try{
+    try {
 
-await signInWithEmailAndPassword(
+        await signInWithEmailAndPassword(
+            auth,
+            email,
+            password
+        );
 
-auth,
+        // Admin oturumunu tarayıcı oturumunda sakla
+        sessionStorage.setItem("admin", "true");
 
-email,
+        window.location.href = "admin.html";
 
-password
+    } catch (error) {
 
-);
+        let mesaj = "Giriş başarısız.";
 
-window.location.href="admin.html";
+        switch (error.code) {
 
-}catch(error){
+            case "auth/invalid-email":
+                mesaj = "Geçersiz e-posta adresi.";
+                break;
 
-let mesaj="Giriş başarısız.";
+            case "auth/user-not-found":
+                mesaj = "Kullanıcı bulunamadı.";
+                break;
 
-switch(error.code){
+            case "auth/wrong-password":
+                mesaj = "Şifre hatalı.";
+                break;
 
-case"auth/invalid-email":
+            case "auth/invalid-credential":
+                mesaj = "E-posta veya şifre hatalı.";
+                break;
 
-mesaj="Geçersiz e-posta adresi.";
+            case "auth/too-many-requests":
+                mesaj = "Çok fazla başarısız deneme yapıldı.";
+                break;
 
-break;
+            default:
+                mesaj = error.message;
 
-case"auth/user-not-found":
+        }
 
-mesaj="Kullanıcı bulunamadı.";
+        alert(mesaj);
 
-break;
-
-case"auth/wrong-password":
-
-mesaj="Şifre hatalı.";
-
-break;
-
-case"auth/invalid-credential":
-
-mesaj="E-posta veya şifre hatalı.";
-
-break;
-
-case"auth/too-many-requests":
-
-mesaj="Çok fazla başarısız deneme yapıldı.";
-
-break;
-
-default:
-
-mesaj=error.message;
-
-}
-
-alert(mesaj);
-
-}
+    }
 
 });
