@@ -4,15 +4,17 @@ toplamKayit,
 kayitOlustur
 }from"./firebase.js";
 
-const MAKSIMUM_KONTENJAN=85;
+const MAX_KONTENJAN = 85;
 
-function kayitNumarasiOlustur(sira){
+if(toplam >= MAX_KONTENJAN){
 
-const tarih=new Date();
+    return{
 
-const yil=tarih.getFullYear().toString().slice(2);
+        basarili:false,
 
-return `TYG${yil}-${String(sira).padStart(4,"0")}`;
+        mesaj:"Kontenjan dolmuştur."
+
+    };
 
 }
 
