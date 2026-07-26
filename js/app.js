@@ -76,7 +76,12 @@ const sonuc=await yeniKayit(veri);
 
 registerNumber.textContent=sonuc.kayitNo;
 
-await qrOlustur(sonuc.kayitNo);
+await qrOlustur({
+    kayitNo: sonuc.kayitNo,
+    adSoyad: veri.name,
+    tc: veri.tc,
+    telefon: veri.phone
+});
 
 remainingCount.textContent=sonuc.kalanKontenjan;
 
