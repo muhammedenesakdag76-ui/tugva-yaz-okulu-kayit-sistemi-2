@@ -29,14 +29,12 @@ function goster(kayit){
     if(kayit.checkin){
 
         rDurum.textContent = "✅ Giriş Yapılmış";
-
         checkinButton.disabled = true;
         checkinButton.textContent = "Check-in Tamamlandı";
 
     }else{
 
         rDurum.textContent = "❌ Bekliyor";
-
         checkinButton.disabled = false;
         checkinButton.textContent = "Check-in Yap";
 
@@ -51,7 +49,6 @@ async function ara(kayitNo){
     if(!kayit){
 
         alert("Katılımcı bulunamadı.");
-
         return;
 
     }
@@ -62,17 +59,16 @@ async function ara(kayitNo){
 
 manualSearch.addEventListener("click",()=>{
 
-    const kod = manualCode.value.trim();
+    const kayitNo = manualCode.value.trim().toUpperCase();
 
-    if(kod===""){
+    if(kayitNo===""){
 
         alert("Kayıt numarası giriniz.");
-
         return;
 
     }
 
-    ara(kod);
+    ara(kayitNo);
 
 });
 
@@ -81,9 +77,6 @@ checkinButton.addEventListener("click",async()=>{
     if(!aktifKayit) return;
 
     await checkinYap(aktifKayit.id);
-    scanner.clear();
-
-document.getElementById("reader").innerHTML="";
 
     alert("Check-in başarıyla tamamlandı.");
 
@@ -97,44 +90,36 @@ const scanner = new Html5Qrcode("reader");
 
 scanner.start(
 
-{ facingMode:"environment" },
+    { facingMode:"environment" },
 
-{
+    {
+        fps:10,
+        qrbox:250
+    },
 
-fps:10,
+    async(decodedText)=>{
 
-qrbox:250
+        let veri;
 
-},
+        try{
 
-async(decodedText)=>{
+            veri = JSON.parse(decodedText);
 
-try{
+        }catch{
 
-let veri;
+            alert("Geçersiz QR Kod");
+            return;
 
-try{
+        }
 
-    veri=JSON.parse(decodedText);
+        await ara(veri.kayitNo);
 
-}catch{
+        await scanner.stop();
 
-    alert("Geçersiz QR Kod");
+        await scanner.clear();
 
-    return;
+        document.getElementById("reader").innerHTML="";
 
-}
-
-await ara(veri.kayitNo);
-
-await scanner.stop();
-
-}catch{
-
-alert("Geçersiz QR kodu.");
-
-}
-
-}
+    }
 
 );
