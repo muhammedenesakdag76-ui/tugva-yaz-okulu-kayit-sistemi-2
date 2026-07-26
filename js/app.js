@@ -1,44 +1,30 @@
-window.addEventListener("beforeunload",(e)=>{
-
-    if(kayitOluyor){
-
-        e.preventDefault();
-
-        e.returnValue="";
-
-    }
-
-});
-let kayitOluyor = false;
-
-import { pdfOlustur } from "./pdf.js";
-import { formKontrol } from "./validation.js";
+import { toplamKayit, MAX_KONTENJAN } from "./firebase.js";
 import { yeniKayit } from "./register.js";
-import { toplamKayit } from "./firebase.js";
-import { qrOlustur } from "./qr.js";
-
-const MAX_KONTENJAN = 85;
 
 const form = document.getElementById("registerForm");
 const formCard = document.getElementById("formCard");
 const successCard = document.getElementById("successCard");
+
 const remainingCount = document.getElementById("remainingCount");
 const registerNumber = document.getElementById("registerNumber");
+
 const newRegister = document.getElementById("newRegister");
 const downloadCard = document.getElementById("downloadCard");
-const submitButton = form.querySelector("button[type='submit']");
 
-async function kontenjanGuncelle(){
+let aktifKayitNo = "";
 
-    try{
+async function kontenjanGuncelle() {
+
+    try {
 
         const toplam = await toplamKayit();
 
-        remainingCount.textContent = Math.max(0, MAX_KONTENJAN - toplam);
+        remainingCount.textContent = Math.max(
+            0,
+            MAX_KONTENJAN - toplam
+        );
 
-    }catch(err){
-
-        console.error(err);
+    } catch {
 
         remainingCount.textContent = "-";
 
@@ -48,163 +34,157 @@ async function kontenjanGuncelle(){
 
 kontenjanGuncelle();
 
-form.addEventListener("submit",async(e)=>{
+form.addEventListener("submit", async (e) => {
 
     e.preventDefault();
 
-    if(kayitOluyor) return;
+    const button = form.querySelector("button[type='submit']");
 
-    kayitOluyor = true;
+    button.disabled = true;
 
-    submitButton.disabled = true;
-    submitButton.textContent = "Kaydediliyor...";
+    button.textContent = "Kayıt Yapılıyor...";
 
-    const veri={
+    const veri = {
 
-        name:document.getElementById("name").value.trim(),
-
-        tc:document.getElementById("tc").value.trim(),
-
-        birth:document.getElementById("birth").value,
-
-        phone:document.getElementById("phone").value.trim(),
-
-        email:document.getElementById("email").value.trim().toLowerCase(),
-
-        gender:document.getElementById("gender").value,
-
-        emergencyName:document.getElementById("emergencyName").value.trim(),
-
-        emergencyPhone:document.getElementById("emergencyPhone").value.trim(),
-
-        note:document.getElementById("note").value.trim(),
-
-        parent:document.getElementById("parent").checked,
-
-        kvkk:document.getElementById("kvkk").checked
+        name: form.name.value,
+        tc: form.tc.value,
+        birth: form.birth.value,
+        phone: form.phone.value,
+        email: form.email.value,
+        gender: form.gender.value,
+        emergencyName: form.emergencyName.value,
+                emergencyPhone: form.emergencyPhone.value,
+        note: form.note.value
 
     };
 
-    const hata = formKontrol(veri);
+    const sonuc = await yeniKayit(veri);
 
-    if(hata){
+    button.disabled = false;
+    button.textContent = "Kayıt Ol";
 
-        alert(hata);
+    if (!sonuc.basarili) {
 
-        submitButton.disabled = false;
-        submitButton.textContent = "Kayıt Ol";
+        alert(sonuc.mesaj);
 
-        kayitOluyor = false;
+        kontenjanGuncelle();
 
         return;
 
     }
 
-    try{
+    aktifKayitNo = sonuc.kayitNo;
 
-        const sonuc = await yeniKayit(veri);
+    registerNumber.textContent = sonuc.kayitNo;
 
-        if(!sonuc.basarili){
+    remainingCount.textContent = sonuc.kalanKontenjan;
 
-            alert(sonuc.mesaj);
+    formCard.classList.add("hidden");
+    successCard.classList.remove("hidden");
+
+    if (typeof generateQR === "function") {
+
+        generateQR(sonuc.kayitNo);
+
+    }
+
+    if (downloadCard) {
+
+        downloadCard.classList.remove("hidden");
+
+    }
+
+});
+newRegister.addEventListener("click", () => {
+
+    form.reset();
+
+    aktifKayitNo = "";
+
+    formCard.classList.remove("hidden");
+    successCard.classList.add("hidden");
+
+    const qr = document.getElementById("qrcode");
+
+    if (qr) {
+
+        qr.innerHTML = "";
+
+    }
+
+    if (downloadCard) {
+
+        downloadCard.classList.add("hidden");
+
+    }
+
+    kontenjanGuncelle();
+
+});
+
+window.addEventListener("load", () => {
+
+    kontenjanGuncelle();
+
+});
+
+window.addEventListener("focus", () => {
+
+    kontenjanGuncelle();
+
+});
+
+document.addEventListener("visibilitychange", () => {
+
+    if (!document.hidden) {
+
+        kontenjanGuncelle();
+
+    }
+
+});
+const pdfButton = document.getElementById("downloadPdf");
+
+if (pdfButton) {
+
+    pdfButton.addEventListener("click", () => {
+
+        if (typeof downloadPDF === "function") {
+
+            downloadPDF(aktifKayitNo);
+
+        }
+
+    });
+
+}
+
+const qrButton = document.getElementById("downloadQr");
+
+if (qrButton) {
+
+    qrButton.addEventListener("click", () => {
+
+        const canvas = document.querySelector("#qrcode canvas");
+
+        if (!canvas) {
+
+            alert("QR kod oluşturulamadı.");
 
             return;
 
         }
 
-        const katilimci={
+        const link = document.createElement("a");
 
-            kayitNo:sonuc.kayitNo,
+        link.href = canvas.toDataURL("image/png");
 
-            adSoyad:veri.name,
+        link.download = `${aktifKayitNo}-QR.png`;
 
-            tc:veri.tc,
-
-            telefon:veri.phone
-
-        };
-
-        registerNumber.textContent = katilimci.kayitNo;
-
-        await qrOlustur(katilimci);
-
-        remainingCount.textContent = sonuc.kalanKontenjan;
-
-        downloadCard.onclick = async()=>{
-
-            try{
-
-                await pdfOlustur(katilimci);
-
-            }catch(err){
-
-                console.error(err);
-
-                alert("PDF oluşturulurken hata oluştu.");
-
-            }
-
-        };
-
-        formCard.classList.add("hidden");
-        successCard.classList.remove("hidden");
-
-        successCard.scrollIntoView({
-
-            behavior:"smooth",
-
-            block:"start"
-
-        });
-
-        form.reset();
-
-    }catch(err){
-
-        console.error(err);
-
-        alert(err.message || "Bir hata oluştu. Lütfen tekrar deneyiniz.");
-
-    }finally{
-
-        kayitOluyor = false;
-
-        submitButton.disabled = false;
-
-        submitButton.textContent = "Kayıt Ol";
-
-        await kontenjanGuncelle();
-
-    }
-
-});
-
-newRegister.addEventListener("click",()=>{
-
-    successCard.classList.add("hidden");
-
-    formCard.classList.remove("hidden");
-
-    form.reset();
-
-    kontenjanGuncelle();
-
-    window.scrollTo({
-
-        top:0,
-
-        behavior:"smooth"
+        link.click();
 
     });
 
-});
+}
 
-window.addEventListener("pageshow",()=>{
-
-    submitButton.disabled = false;
-
-    submitButton.textContent = "Kayıt Ol";
-
-    kayitOluyor = false;
-
-});
+window.aktifKayitNo = () => aktifKayitNo;
