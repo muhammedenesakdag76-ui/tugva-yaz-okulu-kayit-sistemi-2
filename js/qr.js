@@ -1,58 +1,67 @@
-let qr = null;
+export function generateQR(kayitNo) {
 
-export async function qrOlustur(katilimci) {
+    const alan = document.getElementById("qrcode");
 
-    const alan = document.getElementById("qr");
+    if (!alan) return;
 
     alan.innerHTML = "";
 
-    const veri = {
+    new QRCode(alan, {
 
-        kayitNo: katilimci.kayitNo,
-        adSoyad: katilimci.adSoyad,
-        tc: katilimci.tc,
-        telefon: katilimci.telefon,
-        tarih: new Date().toISOString(),
-        etkinlik: "TÜGVA Yaz Okulu Finali ve İstanbul Gezisi"
-
-    };
-
-    qr = new QRCode(alan, {
-
-        text: JSON.stringify(veri),
-
-        width: 240,
-
-        height: 240,
-
+        text: kayitNo,
+        width: 220,
+        height: 220,
+        colorDark: "#000000",
+        colorLight: "#ffffff",
         correctLevel: QRCode.CorrectLevel.H
 
     });
 
-    return veri;
+}
+
+export function qrResmiAl() {
+
+    const canvas = document.querySelector("#qrcode canvas");
+
+    if (canvas) {
+
+        return canvas.toDataURL("image/png");
+
+    }
+
+    const img = document.querySelector("#qrcode img");
+
+    if (img) {
+
+        return img.src;
+
+    }
+
+    return null;
 
 }
 
-export function qrTemizle() {
+export function qrIndir(kayitNo) {
 
-    const alan = document.getElementById("qr");
+    const veri = qrResmiAl();
 
-    alan.innerHTML = "";
+    if (!veri) {
 
-    qr = null;
+        alert("QR kod oluşturulamadı.");
 
-}
+        return;
 
-export function qrVerisiOlustur(katilimci) {
+    }
 
-    return JSON.stringify({
+    const link = document.createElement("a");
 
-        kayitNo: katilimci.kayitNo,
-        adSoyad: katilimci.adSoyad,
-        tc: katilimci.tc,
-        telefon: katilimci.telefon,
-        etkinlik: "TÜGVA Yaz Okulu Finali ve İstanbul Gezisi"
+    link.href = veri;
 
-    });
+    link.download = `${kayitNo}-QR.png`;
+
+    link.click();
 
 }
+
+window.generateQR = generateQR;
+window.qrIndir = qrIndir;
