@@ -188,3 +188,4 @@ checkinPage.addEventListener("click", () => {
     window.location.href = "checkin.html";
 
 });
+setInterval(yukle,10000);
