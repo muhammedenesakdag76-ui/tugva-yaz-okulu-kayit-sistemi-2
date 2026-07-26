@@ -1,3 +1,4 @@
+import { downloadPDF } from "./pdf.js";
 import { toplamKayit, MAX_KONTENJAN } from "./firebase.js";
 import { yeniKayit } from "./register.js";
 
@@ -164,11 +165,7 @@ if (pdfButton) {
 
         }
 
-        if (typeof downloadPDF === "function") {
-
-            downloadPDF(aktifKayitNo);
-
-        } else {
+       downloadPDF(aktifKayitNo); else {
 
             alert("PDF modülü yüklenemedi.");
 
