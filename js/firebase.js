@@ -160,19 +160,15 @@ export async function checkinYap(id) {
 
 export async function checkinIptal(id){
 
-await updateDoc(
+export async function checkinIptal(id){
 
-doc(db,COLLECTION,id),
+    await updateDoc(doc(db,"kayitlar",id),{
 
-{
+        checkin:false,
+        checkinSaati:null,
+        guncellenmeTarihi:serverTimestamp()
 
-checkin:false,
-
-checkinSaati:null
-
-}
-
-);
+    });
 
 }
 
