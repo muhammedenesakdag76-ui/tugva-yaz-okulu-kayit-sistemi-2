@@ -25,7 +25,7 @@
 
 <h2>Yaz Okulu Finali ve İstanbul Gezisi</h2>
 
-<p>Kayıt Formu</p>
+<p>Katılım Kayıt Sistemi</p>
 
 </div>
 
@@ -35,52 +35,67 @@
 
 <section class="card">
 
-<div class="remaining">
+<div class="remaining-box">
 
-Kalan Kontenjan:
+<h3>Kalan Kontenjan</h3>
 
-<strong id="remainingCount">85</strong>
+<h1 id="remainingCount">85</h1>
 
 </div>
 
 </section>
 
 <section
-class="card"
-id="formCard">
+id="formCard"
+class="card">
+
+<h2>Katılımcı Bilgileri</h2>
 
 <form
 id="registerForm"
 autocomplete="off">
 
-<h2>Katılımcı Bilgileri</h2>
-
 <div class="form-group">
 
-<label>Ad Soyad</label>
+<label for="name">
+
+Ad Soyad
+
+</label>
 
 <input
 id="name"
 type="text"
+placeholder="Ad Soyad"
 required>
 
 </div>
 
 <div class="form-group">
 
-<label>T.C. Kimlik No</label>
+<label for="tc">
+
+T.C. Kimlik No
+
+</label>
 
 <input
 id="tc"
 type="text"
 maxlength="11"
+inputmode="numeric"
+placeholder="11 Haneli T.C."
 required>
 
 </div>
 
 <div class="form-group">
 
-<label>Doğum Tarihi</label>
+<label for="birth">
+
+Doğum Tarihi
+
+</label>
 
 <input
 id="birth"
@@ -91,76 +106,116 @@ required>
 
 <div class="form-group">
 
-<label>Telefon</label>
+<label for="phone">
+
+Telefon
+
+</label>
 
 <input
 id="phone"
 type="tel"
+placeholder="05XXXXXXXXX"
 required>
 
 </div>
 
 <div class="form-group">
 
-<label>E-Posta</label>
+<label for="email">
+
+E-Posta
+
+</label>
 
 <input
 id="email"
-type="email">
+type="email"
+placeholder="ornek@mail.com">
 
 </div>
 
 <div class="form-group">
 
-<label>Cinsiyet</label>
+<label for="gender">
+
+Cinsiyet
+
+</label>
 
 <select
 id="gender"
 required>
 
-<option value="">Seçiniz</option>
+<option value="">
 
-<option>Erkek</option>
+Seçiniz
 
-<option>Kadın</option>
+</option>
+
+<option value="Erkek">
+
+Erkek
+
+</option>
+
+<option value="Kadın">
+
+Kadın
+
+</option>
 
 </select>
 
 </div>
 <div class="form-group">
 
-<label>Acil Durum Yakını</label>
+<label for="emergencyName">
+
+Acil Durum Yakını
+
+</label>
 
 <input
 id="emergencyName"
 type="text"
+placeholder="Ad Soyad"
 required>
 
 </div>
 
 <div class="form-group">
 
-<label>Acil Durum Telefonu</label>
+<label for="emergencyPhone">
+
+Acil Durum Telefonu
+
+</label>
 
 <input
 id="emergencyPhone"
 type="tel"
+placeholder="05XXXXXXXXX"
 required>
 
 </div>
 
 <div class="form-group">
 
-<label>Not (İsteğe Bağlı)</label>
+<label for="note">
+
+Not
+
+</label>
 
 <textarea
 id="note"
 rows="4"
-placeholder="Varsa belirtmek istediğiniz bir konu yazınız."></textarea>
+placeholder="Varsa belirtmek istediğiniz sağlık bilgisi veya not yazabilirsiniz."></textarea>
 
 </div>
 
-<div class="checkbox-group">
+<div class="checkbox">
 
 <label>
 
@@ -169,13 +224,13 @@ id="parent"
 type="checkbox"
 required>
 
-Veli/vasi onayını aldığımı kabul ediyorum.
+Veli/Vasi onayını aldığımı kabul ediyorum.
 
 </label>
 
 </div>
 
-<div class="checkbox-group">
+<div class="checkbox">
 
 <label>
 
@@ -190,6 +245,8 @@ KVKK kapsamında kişisel verilerimin işlenmesini kabul ediyorum.
 
 </div>
 
+<div class="button-area">
+
 <button
 type="submit"
 class="btn">
@@ -197,6 +254,8 @@ class="btn">
 Kayıt Ol
 
 </button>
+
+</div>
 
 </form>
 
@@ -208,7 +267,7 @@ class="card hidden">
 
 <h2>
 
-✅ Kayıt Başarılı
+🎉 Kayıt Başarıyla Tamamlandı
 
 </h2>
 
@@ -227,7 +286,7 @@ TYG26-0001
 
 <div
 id="qrcode"
-style="display:flex;justify-content:center;margin:20px 0;">
+style="display:flex;justify-content:center;margin:25px 0;">
 
 </div>
 
@@ -243,13 +302,23 @@ class="btn">
 id="newRegister"
 class="btn secondary">
 
-Yeni Kayıt
+➕ Yeni Kayıt
 
 </button>
 
 </section>
-
 </main>
+
+<footer class="footer">
+
+<p>
+
+© 2026 TÜGVA Yaz Okulu Finali ve İstanbul Gezisi
+
+</p>
+
+</footer>
+
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
