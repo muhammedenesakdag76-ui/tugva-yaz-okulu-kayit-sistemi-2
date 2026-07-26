@@ -19,7 +19,7 @@ const manualSearch = document.getElementById("manualSearch");
 const manualCode = document.getElementById("manualCode");
 const checkinButton = document.getElementById("checkinButton");
 
-function goster(kayit){
+function goster(kayit) {
 
     aktifKayit = kayit;
 
@@ -29,26 +29,21 @@ function goster(kayit){
     rAd.textContent = kayit.adSoyad;
     rTelefon.textContent = kayit.telefon;
 
-    if(kayit.checkin){
+    if (kayit.checkin) {
 
-        rDurum.textContent = "✅ Giriş Yapılmış";
+        rDurum.textContent = "✅ Giriş Yapıldı";
+
         checkinButton.disabled = true;
-        checkinButton.textContent = "Check-in Tamamlandı";
+        checkinButton.textContent = "Katılım Tamamlandı";
 
-    }else{
+    } else {
 
-        rDurum.textContent = "❌ Bekliyor";
+        rDurum.textContent = "⏳ Giriş Bekliyor";
+
         checkinButton.disabled = false;
         checkinButton.textContent = "Check-in Yap";
 
     }
-
-    resultCard.scrollIntoView({
-
-        behavior:"smooth",
-        block:"center"
-
-    });
 
 }
 
