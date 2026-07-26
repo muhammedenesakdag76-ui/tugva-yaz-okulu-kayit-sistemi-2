@@ -1,14 +1,12 @@
-if(sessionStorage.getItem("admin")!=="true"){
-
-    location.href="login.html";
-
+if (sessionStorage.getItem("admin") !== "true") {
+    location.href = "login.html";
 }
+
 import {
     auth,
-    tumKayitlar,
     kayitSil,
     checkinYap,
-    checkinIptal
+    checkinIptal,
     kayitlariDinle
 } from "./firebase.js";
 
@@ -34,26 +32,21 @@ const checkinPage = document.getElementById("checkinPage");
 onAuthStateChanged(auth, user => {
 
     if (!user) {
-
-        window.location.href = "login.html";
-
+        location.href = "login.html";
         return;
-
     }
 
-    yukle();
+    kayitlariDinle((liste) => {
+
+        kayitlar = liste;
+
+        tabloOlustur(kayitlar);
+
+        istatistikGuncelle();
+
+    });
 
 });
-
-async function yukle() {
-
-    kayitlar = await tumKayitlar();
-
-    tabloOlustur(kayitlar);
-
-    istatistikGuncelle();
-
-}
 
 function tabloOlustur(liste) {
 
@@ -64,44 +57,24 @@ function tabloOlustur(liste) {
         const tr = document.createElement("tr");
 
         tr.innerHTML = `
+        <td>${k.kayitNo}</td>
+        <td>${k.adSoyad}</td>
+        <td>${k.tc}</td>
+        <td>${k.telefon}</td>
+        <td>${k.cinsiyet}</td>
 
-<td>${k.kayitNo}</td>
+        <td>
+            <button class="btn" data-check="${k.id}">
+                ${k.checkin ? "✅ Giriş" : "❌ Bekliyor"}
+            </button>
+        </td>
 
-<td>${k.adSoyad}</td>
-
-<td>${k.tc}</td>
-
-<td>${k.telefon}</td>
-
-<td>${k.cinsiyet}</td>
-
-<td>
-
-<button class="btn"
-
-data-check="${k.id}">
-
-${k.checkin ? "✅ Giriş" : "❌ Bekliyor"}
-
-</button>
-
-</td>
-
-<td>
-
-<button
-
-class="deleteBtn"
-
-data-delete="${k.id}">
-
-Sil
-
-</button>
-
-</td>
-
-`;
+        <td>
+            <button class="deleteBtn" data-delete="${k.id}">
+                Sil
+            </button>
+        </td>
+        `;
 
         tableBody.appendChild(tr);
 
@@ -113,40 +86,36 @@ function istatistikGuncelle() {
 
     totalCount.textContent = kayitlar.length;
 
-    const giren = kayitlar.filter(x => x.checkin).length;
+    const giren = kayitlar.filter(k => k.checkin).length;
 
     checkedCount.textContent = giren;
 
     waitingCount.textContent = kayitlar.length - giren;
 
-    remainingAdmin.textContent = 85 - kayitlar.length;
+    remainingAdmin.textContent = Math.max(0, 85 - kayitlar.length);
 
 }
 
-searchInput.addEventListener("input",e=>{
+searchInput.addEventListener("input", e => {
 
-    const ara=e.target.value.toLowerCase().trim();
+    const ara = e.target.value.toLowerCase().trim();
 
-    const filtre=kayitlar.filter(k=>
+    const filtre = kayitlar.filter(k =>
 
-        (k.adSoyad||"").toLowerCase().includes(ara) ||
-
-        (k.tc||"").includes(ara) ||
-
-        (k.kayitNo||"").toLowerCase().includes(ara) ||
-
-        (k.telefon||"").includes(ara)
+        (k.adSoyad || "").toLowerCase().includes(ara) ||
+        (k.tc || "").includes(ara) ||
+        (k.kayitNo || "").toLowerCase().includes(ara) ||
+        (k.telefon || "").includes(ara)
 
     );
 
-    tabloyuDoldur(filtre);
+    tabloOlustur(filtre);
 
 });
 
 tableBody.addEventListener("click", async e => {
 
     const sil = e.target.dataset.delete;
-
     const check = e.target.dataset.check;
 
     if (sil) {
@@ -155,13 +124,13 @@ tableBody.addEventListener("click", async e => {
 
         await kayitSil(sil);
 
-        yukle();
+        return;
 
     }
 
     if (check) {
 
-        const kayit = kayitlar.find(x => x.id === check);
+        const kayit = kayitlar.find(k => k.id === check);
 
         if (!kayit) return;
 
@@ -175,33 +144,30 @@ tableBody.addEventListener("click", async e => {
 
         }
 
-        yukle();
-
     }
 
 });
 
-refreshBtn.addEventListener("click", yukle);
+refreshBtn.addEventListener("click", () => {
+
+    tabloOlustur(kayitlar);
+
+    istatistikGuncelle();
+
+});
 
 logoutBtn.addEventListener("click", async () => {
 
+    sessionStorage.removeItem("admin");
+
     await signOut(auth);
 
-    window.location.href = "login.html";
+    location.href = "login.html";
 
 });
 
 checkinPage.addEventListener("click", () => {
 
-    window.location.href = "checkin.html";
-
-});
-kayitlariDinle((liste)=>{
-
-    kayitlar=liste;
-
-    tabloyuDoldur(kayitlar);
-
-    istatistikleriGuncelle();
+    location.href = "checkin.html";
 
 });
