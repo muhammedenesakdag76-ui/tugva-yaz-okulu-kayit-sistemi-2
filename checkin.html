@@ -11,119 +11,157 @@
 
 <link rel="stylesheet" href="css/style.css">
 
+<style>
+
+body{
+    background:#f4f6f9;
+    font-family:Arial,Helvetica,sans-serif;
+}
+
+.header{
+    background:#0b8d42;
+    color:#fff;
+    text-align:center;
+    padding:20px;
+}
+
+.container{
+    width:95%;
+    max-width:700px;
+    margin:25px auto;
+}
+
+.card{
+    background:#fff;
+    border-radius:15px;
+    padding:25px;
+    box-shadow:0 8px 20px rgba(0,0,0,.08);
+    margin-bottom:20px;
+}
+
+#reader{
+    width:100%;
+    overflow:hidden;
+    border-radius:12px;
+}
+
+.result{
+    display:none;
+}
+
+.result h2{
+    color:#0b8d42;
+    margin-bottom:15px;
+}
+
+.result p{
+    margin:10px 0;
+    font-size:17px;
+}
+
+.actions{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-top:20px;
+}
+
+.actions button{
+    flex:1;
+    padding:14px;
+    border:none;
+    border-radius:10px;
+    color:#fff;
+    font-weight:bold;
+    cursor:pointer;
+}
+
+#checkBtn{
+    background:#198754;
+}
+
+#cancelBtn{
+    background:#ffc107;
+    color:#000;
+}
+
+#backBtn{
+    background:#0d6efd;
+}
+
+.status{
+    margin-top:12px;
+    font-weight:bold;
+    font-size:18px;
+}
+
+@media(max-width:768px){
+
+.actions{
+    flex-direction:column;
+}
+
+}
+
+</style>
+
 </head>
 
 <body>
 
-<header class="hero">
+<header class="header">
 
-<div class="overlay"></div>
-
-<div class="hero-content">
-
-<h1>TÜGVA</h1>
-
-<h2>QR Check-in</h2>
-
-<p>Kamera ile katılımcı girişi</p>
-
-</div>
+<h1>QR Check-in Sistemi</h1>
 
 </header>
 
-<main class="container">
+<div class="container">
 
 <div class="card">
 
-<h2>QR Tarayıcı</h2>
-
-<div id="reader" style="width:100%;max-width:500px;margin:auto;"></div>
+<div id="reader"></div>
 
 </div>
 
-<div class="card">
+<div class="card result" id="resultCard">
 
-<h2>Manuel Arama</h2>
+<h2 id="name">-</h2>
 
-<div class="toolbar">
+<p><strong>Kayıt No:</strong> <span id="registerNo"></span></p>
 
-<input
-id="manualCode"
-type="text"
-placeholder="TYG26-0001" 
+<p><strong>Telefon:</strong> <span id="phone"></span></p>
 
-<button
-class="btn"
-id="manualSearch">
+<p><strong>Durum:</strong> <span id="status" class="status"></span></p>
 
-Bul
+<div class="actions">
 
-</button>
-
-</div>
-
-</div>
-
-<div
-class="card hidden"
-id="resultCard">
-
-<h2>Katılımcı</h2>
-
-<div class="grid">
-
-<div>
-
-<strong>Kayıt No</strong>
-
-<p id="rKayitNo"></p>
-
-</div>
-
-<div>
-
-<strong>Ad Soyad</strong>
-
-<p id="rAd"></p>
-
-</div>
-
-<div>
-
-<strong>Telefon</strong>
-
-<p id="rTelefon"></p>
-
-</div>
-
-<div>
-
-<strong>Durum</strong>
-
-<p id="rDurum"></p>
-
-</div>
-
-</div>
-
-<br>
-
-<button
-class="btn"
-id="checkinButton">
+<button id="checkBtn">
 
 Check-in Yap
 
 </button>
 
+<button id="cancelBtn">
+
+Check-in İptal
+
+</button>
+
+<button id="backBtn">
+
+Yönetim Paneli
+
+</button>
+
 </div>
 
-</main>
+</div>
+
+</div>
 
 <script src="https://unpkg.com/html5-qrcode"></script>
 
-<script type="module"
-src="js/checkin.js"></script>
+<script type="module" src="js/checkin.js"></script>
 
 </body>
 
