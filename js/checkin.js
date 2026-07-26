@@ -1,248 +1,259 @@
 import {
+    auth,
     kayitNoIleBul,
-    checkinYap
+    checkinYap,
+    checkinIptal
 } from "./firebase.js";
 
-let aktifKayit = null;
-
-let scanner = null;
-let scannerAktif = false;
+import {
+    onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
 const resultCard = document.getElementById("resultCard");
 
-const rKayitNo = document.getElementById("rKayitNo");
-const rAd = document.getElementById("rAd");
-const rTelefon = document.getElementById("rTelefon");
-const rDurum = document.getElementById("rDurum");
+const name = document.getElementById("name");
+const registerNo = document.getElementById("registerNo");
+const phone = document.getElementById("phone");
+const status = document.getElementById("status");
 
-const manualSearch = document.getElementById("manualSearch");
-const manualCode = document.getElementById("manualCode");
-const checkinButton = document.getElementById("checkinButton");
+const checkBtn = document.getElementById("checkBtn");
+const cancelBtn = document.getElementById("cancelBtn");
+const backBtn = document.getElementById("backBtn");
 
-function goster(kayit) {
+let currentRecord = null;
+let scanner = null;
 
-    aktifKayit = kayit;
+onAuthStateChanged(auth, (user) => {
 
-    resultCard.classList.remove("hidden");
+    if (!user) {
 
-    rKayitNo.textContent = kayit.kayitNo;
-    rAd.textContent = kayit.adSoyad;
-    rTelefon.textContent = kayit.telefon;
-
-    if (kayit.checkin) {
-
-        rDurum.textContent = "✅ Giriş Yapıldı";
-
-        checkinButton.disabled = true;
-        checkinButton.textContent = "Katılım Tamamlandı";
-
-    } else {
-
-        rDurum.textContent = "⏳ Giriş Bekliyor";
-
-        checkinButton.disabled = false;
-        checkinButton.textContent = "Check-in Yap";
+        window.location.href = "login.html";
 
     }
 
-}
+});
 
-async function ara(kayitNo) {
+async function qrOkundu(qrText) {
+
+    if (scanner) {
+
+        await scanner.stop();
+
+    }
+
+    const kayit = await kayitNoIleBul(qrText);
+
+    if (!kayit) {
+
+        alert("Kayıt bulunamadı.");
+
+        kameraBaslat();
+
+        return;
+
+    }
+
+    currentRecord = kayit;
+
+    name.textContent = kayit.adSoyad;
+
+    registerNo.textContent = kayit.kayitNo;
+
+    phone.textContent = kayit.telefon;
+
+    if (kayit.checkin) {
+
+        status.textContent = "✅ Check-in Yapıldı";
+
+        status.style.color = "#198754";
+
+        checkBtn.style.display = "none";
+
+        cancelBtn.style.display = "block";
+
+    } else {
+
+        status.textContent = "⏳ Bekliyor";
+
+        status.style.color = "#fd7e14";
+
+        checkBtn.style.display = "block";
+
+        cancelBtn.style.display = "none";
+
+    }
+
+    resultCard.style.display = "block";
+
+}
+async function kameraBaslat() {
+
+    resultCard.style.display = "none";
+
+    scanner = new Html5Qrcode("reader");
 
     try {
 
-        const kayit = await kayitNoIleBul(
-            kayitNo.trim().toUpperCase()
-        );
+        const cameras = await Html5Qrcode.getCameras();
 
-        if (!kayit) {
+        if (!cameras.length) {
 
-            alert("Katılımcı bulunamadı.");
+            alert("Kamera bulunamadı.");
 
             return;
 
         }
 
-        goster(kayit);
+        const cameraId = cameras[0].id;
 
-    } catch (e) {
+        await scanner.start(
 
-        console.error(e);
+            cameraId,
 
-        alert("Katılımcı aranamadı.");
+            {
+
+                fps: 10,
+
+                qrbox: {
+
+                    width: 250,
+
+                    height: 250
+
+                }
+
+            },
+
+            async (decodedText) => {
+
+                await qrOkundu(decodedText);
+
+            },
+
+            () => {}
+
+        );
+
+    } catch (err) {
+
+        console.error(err);
+
+        alert("Kamera başlatılamadı.");
 
     }
 
 }
 
-    
+checkBtn.addEventListener("click", async () => {
 
-manualSearch.addEventListener("click",()=>{
+    if (!currentRecord) return;
 
-    const kayitNo = manualCode.value.trim().toUpperCase();
+    try {
 
-    if(!kayitNo){
+        await checkinYap(currentRecord.id);
 
-        alert("Kayıt numarası giriniz.");
-        return;
+        alert("Check-in başarılı.");
 
-    }
+        kameraBaslat();
 
-    ara(kayitNo);
-
-});
-
-manualCode.addEventListener("keydown",(e)=>{
-
-    if(e.key==="Enter"){
-
-        e.preventDefault();
-        manualSearch.click();
-
-    }
-
-});
-
-checkinButton.addEventListener("click",async()=>{
-
-    if(!aktifKayit) return;
-
-    if(aktifKayit.checkin){
-
-        alert("Bu katılımcı zaten giriş yapmış.");
-        return;
-
-    }
-
-    try{
-
-        checkinButton.disabled = true;
-        checkinButton.textContent = "Kaydediliyor...";
-
-        await checkinYap(aktifKayit.id);
-
-        aktifKayit.checkin = true;
-
-        goster(aktifKayit);
-
-        if(navigator.vibrate){
-
-            navigator.vibrate(200);
-
-        }
-
-        alert("Check-in başarıyla tamamlandı.");
-
-    }catch(err){
+    } catch (err) {
 
         console.error(err);
-        alert("Check-in sırasında hata oluştu.");
 
-    }finally{
-
-        if(!aktifKayit?.checkin){
-
-            checkinButton.disabled = false;
-            checkinButton.textContent = "Check-in Yap";
-
-        }
+        alert("İşlem başarısız.");
 
     }
 
 });
 
-async function kameraBaslat(){
+cancelBtn.addEventListener("click", async () => {
 
-    scanner = new Html5Qrcode("reader");
+    if (!currentRecord) return;
 
-    scannerAktif = true;
+    try {
 
-    await scanner.start(
+        await checkinIptal(currentRecord.id);
 
-        {facingMode:"environment"},
+        alert("Check-in iptal edildi.");
 
-        {
-            fps:10,
-            qrbox:{width:250,height:250}
-        },
+        kameraBaslat();
 
-        async(decodedText)=>{
+    } catch (err) {
 
-            if(!scannerAktif) return;
+        console.error(err);
 
-            scannerAktif=false;
+        alert("İşlem başarısız.");
 
-            try{
+    }
 
-                let veri;
+});
 
-                try{
+backBtn.addEventListener("click", () => {
 
-                    veri=JSON.parse(decodedText);
+    window.location.href = "admin.html";
 
-                }catch{
+});
+window.addEventListener("load", () => {
 
-                    alert("Geçersiz QR Kod");
+    kameraBaslat();
 
-                    scannerAktif=true;
-                    return;
+});
 
-                }
+window.addEventListener("beforeunload", async () => {
 
-                if(!veri.kayitNo){
+    try {
 
-                    alert("QR Kod geçersiz.");
+        if (
+            scanner &&
+            scanner.isScanning
+        ) {
 
-                    scannerAktif=true;
-                    return;
+            await scanner.stop();
 
-                }
+            await scanner.clear();
 
-                if(navigator.vibrate){
+        }
 
-                    navigator.vibrate(100);
+    } catch (err) {
 
-                }
+        console.error(err);
 
-                await ara(veri.kayitNo);
+    }
+
+});
+
+document.addEventListener("visibilitychange", async () => {
+
+    if (document.hidden) {
+
+        try {
+
+            if (
+                scanner &&
+                scanner.isScanning
+            ) {
 
                 await scanner.stop();
-                await scanner.clear();
-
-                document.getElementById("reader").innerHTML="";
-
-            }catch(err){
-
-                console.error(err);
-                alert("QR okunurken hata oluştu.");
-
-                scannerAktif=true;
 
             }
 
-        },
+        } catch {}
 
-        ()=>{}
+    } else {
 
-    );
+        try {
 
-}
+            if (
+                !scanner ||
+                !scanner.isScanning
+            ) {
 
-kameraBaslat().catch(err=>{
+                kameraBaslat();
 
-    console.error(err);
+            }
 
-    alert("Kamera başlatılamadı. Kamera izni verdiğinizden emin olun.");
+        } catch {}
 
-});
-window.addEventListener("beforeunload",async()=>{
-
-    try{
-
-        await scanner.stop();
-
-        await scanner.clear();
-
-    }catch{}
+    }
 
 });
