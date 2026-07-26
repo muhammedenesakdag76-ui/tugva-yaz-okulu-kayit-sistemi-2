@@ -113,6 +113,23 @@ return liste;
 
 export async function kayitOlustur(veri){
 
+    return await addDoc(
+        collection(db, COLLECTION),
+        {
+            ...veri,
+
+            checkin: false,
+
+            checkinSaati: null,
+
+            olusturmaTarihi: serverTimestamp(),
+
+            guncellenmeTarihi: serverTimestamp()
+        }
+    );
+
+}
+
 return await addDoc(
 
 collection(db,COLLECTION),
