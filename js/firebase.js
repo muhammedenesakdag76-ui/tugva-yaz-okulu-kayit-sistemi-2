@@ -260,3 +260,4 @@ export function kayitlariDinle(callback){
     });
 
 }
+export const MAX_KONTENJAN = 85;
