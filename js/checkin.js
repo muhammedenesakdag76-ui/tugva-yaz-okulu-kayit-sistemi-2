@@ -47,29 +47,35 @@ function goster(kayit) {
 
 }
 
-async function ara(kayitNo){
+async function ara(kayitNo) {
 
-    try{
+    try {
 
-        const kayit = await kayitNoIleBul(kayitNo);
+        const kayit = await kayitNoIleBul(
+            kayitNo.trim().toUpperCase()
+        );
 
-        if(!kayit){
+        if (!kayit) {
 
             alert("Katılımcı bulunamadı.");
+
             return;
 
         }
 
         goster(kayit);
 
-    }catch(err){
+    } catch (e) {
 
-        console.error(err);
-        alert("Katılımcı aranırken hata oluştu.");
+        console.error(e);
+
+        alert("Katılımcı aranamadı.");
 
     }
 
 }
+
+    
 
 manualSearch.addEventListener("click",()=>{
 
