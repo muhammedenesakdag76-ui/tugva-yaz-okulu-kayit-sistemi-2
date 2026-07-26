@@ -145,21 +145,16 @@ doc(db,COLLECTION,id)
 
 }
 
-export async function checkinYap(id){
+export async function checkinYap(id) {
 
-await updateDoc(
-
-doc(db,COLLECTION,id),
-
-{
-
-checkin:true,
-
-checkinSaati:serverTimestamp()
-
-}
-
-);
+    await updateDoc(
+        doc(db, COLLECTION, id),
+        {
+            checkin: true,
+            checkinSaati: serverTimestamp(),
+            guncellenmeTarihi: serverTimestamp()
+        }
+    );
 
 }
 
