@@ -96,6 +96,7 @@ form.addEventListener("submit", async (e) => {
     successCard.classList.remove("hidden");
 
     generateQR(aktifKayitNo);
+    console.log("QR çağrıldı:", aktifKayitNo);
 
     if (downloadCard) {
 
