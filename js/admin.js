@@ -262,3 +262,10 @@ window.addEventListener("beforeunload", () => {
     }
 
 });
+window.addEventListener("pageshow",()=>{
+
+    searchInput.value="";
+
+    tabloOlustur(kayitlar);
+
+});
