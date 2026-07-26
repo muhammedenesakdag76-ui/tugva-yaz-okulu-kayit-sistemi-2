@@ -1,4 +1,5 @@
 let kayitOluyor = false;
+
 import { pdfOlustur } from "./pdf.js";
 import { formKontrol } from "./validation.js";
 import { yeniKayit } from "./register.js";
@@ -12,10 +13,16 @@ const remainingCount = document.getElementById("remainingCount");
 const registerNumber = document.getElementById("registerNumber");
 const newRegister = document.getElementById("newRegister");
 const downloadCard = document.getElementById("downloadCard");
+const submitButton = form.querySelector("button[type='submit']");
 
 async function kontenjanGuncelle() {
-    const toplam = await toplamKayit();
-    remainingCount.textContent = 85 - toplam;
+    try {
+        const toplam = await toplamKayit();
+        remainingCount.textContent = Math.max(0, 85 - toplam);
+    } catch (err) {
+        console.error(err);
+        remainingCount.textContent = "-";
+    }
 }
 
 kontenjanGuncelle();
@@ -23,6 +30,13 @@ kontenjanGuncelle();
 form.addEventListener("submit", async (e) => {
 
     e.preventDefault();
+
+    if (kayitOluyor) return;
+
+    kayitOluyor = true;
+
+    submitButton.disabled = true;
+    submitButton.textContent = "Kaydediliyor...";
 
     const veri = {
         name: document.getElementById("name").value.trim(),
@@ -42,12 +56,20 @@ form.addEventListener("submit", async (e) => {
 
     if (hata) {
         alert(hata);
+        submitButton.disabled = false;
+        submitButton.textContent = "Kayıt Ol";
+        kayitOluyor = false;
         return;
     }
 
     try {
 
         const sonuc = await yeniKayit(veri);
+
+        if (!sonuc.basarili) {
+            alert(sonuc.mesaj);
+            return;
+        }
 
         const katilimci = {
             kayitNo: sonuc.kayitNo,
@@ -73,7 +95,15 @@ form.addEventListener("submit", async (e) => {
 
     } catch (err) {
 
-        alert(err.message);
+        console.error(err);
+
+        alert(err.message || "Bir hata oluştu. Lütfen tekrar deneyiniz.");
+
+    } finally {
+
+        kayitOluyor = false;
+        submitButton.disabled = false;
+        submitButton.textContent = "Kayıt Ol";
 
     }
 
