@@ -1,5 +1,7 @@
 export function generateQR(kayitNo) {
 
+    console.log("generateQR çalıştı", kayitNo);
+
     const alan = document.getElementById("qrcode");
 
     if (!alan) return;
