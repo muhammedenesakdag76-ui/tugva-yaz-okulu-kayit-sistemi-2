@@ -112,7 +112,7 @@ const veri = JSON.parse(decodedText);
 
 await ara(veri.kayitNo);
 
-scanner.stop();
+await scanner.stop();
 
 }catch{
 
