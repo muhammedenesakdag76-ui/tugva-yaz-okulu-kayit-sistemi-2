@@ -1,1 +1,383 @@
-<--deneme-->
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0">
+
+<title>TÜGVA Yaz Okulu Finali ve İstanbul Gezisi</title>
+
+<link rel="stylesheet" href="css/style.css">
+
+</head>
+
+<body>
+
+<header class="hero">
+
+<div class="overlay"></div>
+
+<div class="hero-content">
+
+<h1>TÜGVA</h1>
+
+<h2>Yaz Okulu Finali</h2>
+
+<p>
+
+31 Temmuz 2026
+
+<br>
+
+İstanbul Gezisi
+
+</p>
+
+<div class="hero-info">
+
+<div class="hero-card">
+
+<span>Kalan Kontenjan</span>
+
+<strong id="remainingCount">
+
+85
+
+</strong>
+
+</div>
+
+<div class="hero-card">
+
+<span>Etkinlik Tarihi</span>
+
+<strong>
+
+31 Temmuz 2026
+
+</strong>
+
+</div>
+
+</div>
+
+</div>
+
+</header>
+
+<main class="container">
+
+<section
+class="card"
+id="formCard">
+
+<h2>
+
+Kayıt Formu
+
+</h2>
+
+<form id="registerForm">
+
+<div class="grid">
+
+<div class="input-group">
+
+<label>
+
+Ad Soyad
+
+</label>
+
+<input
+
+id="name"
+
+type="text"
+
+required>
+
+</div>
+
+<div class="input-group">
+
+<label>
+
+T.C. Kimlik No
+
+</label>
+
+<input
+
+id="tc"
+
+maxlength="11"
+
+inputmode="numeric"
+
+required>
+
+</div>
+
+<div class="input-group">
+
+<label>
+
+Doğum Tarihi
+
+</label>
+
+<input
+
+id="birth"
+
+type="date"
+
+required>
+
+</div>
+
+<div class="input-group">
+
+<label>
+
+Telefon
+
+</label>
+
+<input
+
+id="phone"
+
+type="tel"
+
+placeholder="05XXXXXXXXX"
+
+required>
+
+</div>
+
+<div class="input-group">
+
+<label>
+
+E-posta
+
+</label>
+
+<input
+
+id="email"
+
+type="email">
+
+</div>
+
+<div class="input-group">
+
+<label>
+
+Cinsiyet
+
+</label>
+
+<select
+
+id="gender"
+
+required>
+
+<option value="">
+
+Seçiniz
+
+</option>
+
+<option>
+
+Erkek
+
+</option>
+
+<option>
+
+Kadın
+
+</option>
+
+</select>
+
+</div>
+
+<div class="input-group">
+
+<label>
+
+Acil Durum Kişisi
+
+</label>
+
+<input
+
+id="emergencyName"
+
+type="text">
+
+</div>
+
+<div class="input-group">
+
+<label>
+
+Acil Durum Telefonu
+
+</label>
+
+<input
+
+id="emergencyPhone"
+
+type="tel">
+
+</div>
+
+</div>
+
+<div class="input-group">
+
+<label>
+
+Not
+
+</label>
+
+<textarea
+
+id="note"
+
+rows="5"
+
+placeholder="Varsa belirtiniz...">
+
+</textarea>
+
+</div>
+
+<div class="checkbox">
+
+<input
+
+id="parent"
+
+type="checkbox">
+
+<label for="parent">
+
+18 yaş altındaysam velim ile katılacağımı kabul ediyorum.
+
+</label>
+
+</div>
+
+<div class="checkbox">
+
+<input
+
+id="kvkk"
+
+type="checkbox"
+
+required>
+
+<label for="kvkk">
+
+KVKK metnini okudum ve kabul ediyorum.
+
+</label>
+
+</div>
+
+<button
+
+type="submit"
+
+class="btn">
+
+Kaydı Tamamla
+
+</button>
+
+</form>
+
+</section>
+
+<section
+
+class="card hidden"
+
+id="successCard">
+
+<h2>
+
+Kayıt Başarılı
+
+</h2>
+
+<p>
+
+Kaydınız başarıyla oluşturuldu.
+
+</p>
+
+<div class="success-box">
+
+<span>
+
+Kayıt Numaranız
+
+</span>
+
+<h3 id="registerNumber">
+
+</h3>
+
+</div>
+
+<div id="qr"></div>
+
+<button
+
+id="downloadCard"
+
+class="btn">
+
+PDF Kayıt Kartını İndir
+
+</button>
+
+<button
+
+id="newRegister"
+
+class="btn secondary">
+
+Yeni Kayıt
+
+</button>
+
+</section>
+
+</main>
+
+<script
+type="module"
+src="js/app.js">
+
+</script>
+
+</body>
+
+</html>
