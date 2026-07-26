@@ -17,177 +17,247 @@ import {
     updateDoc,
     getDoc,
     limit,
-    onSnapshot
+    onSnapshot,
+    orderBy
 } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 const firebaseConfig = {
-    apiKey: "AIzaSyDPdueIsK1w16jTZeZOQkr29hkrU_tQV0w",
-    authDomain: "tugva-yaz-okulu.firebaseapp.com",
-    projectId: "tugva-yaz-okulu",
-    storageBucket: "tugva-yaz-okulu.firebasestorage.app",
-    messagingSenderId: "302099112919",
-    appId: "1:302099112919:web:cddfbb1a71db0db90fe192"
+
+    apiKey:"AIzaSyDPdueIsK1w16jTZeZOQkr29hkrU_tQV0w",
+
+    authDomain:"tugva-yaz-okulu.firebaseapp.com",
+
+    projectId:"tugva-yaz-okulu",
+
+    storageBucket:"tugva-yaz-okulu.firebasestorage.app",
+
+    messagingSenderId:"302099112919",
+
+    appId:"1:302099112919:web:cddfbb1a71db0db90fe192"
+
 };
 
 const app = initializeApp(firebaseConfig);
 
 export const db = getFirestore(app);
+
 export const auth = getAuth(app);
 
-const COLLECTION = "kayitlar";
+export const COLLECTION = "kayitlar";
 
 export const MAX_KONTENJAN = 85;
 
 export const ETKINLIK_BILGISI = {
-    ad: "TÜGVA Yaz Okulu Finali ve İstanbul Gezisi",
-    tarih: "31 Temmuz 2026",
-    kontenjan: 85
+
+    ad:"TÜGVA Yaz Okulu Finali ve İstanbul Gezisi",
+
+    tarih:"31 Temmuz 2026",
+
+    kontenjan:85
+
 };
 
-export async function tcVarMi(tc) {
+export async function tcVarMi(tc){
 
-    const q = query(
-        collection(db, COLLECTION),
-        where("tc", "==", tc)
+    const q=query(
+
+        collection(db,COLLECTION),
+
+        where("tc","==",tc)
+
     );
 
-    const sonuc = await getDocs(q);
+    const sonuc=await getDocs(q);
 
     return !sonuc.empty;
+
 }
 
-export async function toplamKayit() {
+export async function toplamKayit(){
 
-    const sonuc = await getDocs(
-        collection(db, COLLECTION)
+    const sonuc=await getDocs(
+
+        collection(db,COLLECTION)
+
     );
 
     return sonuc.size;
+
 }
 
-export async function tumKayitlar() {
+export async function tumKayitlar(){
 
-    const sonuc = await getDocs(
-        collection(db, COLLECTION)
+    const q=query(
+
+        collection(db,COLLECTION),
+
+        orderBy("kayitNo")
+
     );
 
-    const liste = [];
+    const sonuc=await getDocs(q);
 
-    sonuc.forEach((belge) => {
+    return sonuc.docs.map(doc=>({
 
-        liste.push({
-            id: belge.id,
-            ...belge.data()
-        });
+        id:doc.id,
 
-    });
+        ...doc.data()
 
-    return liste;
+    }));
+
 }
-export async function kayitOlustur(veri) {
+
+export async function kayitOlustur(veri){
 
     return await addDoc(
-        collection(db, COLLECTION),
+
+        collection(db,COLLECTION),
+
         {
+
             ...veri,
-            checkin: false,
-            checkinSaati: null,
-            olusturmaTarihi: serverTimestamp(),
-            guncellenmeTarihi: serverTimestamp()
+
+            checkin:false,
+
+            checkinSaati:null,
+
+            olusturmaTarihi:serverTimestamp(),
+
+            guncellenmeTarihi:serverTimestamp()
+
         }
+
     );
 
 }
-
-export async function kayitSil(id) {
+export async function kayitSil(id){
 
     await deleteDoc(
-        doc(db, COLLECTION, id)
+
+        doc(db,COLLECTION,id)
+
     );
 
 }
 
-export async function checkinYap(id) {
+export async function checkinYap(id){
 
     await updateDoc(
-        doc(db, COLLECTION, id),
+
+        doc(db,COLLECTION,id),
+
         {
-            checkin: true,
-            checkinSaati: serverTimestamp(),
-            guncellenmeTarihi: serverTimestamp()
+
+            checkin:true,
+
+            checkinSaati:serverTimestamp(),
+
+            guncellenmeTarihi:serverTimestamp()
+
         }
+
     );
 
 }
 
-export async function checkinIptal(id) {
+export async function checkinIptal(id){
 
     await updateDoc(
-        doc(db, COLLECTION, id),
+
+        doc(db,COLLECTION,id),
+
         {
-            checkin: false,
-            checkinSaati: null,
-            guncellenmeTarihi: serverTimestamp()
+
+            checkin:false,
+
+            checkinSaati:null,
+
+            guncellenmeTarihi:serverTimestamp()
+
         }
+
     );
 
 }
 
-export async function kayitGetir(id) {
+export async function kayitGetir(id){
 
-    const belge = await getDoc(
-        doc(db, COLLECTION, id)
+    const belge=await getDoc(
+
+        doc(db,COLLECTION,id)
+
     );
 
-    if (!belge.exists()) {
+    if(!belge.exists()){
+
         return null;
+
     }
 
-    return {
-        id: belge.id,
+    return{
+
+        id:belge.id,
+
         ...belge.data()
+
     };
 
 }
 
-export async function kayitNoIleBul(kayitNo) {
+export async function kayitNoIleBul(kayitNo){
 
-    const q = query(
-        collection(db, COLLECTION),
-        where("kayitNo", "==", kayitNo),
+    const q=query(
+
+        collection(db,COLLECTION),
+
+        where("kayitNo","==",kayitNo),
+
         limit(1)
+
     );
 
-    const sonuc = await getDocs(q);
+    const sonuc=await getDocs(q);
 
-    if (sonuc.empty) {
+    if(sonuc.empty){
+
         return null;
+
     }
 
-    const belge = sonuc.docs[0];
+    const belge=sonuc.docs[0];
 
-    return {
-        id: belge.id,
+    return{
+
+        id:belge.id,
+
         ...belge.data()
+
     };
 
 }
 
-export function kayitlariDinle(callback) {
+export function kayitlariDinle(callback){
 
-    const q = query(
-        collection(db, COLLECTION)
+    const q=query(
+
+        collection(db,COLLECTION),
+
+        orderBy("kayitNo")
+
     );
 
-    return onSnapshot(q, (snapshot) => {
+    return onSnapshot(q,(snapshot)=>{
 
-        const liste = [];
+        const liste=[];
 
-        snapshot.forEach((belge) => {
+        snapshot.forEach(doc=>{
 
             liste.push({
-                id: belge.id,
-                ...belge.data()
+
+                id:doc.id,
+
+                ...doc.data()
+
             });
 
         });
