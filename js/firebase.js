@@ -21,19 +21,14 @@ limit,
 onSnapshot
 }from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-const firebaseConfig={
-
-apiKey:"",
-
-authDomain:"",
-
-projectId:"",
-
-storageBucket:"",
-
-messagingSenderId:"",
-
-appId:""
+const firebaseConfig = {
+  apiKey: "AIzaSyDPdueIsK1w16jTZeZOQkr29hkrU_tQV0w",
+  authDomain: "tugva-yaz-okulu.firebaseapp.com",
+  projectId: "tugva-yaz-okulu",
+  storageBucket: "tugva-yaz-okulu.firebasestorage.app",
+  messagingSenderId: "302099112919",
+  appId: "1:302099112919:web:cddfbb1a71db0db90fe192"
+};
 
 };
 
