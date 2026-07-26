@@ -53,7 +53,9 @@ export async function pdfOlustur(katilimci){
 
     const img=canvas.toDataURL("image/png");
 
-    const pdf=new jspdf.jsPDF();
+    const { jsPDF } = window.jspdf;
+
+const pdf = new jsPDF();
 
     pdf.addImage(img,"PNG",10,10,190,260);
 
