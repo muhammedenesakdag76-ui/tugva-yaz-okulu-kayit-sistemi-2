@@ -87,15 +87,15 @@ form.addEventListener("submit", async (e) => {
     }
         aktifKayitNo = sonuc.kayitNo;
 
-    registerNumber.textContent = sonuc.kayitNo;
+registerNumber.textContent = sonuc.kayitNo;
 
-    remainingCount.textContent = sonuc.kalanKontenjan;
+remainingCount.textContent = sonuc.kalanKontenjan;
 
-    formCard.classList.add("hidden");
+formCard.classList.add("hidden");
 
-    successCard.classList.remove("hidden");
+successCard.classList.remove("hidden");
 
-    generateQR(aktifKayitNo);
+generateQR(aktifKayitNo);
     console.log("QR çağrıldı:", aktifKayitNo);
 
     if (downloadCard) {
