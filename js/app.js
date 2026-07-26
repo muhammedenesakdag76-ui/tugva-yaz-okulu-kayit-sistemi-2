@@ -2,7 +2,6 @@ import { downloadPDF } from "./pdf.js";
 import { generateQR } from "./qr.js";
 import { toplamKayit, MAX_KONTENJAN } from "./firebase.js";
 import { yeniKayit } from "./register.js";
-
 const form = document.getElementById("registerForm");
 const formCard = document.getElementById("formCard");
 const successCard = document.getElementById("successCard");
