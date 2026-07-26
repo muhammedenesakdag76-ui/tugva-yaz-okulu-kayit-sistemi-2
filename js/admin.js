@@ -15,7 +15,11 @@ const MAX_KONTENJAN = 85;
 
 const loginTime = Number(localStorage.getItem("adminLoginTime"));
 
-if (!loginTime || Date.now() - loginTime > 1000 * 60 * 60 * 12) {
+if (
+    sessionStorage.getItem("admin") !== "true" ||
+    !loginTime ||
+    Date.now() - loginTime > 1000 * 60 * 60 * 12
+) {
 
     sessionStorage.removeItem("admin");
     localStorage.removeItem("adminLoginTime");
@@ -24,13 +28,8 @@ if (!loginTime || Date.now() - loginTime > 1000 * 60 * 60 * 12) {
 
 }
 
-if (sessionStorage.getItem("admin") !== "true") {
-
-    location.replace("login.html");
-
-}
-
 let kayitlar = [];
+let unsubscribe = null;
 
 const tableBody = document.getElementById("tableBody");
 const searchInput = document.getElementById("searchInput");
@@ -44,8 +43,6 @@ const logoutBtn = document.getElementById("logoutBtn");
 const refreshBtn = document.getElementById("refreshBtn");
 const checkinPage = document.getElementById("checkinPage");
 
-let unsubscribe = null;
-
 onAuthStateChanged(auth, (user) => {
 
     if (!user) {
@@ -58,11 +55,7 @@ onAuthStateChanged(auth, (user) => {
 
     }
 
-    if (unsubscribe) {
-
-        unsubscribe();
-
-    }
+    if (unsubscribe) unsubscribe();
 
     unsubscribe = kayitlariDinle((liste) => {
 
@@ -80,51 +73,55 @@ function tabloOlustur(liste) {
 
     tableBody.innerHTML = "";
 
-    if (liste.length === 0) {
+    if (!liste.length) {
 
         tableBody.innerHTML = `
-        <tr>
-            <td colspan="7" style="text-align:center">
-                Kayıt bulunamadı.
-            </td>
-        </tr>
+            <tr>
+                <td colspan="7" style="text-align:center;padding:25px;">
+                    Henüz kayıt bulunmuyor.
+                </td>
+            </tr>
         `;
 
         return;
 
     }
 
-    liste.forEach((k) => {
+    for (const k of liste) {
 
-        const tr = document.createElement("tr");
+        tableBody.insertAdjacentHTML("beforeend", `
+            <tr>
 
-        tr.innerHTML = `
-            <td>${k.kayitNo}</td>
-            <td>${k.adSoyad}</td>
-            <td>${k.tc}</td>
-            <td>${k.telefon}</td>
-            <td>${k.cinsiyet}</td>
+                <td>${k.kayitNo}</td>
 
-            <td>
-                <button
-                    class="btn"
-                    data-check="${k.id}">
-                    ${k.checkin ? "✅ Giriş" : "❌ Bekliyor"}
-                </button>
-            </td>
+                <td>${k.adSoyad}</td>
 
-            <td>
-                <button
-                    class="deleteBtn"
-                    data-delete="${k.id}">
-                    Sil
-                </button>
-            </td>
-        `;
+                <td>${k.tc}</td>
 
-        tableBody.appendChild(tr);
+                <td>${k.telefon}</td>
 
-    });
+                <td>${k.cinsiyet}</td>
+
+                <td>
+                    <button
+                        class="btn"
+                        data-check="${k.id}">
+                        ${k.checkin ? "✅ Giriş" : "❌ Bekliyor"}
+                    </button>
+                </td>
+
+                <td>
+                    <button
+                        class="deleteBtn"
+                        data-delete="${k.id}">
+                        Sil
+                    </button>
+                </td>
+
+            </tr>
+        `);
+
+    }
 
 }
 
@@ -140,7 +137,10 @@ function istatistikGuncelle() {
 
     waitingCount.textContent = toplam - giren;
 
-    remainingAdmin.textContent = Math.max(0, MAX_KONTENJAN - toplam);
+    remainingAdmin.textContent = Math.max(
+        0,
+        MAX_KONTENJAN - toplam
+    );
 
 }
 
@@ -156,29 +156,44 @@ searchInput.addEventListener("input", (e) => {
 
     }
 
-    const filtre = kayitlar.filter((k) =>
+    tabloOlustur(
 
-        (k.adSoyad || "").toLowerCase().includes(ara) ||
-        (k.kayitNo || "").toLowerCase().includes(ara) ||
-        (k.tc || "").includes(ara) ||
-        (k.telefon || "").includes(ara)
+        kayitlar.filter(k =>
+
+            (k.adSoyad || "").toLowerCase().includes(ara) ||
+            (k.kayitNo || "").toLowerCase().includes(ara) ||
+            (k.tc || "").includes(ara) ||
+            (k.telefon || "").includes(ara)
+
+        )
 
     );
-
-    tabloOlustur(filtre);
 
 });
 
 tableBody.addEventListener("click", async (e) => {
 
     const sil = e.target.dataset.delete;
+
     const check = e.target.dataset.check;
+
+    if (!sil && !check) return;
+
+    const buton = e.target;
+
+    buton.disabled = true;
 
     try {
 
         if (sil) {
 
-            if (!confirm("Bu kayıt silinsin mi?")) return;
+            if (!confirm("Bu kayıt silinsin mi?")) {
+
+                buton.disabled = false;
+
+                return;
+
+            }
 
             await kayitSil(sil);
 
@@ -188,21 +203,17 @@ tableBody.addEventListener("click", async (e) => {
 
         }
 
-        if (check) {
+        const kayit = kayitlar.find(x => x.id === check);
 
-            const kayit = kayitlar.find(k => k.id === check);
+        if (!kayit) return;
 
-            if (!kayit) return;
+        if (kayit.checkin) {
 
-            if (kayit.checkin) {
+            await checkinIptal(check);
 
-                await checkinIptal(check);
+        } else {
 
-            } else {
-
-                await checkinYap(check);
-
-            }
+            await checkinYap(check);
 
         }
 
@@ -210,13 +221,19 @@ tableBody.addEventListener("click", async (e) => {
 
         console.error(err);
 
-        alert("İşlem sırasında bir hata oluştu.");
+        alert("İşlem sırasında hata oluştu.");
+
+    } finally {
+
+        buton.disabled = false;
 
     }
 
 });
 
 refreshBtn.addEventListener("click", () => {
+
+    searchInput.value = "";
 
     tabloOlustur(kayitlar);
 
@@ -232,9 +249,12 @@ logoutBtn.addEventListener("click", async () => {
 
             unsubscribe();
 
+            unsubscribe = null;
+
         }
 
         sessionStorage.removeItem("admin");
+
         localStorage.removeItem("adminLoginTime");
 
         await signOut(auth);
@@ -262,9 +282,10 @@ window.addEventListener("beforeunload", () => {
     }
 
 });
-window.addEventListener("pageshow",()=>{
 
-    searchInput.value="";
+window.addEventListener("pageshow", () => {
+
+    searchInput.value = "";
 
     tabloOlustur(kayitlar);
 
