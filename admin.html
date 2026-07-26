@@ -4,39 +4,182 @@
 <head>
 
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
 
-<title>Yönetici Paneli</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Yönetim Paneli</title>
 
 <link rel="stylesheet" href="css/style.css">
+
+<style>
+
+body{
+    background:#f4f6f9;
+}
+
+.header{
+    background:#0b8d42;
+    color:#fff;
+    padding:20px;
+    text-align:center;
+}
+
+.wrapper{
+    width:95%;
+    max-width:1400px;
+    margin:25px auto;
+}
+
+.stats{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:15px;
+    margin-bottom:25px;
+}
+
+.stat-card{
+    background:#fff;
+    padding:20px;
+    border-radius:15px;
+    box-shadow:0 8px 20px rgba(0,0,0,.08);
+    text-align:center;
+}
+
+.stat-card p{
+    color:#666;
+    margin-bottom:8px;
+}
+
+.stat-card h3{
+    color:#0b8d42;
+    font-size:34px;
+}
+
+.toolbar{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-bottom:20px;
+}
+
+.toolbar input{
+    flex:1;
+    min-width:250px;
+    padding:13px;
+    border:1px solid #ccc;
+    border-radius:10px;
+}
+
+.toolbar button{
+    padding:13px 18px;
+    border:none;
+    border-radius:10px;
+    cursor:pointer;
+    color:#fff;
+    font-weight:bold;
+}
+
+#excelBtn{
+    background:#198754;
+}
+
+#refreshBtn{
+    background:#0d6efd;
+}
+
+#checkinPage{
+    background:#fd7e14;
+}
+
+#logoutBtn{
+    background:#dc3545;
+}
+
+.table-card{
+    background:#fff;
+    border-radius:15px;
+    overflow:auto;
+    box-shadow:0 8px 20px rgba(0,0,0,.08);
+}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+    min-width:1200px;
+}
+
+th{
+    background:#0b8d42;
+    color:#fff;
+    padding:14px;
+    white-space:nowrap;
+}
+
+td{
+    padding:12px;
+    border-bottom:1px solid #eee;
+    white-space:nowrap;
+}
+
+.checkBtn,
+.cancelBtn,
+.deleteBtn{
+    border:none;
+    border-radius:8px;
+    padding:8px 12px;
+    color:#fff;
+    cursor:pointer;
+    margin-right:5px;
+}
+
+.checkBtn{
+    background:#198754;
+}
+
+.cancelBtn{
+    background:#ffc107;
+    color:#000;
+}
+
+.deleteBtn{
+    background:#dc3545;
+}
+
+@media(max-width:768px){
+
+.wrapper{
+    width:100%;
+}
+
+.toolbar{
+    flex-direction:column;
+}
+
+.toolbar button{
+    width:100%;
+}
+
+}
+
+</style>
 
 </head>
 
 <body>
 
-<header class="hero">
+<header class="header">
 
-<div class="overlay"></div>
-
-<div class="hero-content">
-
-<h1>TÜGVA</h1>
-
-<h2>Yönetici Paneli</h2>
-
-<p>Yaz Okulu Kayıt Sistemi</p>
-
-</div>
+<h1>TÜGVA Yaz Okulu Yönetim Paneli</h1>
 
 </header>
 
-<main class="container">
+<div class="wrapper">
 
-<section class="stats">
+<div class="stats">
 
 <div class="stat-card">
 
-<p>👥 Toplam Kayıt</p>
+<p>Toplam Kayıt</p>
 
 <h3 id="totalCount">0</h3>
 
@@ -44,7 +187,7 @@
 
 <div class="stat-card">
 
-<p>✅ Check-in</p>
+<p>Check-in</p>
 
 <h3 id="checkedCount">0</h3>
 
@@ -52,7 +195,7 @@
 
 <div class="stat-card">
 
-<p>⏳ Bekleyen</p>
+<p>Bekleyen</p>
 
 <h3 id="waitingCount">0</h3>
 
@@ -60,66 +203,46 @@
 
 <div class="stat-card">
 
-<p>🎟️ Kalan Kontenjan</p>
+<p>Kalan Kontenjan</p>
 
 <h3 id="remainingAdmin">85</h3>
 
 </div>
 
-</section>
-
-<section class="card">
+</div>
 
 <div class="toolbar">
 
 <input
-id="searchInput"
 type="text"
-placeholder="🔍 Ad, T.C., Telefon veya Kayıt No Ara">
+id="searchInput"
+placeholder="🔍 Ad Soyad, Telefon, T.C. veya Kayıt No Ara...">
 
-<button
-class="btn"
-id="excelBtn">
-
-📥 Excel
-
+<button id="excelBtn">
+Excel
 </button>
 
-<button
-class="btn"
-id="refreshBtn">
-
-🔄 Yenile
-
+<button id="refreshBtn">
+Yenile
 </button>
 
-<button
-class="btn"
-id="checkinPage">
-
-📷 QR Check-in
-
+<button id="checkinPage">
+QR Okuyucu
 </button>
 
-<button
-class="btn secondary"
-id="logoutBtn">
-
-🚪 Çıkış Yap
-
+<button id="logoutBtn">
+Çıkış
 </button>
 
 </div>
 
-<div style="overflow:auto;">
+<div class="table-card">
 
 <table>
 
 <thead>
 
 <tr>
-
-<th>#</th>
 
 <th>Kayıt No</th>
 
@@ -129,9 +252,13 @@ id="logoutBtn">
 
 <th>Telefon</th>
 
+<th>Doğum</th>
+
 <th>Cinsiyet</th>
 
-<th>Durum</th>
+<th>Acil Durum</th>
+
+<th>Check-in</th>
 
 <th>İşlem</th>
 
@@ -141,27 +268,15 @@ id="logoutBtn">
 
 <tbody id="tableBody">
 
-<tr>
-
-<td colspan="8" style="text-align:center;padding:30px;">
-
-Yükleniyor...
-
-</td>
-
-</tr>
-
 </tbody>
 
 </table>
 
 </div>
 
-</section>
+</div>
 
-</main>
-
-<script src="https://cdn.jsdelivr.net/npm/xlsx/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 
 <script type="module" src="js/admin.js"></script>
 
