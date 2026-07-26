@@ -1,3 +1,8 @@
+if(sessionStorage.getItem("admin")!=="true"){
+
+    location.href="login.html";
+
+}
 import {
     auth,
     tumKayitlar,
