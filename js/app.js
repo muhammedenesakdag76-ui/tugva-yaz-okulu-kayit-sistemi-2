@@ -165,11 +165,20 @@ if (pdfButton) {
 
         }
 
-       downloadPDF(aktifKayitNo); else {
+       const pdfButton = document.getElementById("downloadPdf");
 
-            alert("PDF modülü yüklenemedi.");
+if (pdfButton) {
+    pdfButton.addEventListener("click", () => {
 
+        if (!aktifKayitNo) {
+            alert("Önce kayıt oluşturulmalıdır.");
+            return;
         }
+
+        downloadPDF(aktifKayitNo);
+
+    });
+}
 
     });
 
