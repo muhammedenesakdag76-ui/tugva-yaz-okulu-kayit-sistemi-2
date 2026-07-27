@@ -1,313 +1,246 @@
-// admin.js Düzeltme Paketi
-// Parça 1/12
+import {
+    getAllRegistrations,
+    updateRegistration,
+    deleteRegistration,
+    addRegistration
+} from "./firebase.js";
 
-import{
-authListener,
-logout,
-listenRegistrations,
-getStatistics,
-updateSeat,
-deleteRegistration,
-checkIn,
-checkOut
-}from"./firebase.js";
+let participants = [];
 
-import{
-exportCurrentData,
-importExcel,
-downloadTemplate
-}from"./excel.js";
+let filteredParticipants = [];
 
-/* ===========================
-   DOM
-=========================== */
+let selectedParticipant = null;
 
-const totalCount=document.getElementById("totalCount");
-const checkedCount=document.getElementById("checkedCount");
-const waitingCount=document.getElementById("waitingCount");
-const remainingCount=document.getElementById("remainingCount");
+let chart = null;
 
-const participantTable=document.getElementById("participantTable");
+const tbody = document.getElementById("participantsBody");
 
-const search=document.getElementById("search");
+const searchInput = document.getElementById("searchInput");
 
-const statusFilter=document.getElementById("statusFilter");
+const statusFilter = document.getElementById("statusFilter");
 
-const sortSelect=document.getElementById("sortSelect");
+const genderFilter = document.getElementById("genderFilter");
 
-const exportExcel=document.getElementById("exportExcel");
+const schoolFilter = document.getElementById("schoolFilter");
 
-const importExcelBtn=document.getElementById("importExcel");
+const loading = document.getElementById("loadingOverlay");
 
-const excelFile=document.getElementById("excelFile");
+const detailName = document.getElementById("detailName");
 
-const refreshBtn=document.getElementById("refreshBtn");
+const detailRegister = document.getElementById("detailRegister");
 
-const checkAllBtn=document.getElementById("checkAllBtn");
+const detailTc = document.getElementById("detailTc");
 
-const uncheckAllBtn=document.getElementById("uncheckAllBtn");
+const detailPhone = document.getElementById("detailPhone");
 
-const deleteSelectedBtn=document.getElementById("deleteSelectedBtn");
+const detailSchool = document.getElementById("detailSchool");
 
-const logoutBtn=document.getElementById("logoutBtn");
-// admin.js Düzeltme Paketi
-// Parça 2/12
+const detailClass = document.getElementById("detailClass");
 
-/* ===========================
-   MODAL
-=========================== */
+const detailParent = document.getElementById("detailParent");
 
-const participantDialog=document.getElementById("participantDialog");
+const detailParentPhone = document.getElementById("detailParentPhone");
 
-const participantDialogClose=document.getElementById("participantDialogClose");
+const detailSeat = document.getElementById("detailSeat");
 
-const saveParticipantBtn=document.getElementById("saveParticipantBtn");
+const detailStatus = document.getElementById("detailStatus");
 
-const detailRegisterNo=document.getElementById("detailRegisterNo");
+const detailQr = document.getElementById("detailQr");
 
-const detailName=document.getElementById("detailName");
+const statTotal = document.getElementById("statTotal");
 
-const detailTC=document.getElementById("detailTC");
+const statChecked = document.getElementById("statChecked");
 
-const detailPhone=document.getElementById("detailPhone");
+const statWaiting = document.getElementById("statWaiting");
 
-const detailParent=document.getElementById("detailParent");
+const statRemaining = document.getElementById("statRemaining");
 
-const detailParentPhone=document.getElementById("detailParentPhone");
+const capacity = 45;
 
-const detailSchool=document.getElementById("detailSchool");
+document.addEventListener("DOMContentLoaded", init);
 
-const detailClass=document.getElementById("detailClass");
+async function init() {
 
-const detailStatus=document.getElementById("detailStatus");
+    showLoading();
 
-const detailSeat=document.getElementById("detailSeat");
+    await loadParticipants();
 
-let participants=[];
+    bindEvents();
 
-let currentParticipant=null;
- // admin.js Düzeltme Paketi
-// Parça 3/12
-
-authListener(user=>{
-
-if(!user){
-
-location.href="login.html";
-
-return;
+    hideLoading();
 
 }
 
-});
+function bindEvents() {
 
-logoutBtn.addEventListener(
+    searchInput.addEventListener("input", filterParticipants);
 
-"click",
+    statusFilter.addEventListener("change", filterParticipants);
 
-async()=>{
+    genderFilter.addEventListener("change", filterParticipants);
 
-await logout();
+    schoolFilter.addEventListener("change", filterParticipants);
 
-location.href="login.html";
+    document
+        .getElementById("refreshBtn")
+        .addEventListener("click", loadParticipants);
 
-}
-
-);
-
-async function refreshStatistics(){
-
-const stats=
-
-await getStatistics();
-
-totalCount.textContent=
-
-stats.total;
-
-checkedCount.textContent=
-
-stats.checked;
-
-waitingCount.textContent=
-
-stats.waiting;
-
-remainingCount.textContent=
-
-stats.remaining;
-
-}
-// admin.js Düzeltme Paketi
-// Parça 4/12
-
-listenRegistrations(data=>{
-
-participants=data;
-
-renderTable();
-
-refreshStatistics();
-
-});
-// admin.js Düzeltme Paketi
-// Parça 5/12
-
-function filteredParticipants(){
-
-let list=[...participants];
-
-const keyword=
-
-search.value
-
-.toLowerCase()
-
-.trim();
-
-if(keyword){
-
-list=list.filter(p=>
-
-p.adSoyad
-
-.toLowerCase()
-
-.includes(keyword)
-
-||
-
-p.tc.includes(keyword)
-
-||
-
-p.telefon.includes(keyword)
-
-||
-
-p.kayitNo
-
-.toLowerCase()
-
-.includes(keyword)
-
-);
+    document
+        .getElementById("newParticipantBtn")
+        .addEventListener("click", openCreateModal);
 
 }
 
-if(statusFilter.value==="checked"){
+async function loadParticipants() {
 
-list=list.filter(p=>p.checkedIn);
+    showLoading();
 
-}
+    try {
 
-if(statusFilter.value==="waiting"){
+        participants = await getAllRegistrations();
 
-list=list.filter(p=>!p.checkedIn);
+        filteredParticipants = [...participants];
 
-}
+        populateSchoolFilter();
 
-switch(sortSelect.value){
+        renderTable();
 
-case "name":
+        updateStats();
 
-list.sort((a,b)=>
+        updateChart();
 
-a.adSoyad.localeCompare(b.adSoyad)
+    }
 
-);
+    catch (err) {
 
-break;
+        console.error(err);
 
-case "register":
+        toast(
+            "Hata",
+            "Katılımcılar yüklenemedi.",
+            false
+        );
 
-list.sort((a,b)=>
+    }
 
-a.kayitNo.localeCompare(b.kayitNo)
-
-);
-
-break;
-
-case "seat":
-
-list.sort((a,b)=>
-
-(a.seat||999)
-
--
-
-(b.seat||999)
-
-);
-
-break;
+    hideLoading();
 
 }
+function renderTable() {
 
-return list;
+    tbody.innerHTML = "";
 
-}
-// admin.js Düzeltme Paketi
-// Parça 6/12
+    if (filteredParticipants.length === 0) {
 
-function renderTable(){
+        tbody.innerHTML = `
+            <tr>
+                <td colspan="11" class="empty">
+                    Kayıt bulunamadı.
+                </td>
+            </tr>
+        `;
 
-const list=
+        return;
+    }
 
-filteredParticipants();
+    filteredParticipants.forEach((participant) => {
 
-participantTable.innerHTML="";
+        const tr = document.createElement("tr");
 
-if(list.length===0){
+        const checked =
+            participant.checkedIn === true ||
+            participant.checked === true;
 
-participantTable.innerHTML=`
-
-<tr>
-
-<td colspan="8">
-
-Kayıt bulunamadı.
-
-</td>
-
-</tr>
-
-`;
-
-return;
-
-}
-
-list.forEach(item=>{
-
-const tr=document.createElement("tr");
-
-tr.innerHTML=`
-
-<td>${item.kayitNo}</td>
-
-<td>${item.adSoyad}</td>
-
-<td>${item.telefon}</td>
-
-<td>${item.seat||"-"}</td>
+        tr.innerHTML = `
 
 <td>
 
-${item.checkedIn
-
-?'<span class="status success">Geldi</span>'
-
-:'<span class="status waiting">Bekliyor</span>'}
+<input
+type="checkbox"
+class="rowCheck"
+data-id="${participant.id}">
 
 </td>
 
 <td>
 
-<button class="detailBtn">
+<button
+class="btn btn-secondary qrBtn"
+data-id="${participant.id}">
 
-Detay
+QR
+
+</button>
+
+</td>
+
+<td>
+
+${participant.registerNumber || "-"}
+
+</td>
+
+<td>
+
+${participant.name || "-"}
+
+</td>
+
+<td>
+
+${participant.tc || "-"}
+
+</td>
+
+<td>
+
+${participant.phone || "-"}
+
+</td>
+
+<td>
+
+${participant.school || "-"}
+
+</td>
+
+<td>
+
+${participant.class || "-"}
+
+</td>
+
+<td>
+
+${participant.seat || "-"}
+
+</td>
+
+<td>
+
+<span class="badge ${checked ? "checked" : "waiting"}">
+
+${checked ? "Giriş Yaptı" : "Bekliyor"}
+
+</span>
+
+</td>
+
+<td>
+
+<button
+class="btn btn-success editBtn"
+data-id="${participant.id}">
+
+Düzenle
+
+</button>
+
+<button
+class="btn btn-danger deleteBtn"
+data-id="${participant.id}">
+
+Sil
 
 </button>
 
@@ -315,292 +248,1434 @@ Detay
 
 `;
 
-participantTable.appendChild(tr);
+        tr.addEventListener("click", (e) => {
+
+            if (
+                e.target.tagName === "BUTTON" ||
+                e.target.tagName === "INPUT"
+            ) return;
+
+            showParticipant(participant);
+
+        });
+
+        tbody.appendChild(tr);
+
+    });
+
+    bindRowButtons();
+
+}
+
+function bindRowButtons() {
+
+    document.querySelectorAll(".editBtn").forEach(btn => {
+
+        btn.onclick = () => {
+
+            const id = btn.dataset.id;
+
+            const participant =
+                participants.find(x => x.id === id);
+
+            if (participant)
+                openEditModal(participant);
+
+        };
+
+    });
+
+    document.querySelectorAll(".deleteBtn").forEach(btn => {
+
+        btn.onclick = () => {
+
+            const id = btn.dataset.id;
+
+            const participant =
+                participants.find(x => x.id === id);
+
+            if (participant)
+                askDelete(participant);
+
+        };
+
+    });
+
+    document.querySelectorAll(".qrBtn").forEach(btn => {
+
+        btn.onclick = () => {
+
+            const id = btn.dataset.id;
+
+            const participant =
+                participants.find(x => x.id === id);
+
+            if (participant)
+                openQrModal(participant);
+
+        };
+
+    });
+
+}
+
+function showParticipant(participant) {
+
+    selectedParticipant = participant;
+
+    detailName.textContent =
+        participant.name || "-";
+
+    detailRegister.textContent =
+        participant.registerNumber || "-";
+
+    detailTc.textContent =
+        participant.tc || "-";
+
+    detailPhone.textContent =
+        participant.phone || "-";
+
+    detailSchool.textContent =
+        participant.school || "-";
+
+    detailClass.textContent =
+        participant.class || "-";
+
+    detailParent.textContent =
+        participant.parent || "-";
+
+    detailParentPhone.textContent =
+        participant.parentPhone || "-";
+
+    detailSeat.textContent =
+        participant.seat || "-";
+
+    detailStatus.textContent =
+        participant.checkedIn
+            ? "Giriş Yaptı"
+            : "Bekliyor";
+
+    drawQr(participant);
+
+}
+function filterParticipants() {
+
+    const search =
+        searchInput.value
+            .trim()
+            .toLowerCase();
+
+    const status =
+        statusFilter.value;
+
+    const gender =
+        genderFilter.value;
+
+    const school =
+        schoolFilter.value;
+
+    filteredParticipants = participants.filter(p => {
+
+        const checked =
+            p.checkedIn === true ||
+            p.checked === true;
+
+        const searchMatch =
+
+            (p.name || "")
+                .toLowerCase()
+                .includes(search)
+
+            ||
+
+            (p.tc || "")
+                .toLowerCase()
+                .includes(search)
+
+            ||
+
+            (p.phone || "")
+                .toLowerCase()
+                .includes(search)
+
+            ||
+
+            (p.registerNumber || "")
+                .toLowerCase()
+                .includes(search)
+
+            ||
+
+            (p.school || "")
+                .toLowerCase()
+                .includes(search);
+
+        const statusMatch =
+
+            !status ||
+
+            (status === "checked" && checked)
+
+            ||
+
+            (status === "waiting" && !checked);
+
+        const genderMatch =
+
+            !gender ||
+
+            p.gender === gender;
+
+        const schoolMatch =
+
+            !school ||
+
+            p.school === school;
+
+        return (
+            searchMatch &&
+            statusMatch &&
+            genderMatch &&
+            schoolMatch
+        );
+
+    });
+
+    renderTable();
+
+    updateStats();
+
+}
+
+function populateSchoolFilter() {
+
+    schoolFilter.innerHTML = `
+        <option value="">
+            Tüm Okullar
+        </option>
+    `;
+
+    const schools = [
+
+        ...new Set(
+
+            participants
+
+                .map(p => p.school)
+
+                .filter(Boolean)
+
+        )
+
+    ].sort();
+
+    schools.forEach(school => {
+
+        const option =
+            document.createElement("option");
+
+        option.value = school;
+
+        option.textContent = school;
+
+        schoolFilter.appendChild(option);
+
+    });
+
+}
+
+function updateStats() {
+
+    const total =
+        filteredParticipants.length;
+
+    const checked =
+        filteredParticipants.filter(p =>
+            p.checkedIn === true ||
+            p.checked === true
+        ).length;
+
+    const waiting =
+        total - checked;
+
+    statTotal.textContent =
+        total;
+
+    statChecked.textContent =
+        checked;
+
+    statWaiting.textContent =
+        waiting;
+
+    statRemaining.textContent =
+        Math.max(
+            capacity - participants.length,
+            0
+        );
+
+    updateReportCards();
+
+}
+
+function updateReportCards() {
+
+    const male =
+        participants.filter(p =>
+            p.gender === "Erkek"
+        ).length;
+
+    const female =
+        participants.filter(p =>
+            p.gender === "Kız"
+        ).length;
+
+    document.getElementById(
+        "maleCount"
+    ).textContent = male;
+
+    document.getElementById(
+        "femaleCount"
+    ).textContent = female;
+
+    const today = new Date()
+        .toLocaleDateString("tr-TR");
+
+    const todayCount =
+        participants.filter(p => {
+
+            if (!p.createdAt)
+                return false;
+
+            const date =
+                new Date(
+                    p.createdAt
+                ).toLocaleDateString("tr-TR");
+
+            return date === today;
+
+        }).length;
+
+    document.getElementById(
+        "todayRegister"
+    ).textContent = todayCount;
+
+    document.getElementById(
+        "capacityRate"
+    ).textContent =
+
+        Math.round(
+
+            (participants.length /
+                capacity)
+
+            * 100
+
+        ) + "%";
+
+}
+
+function updateChart() {
+
+    const male =
+        participants.filter(p =>
+            p.gender === "Erkek"
+        ).length;
+
+    const female =
+        participants.filter(p =>
+            p.gender === "Kız"
+        ).length;
+
+    const checked =
+        participants.filter(p =>
+            p.checkedIn === true ||
+            p.checked === true
+        ).length;
+
+    const waiting =
+        participants.length -
+        checked;
+
+    const ctx =
+        document
+            .getElementById("reportChart")
+            .getContext("2d");
+
+    if (chart)
+        chart.destroy();
+
+    chart = new Chart(ctx, {
+
+        type: "bar",
+
+        data: {
+
+            labels: [
+
+                "Erkek",
+
+                "Kız",
+
+                "Giriş",
+
+                "Bekleyen"
+
+            ],
+
+            datasets: [{
+
+                label: "Katılımcılar",
+
+                data: [
+
+                    male,
+
+                    female,
+
+                    checked,
+
+                    waiting
+
+                ]
+
+            }]
+
+        },
+
+        options: {
+
+            responsive: true,
+
+            maintainAspectRatio: false,
+
+            plugins: {
+
+                legend: {
+
+                    display: false
+
+                }
+
+            }
+
+        }
+
+    });
+
+}
+let editingId = null;
+
+function openEditModal(participant) {
+
+    editingId = participant.id;
+
+    document.getElementById("editName").value =
+        participant.name || "";
+
+    document.getElementById("editTc").value =
+        participant.tc || "";
+
+    document.getElementById("editPhone").value =
+        participant.phone || "";
+
+    document.getElementById("editEmail").value =
+        participant.email || "";
+
+    document.getElementById("editBirth").value =
+        participant.birth || "";
+
+    document.getElementById("editGender").value =
+        participant.gender || "Erkek";
+
+    document.getElementById("editSchool").value =
+        participant.school || "";
+
+    document.getElementById("editClass").value =
+        participant.class || "";
+
+    document.getElementById("editParent").value =
+        participant.parent || "";
+
+    document.getElementById("editParentPhone").value =
+        participant.parentPhone || "";
+
+    document.getElementById("editAddress").value =
+        participant.address || "";
+
+    document.getElementById("editNote").value =
+        participant.note || "";
+
+    document.getElementById("editSeat").value =
+        participant.seat || "";
+
+    document
+        .getElementById("editModal")
+        .classList.add("show");
+
+}
+
+function closeEditModal() {
+
+    editingId = null;
+
+    document
+        .getElementById("editModal")
+        .classList.remove("show");
+
+}
+
+document
+.getElementById("closeEditModal")
+.onclick = closeEditModal;
+
+document
+.getElementById("cancelEdit")
+.onclick = closeEditModal;
+
+document
+.getElementById("saveEdit")
+.onclick = saveParticipant;
+
+async function saveParticipant() {
+
+    if (!editingId)
+        return;
+
+    showLoading();
+
+    const data = {
+
+        name:
+        document.getElementById("editName").value.trim(),
+
+        tc:
+        document.getElementById("editTc").value.trim(),
+
+        phone:
+        document.getElementById("editPhone").value.trim(),
+
+        email:
+        document.getElementById("editEmail").value.trim(),
+
+        birth:
+        document.getElementById("editBirth").value,
+
+        gender:
+        document.getElementById("editGender").value,
+
+        school:
+        document.getElementById("editSchool").value.trim(),
+
+        class:
+        document.getElementById("editClass").value.trim(),
+
+        parent:
+        document.getElementById("editParent").value.trim(),
+
+        parentPhone:
+        document.getElementById("editParentPhone").value.trim(),
+
+        address:
+        document.getElementById("editAddress").value.trim(),
+
+        note:
+        document.getElementById("editNote").value.trim(),
+
+        seat:
+        document.getElementById("editSeat").value.trim()
+
+    };
+
+    try{
+
+        await updateRegistration(
+            editingId,
+            data
+        );
+
+        toast(
+            "Başarılı",
+            "Katılımcı güncellendi.",
+            true
+        );
+
+        closeEditModal();
+
+        await loadParticipants();
+
+    }
+
+    catch(err){
+
+        console.error(err);
+
+        toast(
+            "Hata",
+            "Güncelleme başarısız.",
+            false
+        );
+
+    }
+
+    hideLoading();
+
+}
+
+function openCreateModal(){
+
+    editingId = null;
+
+    document
+    .getElementById("editForm")
+    .reset();
+
+    document
+    .getElementById("editModal")
+    .classList.add("show");
+
+}
+
+async function createParticipant(data){
+
+    showLoading();
+
+    try{
+
+        await addRegistration(data);
+
+        toast(
+            "Başarılı",
+            "Yeni katılımcı oluşturuldu.",
+            true
+        );
+
+        closeEditModal();
+
+        await loadParticipants();
+
+    }
+
+    catch(err){
+
+        console.error(err);
+
+        toast(
+            "Hata",
+            "Kayıt oluşturulamadı.",
+            false
+        );
+
+    }
+
+    hideLoading();
+
+}
+let deletingId = null;
+
+/* ==========================================
+SİLME
+========================================== */
+
+function askDelete(participant){
+
+    deletingId = participant.id;
+
+    document
+        .getElementById("deleteModal")
+        .classList.add("show");
+
+}
+
+document
+.getElementById("cancelDelete")
+.onclick = () => {
+
+    deletingId = null;
+
+    document
+        .getElementById("deleteModal")
+        .classList.remove("show");
+
+};
+
+document
+.getElementById("confirmDelete")
+.onclick = async () => {
+
+    if(!deletingId)
+        return;
+
+    showLoading();
+
+    try{
+
+        await deleteRegistration(deletingId);
+
+        toast(
+            "Başarılı",
+            "Katılımcı silindi.",
+            true
+        );
+
+        document
+            .getElementById("deleteModal")
+            .classList.remove("show");
+
+        deletingId = null;
+
+        await loadParticipants();
+
+    }
+
+    catch(err){
+
+        console.error(err);
+
+        toast(
+            "Hata",
+            "Silme işlemi başarısız.",
+            false
+        );
+
+    }
+
+    hideLoading();
+
+};
+
+/* ==========================================
+CHECKBOX
+========================================== */
+
+document
+.getElementById("selectAll")
+.addEventListener("change", function(){
+
+    document
+        .querySelectorAll(".rowCheck")
+        .forEach(box=>{
+
+            box.checked=this.checked;
+
+        });
 
 });
-}
-// admin.js Düzeltme Paketi
-// Parça 7/12
 
-participantTable.addEventListener("click",e=>{
+function getSelectedIds(){
 
-const button=e.target.closest(".detailBtn");
+    return [...document.querySelectorAll(".rowCheck:checked")]
 
-if(!button){
-
-return;
+        .map(box=>box.dataset.id);
 
 }
 
-const row=button.closest("tr");
+/* ==========================================
+TOPLU SİL
+========================================== */
 
-const registerNo=row.cells[0].textContent;
+document
+.getElementById("bulkDelete")
+.onclick = async ()=>{
 
-currentParticipant=
+    const ids=getSelectedIds();
 
-participants.find(
+    if(ids.length===0){
 
-p=>p.kayitNo===registerNo
+        toast(
+            "Uyarı",
+            "Önce katılımcı seçiniz.",
+            false
+        );
+
+        return;
+
+    }
+
+    if(!confirm(
+        ids.length+
+        " kayıt silinsin mi?"
+    )) return;
+
+    showLoading();
+
+    try{
+
+        for(const id of ids){
+
+            await deleteRegistration(id);
+
+        }
+
+        toast(
+            "Başarılı",
+            ids.length+
+            " kayıt silindi.",
+            true
+        );
+
+        await loadParticipants();
+
+    }
+
+    catch(err){
+
+        console.error(err);
+
+        toast(
+            "Hata",
+            "Toplu silme başarısız.",
+            false
+        );
+
+    }
+
+    hideLoading();
+
+};
+
+/* ==========================================
+TOPLU GİRİŞ YAPILDI
+========================================== */
+
+document
+.getElementById("bulkCheckIn")
+.onclick = async ()=>{
+
+    const ids=getSelectedIds();
+
+    if(ids.length===0){
+
+        toast(
+            "Uyarı",
+            "Katılımcı seçiniz.",
+            false
+        );
+
+        return;
+
+    }
+
+    showLoading();
+
+    try{
+
+        for(const id of ids){
+
+            await updateRegistration(id,{
+
+                checkedIn:true,
+
+                checkInTime:
+                new Date().toISOString()
+
+            });
+
+        }
+
+        toast(
+            "Başarılı",
+            ids.length+
+            " kişi giriş yaptı.",
+            true
+        );
+
+        await loadParticipants();
+
+    }
+
+    catch(err){
+
+        console.error(err);
+
+        toast(
+            "Hata",
+            "İşlem başarısız.",
+            false
+        );
+
+    }
+
+    hideLoading();
+
+};
+
+/* ==========================================
+TOPLU GİRİŞİ İPTAL
+========================================== */
+
+document
+.getElementById("bulkCheckOut")
+.onclick = async ()=>{
+
+    const ids=getSelectedIds();
+
+    if(ids.length===0){
+
+        toast(
+            "Uyarı",
+            "Katılımcı seçiniz.",
+            false
+        );
+
+        return;
+
+    }
+
+    showLoading();
+
+    try{
+
+        for(const id of ids){
+
+            await updateRegistration(id,{
+
+                checkedIn:false,
+
+                checkInTime:null
+
+            });
+
+        }
+
+        toast(
+            "Başarılı",
+            ids.length+
+            " kişinin girişi iptal edildi.",
+            true
+        );
+
+        await loadParticipants();
+
+    }
+
+    catch(err){
+
+        console.error(err);
+
+        toast(
+            "Hata",
+            "İşlem başarısız.",
+            false
+        );
+
+    }
+
+    hideLoading();
+
+};
+/* ==========================================
+QR MODAL
+========================================== */
+
+function openQrModal(participant){
+
+    const modal =
+        document.getElementById("qrModal");
+
+    const qrBox =
+        document.getElementById("qrModalImage");
+
+    qrBox.innerHTML = "";
+
+    QRCode.toCanvas(
+
+        participant.registerNumber,
+
+        {
+            width:256,
+            margin:2
+        },
+
+        function(err,canvas){
+
+            if(err){
+
+                console.error(err);
+                return;
+
+            }
+
+            qrBox.appendChild(canvas);
+
+        }
+
+    );
+
+    document.getElementById("qrModalNumber").textContent =
+        participant.registerNumber || "-";
+
+    document.getElementById("qrModalName").textContent =
+        participant.name || "-";
+
+    modal.classList.add("show");
+
+}
+
+document
+.getElementById("closeQrModal")
+.onclick=()=>{
+
+    document
+    .getElementById("qrModal")
+    .classList.remove("show");
+
+};
+
+/* ==========================================
+QR İNDİR
+========================================== */
+
+document
+.getElementById("downloadQrPng")
+.onclick=()=>{
+
+    const canvas=
+        document.querySelector("#qrModalImage canvas");
+
+    if(!canvas)
+        return;
+
+    const a=document.createElement("a");
+
+    a.download=
+        "QR-"+Date.now()+".png";
+
+    a.href=
+        canvas.toDataURL("image/png");
+
+    a.click();
+
+};
+
+/* ==========================================
+YAZDIR
+========================================== */
+
+document
+.getElementById("printQr")
+.onclick=()=>{
+
+    const canvas=
+        document.querySelector("#qrModalImage canvas");
+
+    if(!canvas)
+        return;
+
+    const win=
+        window.open("","_blank");
+
+    win.document.write(
+
+`
+<html>
+
+<head>
+
+<title>QR</title>
+
+<style>
+
+body{
+
+display:flex;
+
+justify-content:center;
+
+align-items:center;
+
+height:100vh;
+
+font-family:Arial;
+
+flex-direction:column;
+
+}
+
+img{
+
+width:320px;
+
+}
+
+</style>
+
+</head>
+
+<body>
+
+<img src="${canvas.toDataURL()}">
+
+<h2>
+
+${document.getElementById("qrModalName").textContent}
+
+</h2>
+
+<p>
+
+${document.getElementById("qrModalNumber").textContent}
+
+</p>
+
+</body>
+
+</html>
+
+`
 
 );
 
-if(!currentParticipant){
+    win.document.close();
 
-return;
+    win.focus();
+
+    win.print();
+
+};
+
+/* ==========================================
+PDF
+========================================== */
+
+document
+.getElementById("btnPdf")
+.onclick=createPdf;
+
+async function createPdf(){
+
+    if(!selectedParticipant)
+        return;
+
+    const {jsPDF}=window.jspdf;
+
+    const pdf=new jsPDF();
+
+    pdf.setFontSize(20);
+
+    pdf.text(
+        "TUGVA Yaz Okulu",
+        20,
+        20
+    );
+
+    pdf.setFontSize(13);
+
+    pdf.text(
+        "Ad Soyad : "+
+        (selectedParticipant.name||"-"),
+        20,
+        40
+    );
+
+    pdf.text(
+        "Kayit No : "+
+        (selectedParticipant.registerNumber||"-"),
+        20,
+        50
+    );
+
+    pdf.text(
+        "Telefon : "+
+        (selectedParticipant.phone||"-"),
+        20,
+        60
+    );
+
+    pdf.text(
+        "Okul : "+
+        (selectedParticipant.school||"-"),
+        20,
+        70
+    );
+
+    const canvas=
+        document.querySelector("#detailQr canvas");
+
+    if(canvas){
+
+        pdf.addImage(
+
+            canvas.toDataURL(),
+
+            "PNG",
+
+            145,
+
+            25,
+
+            45,
+
+            45
+
+        );
+
+    }
+
+    pdf.save(
+
+        (selectedParticipant.registerNumber||"Kayit")
+
+        +".pdf"
+
+    );
 
 }
 
-detailRegisterNo.textContent=currentParticipant.kayitNo;
+/* ==========================================
+DETAY PANELİ QR
+========================================== */
 
-detailName.value=currentParticipant.adSoyad;
+function drawQr(participant){
 
-detailTC.value=currentParticipant.tc;
+    detailQr.innerHTML="";
 
-detailPhone.value=currentParticipant.telefon;
+    QRCode.toCanvas(
 
-detailParent.value=currentParticipant.veliAdi;
+        participant.registerNumber,
 
-detailParentPhone.value=currentParticipant.veliTelefon;
+        {
 
-detailSchool.value=currentParticipant.okul;
+            width:180,
 
-detailClass.value=currentParticipant.sinif;
+            margin:1
 
-detailStatus.textContent=
+        },
 
-currentParticipant.checkedIn
+        function(err,canvas){
 
-?"Geldi"
+            if(err){
 
-:"Bekliyor";
+                console.error(err);
 
-detailSeat.value=
+                return;
 
-currentParticipant.seat||"";
+            }
 
-participantDialog.showModal();
+            detailQr.appendChild(canvas);
+
+        }
+
+    );
+
+}
+/* ==========================================
+TOAST
+========================================== */
+
+function toast(title, message, success = true) {
+
+    const toast = document.getElementById("toast");
+
+    document.getElementById("toastTitle").textContent = title;
+
+    document.getElementById("toastMessage").textContent = message;
+
+    const icon = document.getElementById("toastIcon");
+
+    if (success) {
+
+        icon.innerHTML = "✔";
+        icon.style.background = "#0d8a43";
+
+    } else {
+
+        icon.innerHTML = "✖";
+        icon.style.background = "#d32f2f";
+
+    }
+
+    toast.classList.add("show");
+
+    clearTimeout(window.toastTimer);
+
+    window.toastTimer = setTimeout(() => {
+
+        toast.classList.remove("show");
+
+    }, 3000);
+
+}
+
+document
+.getElementById("closeToast")
+.onclick = () => {
+
+    document
+    .getElementById("toast")
+    .classList.remove("show");
+
+};
+
+/* ==========================================
+LOADING
+========================================== */
+
+function showLoading() {
+
+    loading.classList.remove("hidden");
+
+}
+
+function hideLoading() {
+
+    loading.classList.add("hidden");
+
+}
+
+/* ==========================================
+MENÜ
+========================================== */
+
+document.querySelectorAll(".menu").forEach(btn => {
+
+    btn.addEventListener("click", () => {
+
+        document
+            .querySelectorAll(".menu")
+            .forEach(x => x.classList.remove("active"));
+
+        btn.classList.add("active");
+
+        const page = btn.dataset.page;
+
+        document
+            .querySelectorAll(".page")
+            .forEach(x => x.classList.remove("active"));
+
+        if (page === "participants") {
+
+            document
+                .getElementById("participantsPage")
+                .classList.add("active");
+
+        }
+
+        if (page === "reports") {
+
+            document
+                .getElementById("reportsPage")
+                .classList.add("active");
+
+        }
+
+        if (page === "logs") {
+
+            document
+                .getElementById("logsPage")
+                .classList.add("active");
+
+        }
+
+        if (page === "settings") {
+
+            document
+                .getElementById("settingsPage")
+                .classList.add("active");
+
+        }
+
+        if (page === "dashboard") {
+
+            document
+                .getElementById("participantsPage")
+                .classList.add("active");
+
+        }
+
+    });
 
 });
-// admin.js Düzeltme Paketi
-// Parça 8/12
 
-participantDialogClose.addEventListener(
+/* ==========================================
+OTOMATİK YENİLE
+========================================== */
 
-"click",
+setInterval(async () => {
 
-()=>{
+    try {
 
-participantDialog.close();
+        await loadParticipants();
 
-currentParticipant=null;
+    }
 
-}
+    catch (e) {
 
-);
+        console.error(e);
 
-saveParticipantBtn.addEventListener(
+    }
 
-"click",
+}, 60000);
 
-async()=>{
+/* ==========================================
+ESC MODAL KAPATMA
+========================================== */
 
-if(!currentParticipant){
+window.addEventListener("keydown", e => {
 
-return;
+    if (e.key !== "Escape")
+        return;
 
-}
+    document
+        .querySelectorAll(".modal.show")
+        .forEach(m => m.classList.remove("show"));
 
-await updateSeat(
+});
 
-currentParticipant.id,
+/* ==========================================
+MODAL DIŞINA TIKLAMA
+========================================== */
 
-detailSeat.value.trim()
+document.querySelectorAll(".modal").forEach(modal => {
 
-);
+    modal.addEventListener("click", e => {
 
-participantDialog.close();
+        if (e.target === modal) {
 
-refreshStatistics();
+            modal.classList.remove("show");
 
-}
-);
-// admin.js Düzeltme Paketi
-// Parça 9/12
+        }
 
-search.addEventListener(
+    });
 
-"input",
+});
 
-renderTable
+/* ==========================================
+ÇIKIŞ
+========================================== */
 
-);
+document
+.getElementById("logoutBtn")
+.onclick = () => {
 
-statusFilter.addEventListener(
+    if (!confirm("Oturum kapatılsın mı?"))
+        return;
 
-"change",
+    localStorage.removeItem("adminLogged");
 
-renderTable
+    window.location.href = "login.html";
 
-);
+};
 
-sortSelect.addEventListener(
+/* ==========================================
+RESPONSIVE SIDEBAR
+========================================== */
 
-"change",
+const sidebar = document.querySelector(".sidebar");
 
-renderTable
+const mobileButton = document.getElementById("mobileMenu");
 
-);
+if (mobileButton) {
 
-refreshBtn.addEventListener(
+    mobileButton.onclick = () => {
 
-"click",
+        sidebar.classList.toggle("show");
 
-()=>{
-
-renderTable();
-
-refreshStatistics();
-
-}
-);
-// admin.js Düzeltme Paketi
-// Parça 10/12
-
-exportExcel.addEventListener(
-
-"click",
-
-()=>{
-
-exportCurrentData(participants);
+    };
 
 }
 
-);
+/* ==========================================
+SON
+========================================== */
 
-importExcelBtn.addEventListener(
-
-"click",
-
-()=>{
-
-excelFile.click();
-
-}
-
-);
-
-excelFile.addEventListener(
-
-"change",
-
-async e=>{
-
-const file=e.target.files[0];
-
-if(!file){
-
-return;
-
-}
-
-await importExcel(file);
-
-excelFile.value="";
-
-}
-
-);
-// admin.js Düzeltme Paketi
-// Parça 11/12
-
-checkAllBtn.addEventListener(
-
-"click",
-
-async()=>{
-
-if(!currentParticipant){
-
-return;
-
-}
-
-await checkIn(currentParticipant.id);
-
-refreshStatistics();
-
-}
-
-);
-
-uncheckAllBtn.addEventListener(
-
-"click",
-
-async()=>{
-
-if(!currentParticipant){
-
-return;
-
-}
-
-await checkOut(currentParticipant.id);
-
-refreshStatistics();
-
-}
-
-);
-
-deleteSelectedBtn.addEventListener(
-
-"click",
-
-async()=>{
-
-if(!currentParticipant){
-
-return;
-
-}
-
-const ok=
-
-confirm(
-
-`${currentParticipant.adSoyad} isimli katılımcı silinsin mi?`
-
-);
-
-if(!ok){
-
-return;
-
-}
-
-await deleteRegistration(currentParticipant.id);
-
-participantDialog.close();
-
-refreshStatistics();
-
-}
-);
-// admin.js Düzeltme Paketi
-// Parça 12/12 (Son)
-
-window.addEventListener(
-
-"DOMContentLoaded",
-
-()=>{
-
-refreshStatistics();
-
-renderTable();
-
-}
-
-);
+console.log("TÜGVA Admin Paneli Hazır.");
