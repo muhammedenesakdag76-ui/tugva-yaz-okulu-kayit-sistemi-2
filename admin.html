@@ -1,3 +1,6 @@
+<!-- admin.html -->
+<!-- Parça 1/8 -->
+
 <!DOCTYPE html>
 <html lang="tr">
 
@@ -5,7 +8,8 @@
 
 <meta charset="UTF-8">
 
-<meta name="viewport"
+<meta
+name="viewport"
 content="width=device-width, initial-scale=1.0">
 
 <title>Yönetim Paneli</title>
@@ -20,9 +24,11 @@ href="css/style.css">
 
 <div class="background"></div>
 
-<div class="container">
+<div class="container admin-container">
 
 <header class="hero">
+
+<div>
 
 <h1>
 
@@ -36,9 +42,7 @@ TÜGVA Yaz Okulu Kayıt Sistemi
 
 </p>
 
-</header>
-
-<div class="button-group">
+</div>
 
 <button
 id="logoutBtn"
@@ -48,99 +52,218 @@ class="btn btn-secondary">
 
 </button>
 
-</div>
+</header>
 
-<div class="grid">
+<section class="stats-grid">
 
-<div class="card">
+<div class="stat-card">
 
-<h3>
+<div class="stat-title">
 
 Toplam Kayıt
 
-</h3>
+</div>
 
-<h1 id="totalCount">
+<div
+id="totalCount"
+class="stat-value">
 
 0
 
-</h1>
+</div>
 
 </div>
 
-<div class="card">
+<div class="stat-card">
 
-<h3>
+<div class="stat-title">
 
-Check-in
+Giriş Yapan
 
-</h3>
+</div>
 
-<h1 id="checkedCount">
+<div
+id="checkedCount"
+class="stat-value">
 
 0
 
-</h1>
+</div>
 
 </div>
 
-<div class="card">
+<div class="stat-card">
 
-<h3>
+<div class="stat-title">
+
+Bekleyen
+
+</div>
+
+<div
+id="waitingCount"
+class="stat-value">
+
+0
+
+</div>
+
+</div>
+
+<div class="stat-card">
+
+<div class="stat-title">
 
 Kalan Kontenjan
 
-</h3>
+</div>
 
-<h1 id="remainingCount">
+<div
+id="remainingCount"
+class="stat-value">
 
 45
 
-</h1>
-
 </div>
 
 </div>
+
+</section>
+<!-- admin.html -->
+<!-- Parça 2/8 -->
 
 <section class="card">
 
-<h2>
-
-Katılımcılar
-
-</h2>
-
-<div class="form-group">
+<div class="toolbar">
 
 <input
-
 type="text"
-
 id="search"
+placeholder="Ad Soyad, TC, Telefon veya Kayıt No ile ara...">
 
-placeholder="Ad Soyad, TC veya Kayıt No ile ara...">
+<select id="statusFilter">
+
+<option value="all">
+
+Tümü
+
+</option>
+
+<option value="checked">
+
+Giriş Yapanlar
+
+</option>
+
+<option value="waiting">
+
+Bekleyenler
+
+</option>
+
+</select>
+
+<select id="sortSelect">
+
+<option value="newest">
+
+En Yeni
+
+</option>
+
+<option value="oldest">
+
+En Eski
+
+</option>
+
+<option value="name">
+
+Ada Göre
+
+</option>
+
+<option value="seat">
+
+Koltuğa Göre
+
+</option>
+
+</select>
+
+<button
+id="exportExcel"
+class="btn btn-primary">
+
+Excel'e Aktar
+
+</button>
+
+<label
+for="importExcel"
+class="btn btn-success">
+
+Excel'den Yükle
+
+</label>
+
+<input
+type="file"
+id="importExcel"
+accept=".xlsx,.xls,.csv"
+hidden>
 
 </div>
 
 <div class="table-wrapper">
 
-<table>
+<table class="admin-table">
 
 <thead>
 
 <tr>
 
-<th>No</th>
+<th>
 
-<th>Ad Soyad</th>
+Kayıt No
 
-<th>Telefon</th>
+</th>
 
-<th>Koltuk</th>
+<th>
 
-<th>Durum</th>
+Ad Soyad
 
-<th>İşlem</th>
+</th>
+
+<th>
+
+Telefon
+
+</th>
+
+<th>
+
+Okul
+
+</th>
+
+<th>
+
+Koltuk
+
+</th>
+
+<th>
+
+Durum
+
+</th>
+
+<th>
+
+İşlemler
+
+</th>
 
 </tr>
 
@@ -155,146 +278,571 @@ placeholder="Ad Soyad, TC veya Kayıt No ile ara...">
 </div>
 
 </section>
+<!-- admin.html -->
+<!-- Parça 3/8 -->
+
+<section class="card">
+
+<h2>
+
+Katılımcı Detayı
+
+</h2>
+
+<div
+id="detailPanel"
+class="detail-panel">
+
+<p>
+
+Tablodan bir katılımcı seçiniz.
+
+</p>
+
+</div>
+
+</section>
+
+<div
+id="participantModal"
+class="modal">
+
+<div class="modal-content">
+
+<div class="modal-header">
+
+<h2>
+
+Katılımcı Bilgileri
+
+</h2>
+
+<button
+id="closeModal"
+class="close-btn">
+
+×
+
+</button>
+
+</div>
+
+<div
+id="modalBody"
+class="modal-body">
+
+</div>
+
+<div class="modal-footer">
+
+<button
+id="saveSeatBtn"
+class="btn btn-success">
+
+Kaydet
+
+</button>
+
+<button
+id="closeModalBottom"
+class="btn btn-secondary">
+
+Kapat
+
+</button>
+
+</div>
+
+</div>
+
+</div>
+<!-- admin.html -->
+<!-- Parça 4/8 -->
+
+<section class="card">
+
+<h2>
+
+Toplu İşlemler
+
+</h2>
+
+<div class="bulk-actions">
+
+<button
+id="refreshBtn"
+class="btn btn-primary">
+
+Listeyi Yenile
+
+</button>
+
+<button
+id="checkAllBtn"
+class="btn btn-success">
+
+Seçilenleri Giriş Yap
+
+</button>
+
+<button
+id="uncheckAllBtn"
+class="btn btn-secondary">
+
+Seçilenleri Çıkış Yap
+
+</button>
+
+<button
+id="deleteSelectedBtn"
+class="btn btn-danger">
+
+Seçilenleri Sil
+
+</button>
+
+</div>
+
+</section>
+
+<footer class="admin-footer">
+
+<p>
+
+© 2026 TÜGVA Yaz Okulu Yönetim Sistemi
+
+</p>
+
+</footer>
+
 <script
 type="module"
 src="js/admin.js">
 
 </script>
 
+</div>
+
 </body>
 
 </html>
-<!-- Katılımcı Detay Modal -->
+<!-- admin.html -->
+<!-- Parça 5/8 -->
 
-<div id="detailModal" class="modal hidden">
+<div
+id="loadingOverlay"
+class="loading-overlay hidden">
 
-    <div class="modal-content">
-
-        <div class="modal-header">
-
-            <h2>Katılımcı Bilgileri</h2>
-
-            <button id="closeModal" class="btn btn-secondary">
-                Kapat
-            </button>
-
-        </div>
-
-        <div id="participantDetail">
-
-        </div>
-
-    </div>
-
-</div>
-
-
-<!-- Düzenleme Modal -->
-
-<div id="seatModal" class="modal hidden">
-
-    <div class="modal-content">
-
-        <h2>Koltuk Güncelle</h2>
-
-        <input
-            type="text"
-            id="seatValue"
-            placeholder="Örn: A12">
-
-        <div class="button-group">
-
-            <button
-                id="saveSeat"
-                class="btn btn-success">
-
-                Kaydet
-
-            </button>
-
-            <button
-                id="cancelSeat"
-                class="btn btn-secondary">
-
-                Vazgeç
-
-            </button>
-
-        </div>
-
-    </div>
-
-</div>
-<section class="card">
-
-<h2>
-
-İstatistikler
-
-</h2>
-
-<div class="grid">
-
-<div>
-
-<b>Toplam Erkek</b>
-
-<p id="maleCount">
-
-0
-
-</p>
-
-</div>
-
-<div>
-
-<b>Toplam Kız</b>
-
-<p id="femaleCount">
-
-0
-
-</p>
-
-</div>
-
-<div>
-
-<b>Bugün Giriş Yapan</b>
-
-<p id="todayCount">
-
-0
-
-</p>
-
-</div>
-
-<div>
-
-<b>Boş Koltuk</b>
-
-<p id="seatCount">
-
-45
-
-</p>
-
-</div>
-
-</div>
-
-</section>
-<footer>
+<div class="spinner"></div>
 
 <p>
 
-TÜGVA Yaz Okulu Yönetim Paneli
+Yükleniyor...
 
 </p>
 
-</footer>
+</div>
+
+<div
+id="emptyState"
+class="empty-state hidden">
+
+<h2>
+
+Kayıt Bulunamadı
+
+</h2>
+
+<p>
+
+Aramanızla eşleşen herhangi bir katılımcı bulunamadı.
+
+</p>
+
+<button
+id="clearSearchBtn"
+class="btn btn-primary">
+
+Filtreleri Temizle
+
+</button>
+
+</div>
+
+<div
+id="toast"
+class="toast hidden">
+
+<span id="toastMessage">
+
+İşlem başarılı.
+
+</span>
+
+</div>
+
+<template id="participantTemplate">
+
+<tr>
+
+<td class="col-select">
+
+<input
+type="checkbox"
+class="row-checkbox">
+
+</td>
+
+<td class="col-register"></td>
+
+<td class="col-name"></td>
+
+<td class="col-phone"></td>
+
+<td class="col-school"></td>
+
+<td class="col-seat"></td>
+
+<td class="col-status"></td>
+
+<td class="col-actions"></td>
+
+</tr>
+
+</template>
+<!-- admin.html -->
+<!-- Parça 6/8 -->
+
+<dialog
+id="confirmDialog"
+class="confirm-dialog">
+
+<h2>
+
+İşlem Onayı
+
+</h2>
+
+<p
+id="confirmText">
+
+Bu işlemi gerçekleştirmek istediğinize emin misiniz?
+
+</p>
+
+<div class="dialog-buttons">
+
+<button
+id="confirmYes"
+class="btn btn-danger">
+
+Evet
+
+</button>
+
+<button
+id="confirmNo"
+class="btn btn-secondary">
+
+Vazgeç
+
+</button>
+
+</div>
+
+</dialog>
+
+<dialog
+id="participantDialog"
+class="participant-dialog">
+
+<div class="dialog-header">
+
+<h2>
+
+Katılımcı Bilgileri
+
+</h2>
+
+<button
+id="participantDialogClose"
+class="close-btn">
+
+×
+
+</button>
+
+</div>
+
+<div
+id="participantDialogBody"
+class="dialog-body">
+
+<div class="detail-grid">
+
+<div>
+
+<strong>
+
+Kayıt No
+
+</strong>
+
+<p id="detailRegisterNo"></p>
+
+</div>
+
+<div>
+
+<strong>
+
+Ad Soyad
+
+</strong>
+
+<p id="detailName"></p>
+
+</div>
+
+<div>
+
+<strong>
+
+TC Kimlik
+
+</strong>
+
+<p id="detailTC"></p>
+
+</div>
+
+<div>
+
+<strong>
+
+Telefon
+
+</strong>
+
+<p id="detailPhone"></p>
+
+</div>
+
+<div>
+
+<strong>
+
+Veli
+
+</strong>
+
+<p id="detailParent"></p>
+
+</div>
+
+<div>
+
+<strong>
+
+Veli Telefon
+
+</strong>
+
+<p id="detailParentPhone"></p>
+
+</div>
+
+<div>
+
+<strong>
+
+Okul
+
+</strong>
+
+<p id="detailSchool"></p>
+
+</div>
+
+<div>
+
+<strong>
+
+Sınıf
+
+</strong>
+
+<p id="detailClass"></p>
+
+</div>
+
+<div>
+
+<strong>
+
+Durum
+
+</strong>
+
+<p id="detailStatus"></p>
+
+</div>
+
+<div>
+
+<strong>
+
+Koltuk
+
+</strong>
+
+<input
+type="text"
+id="detailSeat"
+maxlength="5">
+
+</div>
+
+</div>
+
+</div>
+
+<div class="dialog-footer">
+
+<button
+id="saveParticipantBtn"
+class="btn btn-success">
+
+Kaydet
+
+</button>
+
+<button
+id="closeParticipantBtn"
+class="btn btn-secondary">
+
+Kapat
+
+</button>
+
+</div>
+
+</dialog>
+<!-- admin.html -->
+<!-- Parça 7/8 -->
+
+<template id="rowActionsTemplate">
+
+<div class="action-buttons">
+
+<button
+class="btn-icon view-btn"
+title="Detay">
+
+👁
+
+</button>
+
+<button
+class="btn-icon checkin-btn"
+title="Giriş / Çıkış">
+
+✅
+
+</button>
+
+<button
+class="btn-icon delete-btn"
+title="Sil">
+
+🗑️
+
+</button>
+
+</div>
+
+</template>
+
+<template id="statusTemplate">
+
+<span class="status waiting">
+
+Bekliyor
+
+</span>
+
+</template>
+
+<template id="seatTemplate">
+
+<input
+type="text"
+class="seat-input"
+maxlength="5"
+placeholder="A01">
+
+</template>
+
+<div
+id="pageMask"
+class="page-mask hidden">
+
+</div>
+
+<div
+id="notificationArea"
+class="notification-area">
+
+</div>
+<!-- admin.html -->
+<!-- Parça 8/8 (Son) -->
+
+<template id="detailRowTemplate">
+
+<div class="detail-row">
+
+<span class="detail-label"></span>
+
+<span class="detail-value"></span>
+
+</div>
+
+</template>
+
+<template id="statCardTemplate">
+
+<div class="stat-card">
+
+<div class="stat-title"></div>
+
+<div class="stat-value"></div>
+
+</div>
+
+</template>
+
+<template id="optionTemplate">
+
+<option></option>
+
+</template>
+
+<input
+type="hidden"
+id="selectedParticipantId">
+
+<input
+type="hidden"
+id="selectedAction">
+
+<div
+id="screenReaderStatus"
+class="sr-only"
+aria-live="polite">
+
+</div>
+
+</div>
 
 <script
 type="module"
