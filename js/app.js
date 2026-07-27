@@ -346,3 +346,26 @@ document
     restoreDraft();
 
 });
+/* =====================================================
+   YAZDIR
+===================================================== */
+
+document
+.getElementById("printRegistration")
+?.addEventListener("click", () => {
+
+    window.print();
+
+});
+/* =====================================================
+   SAYFA KAPANIRKEN
+===================================================== */
+
+window.addEventListener("beforeunload", () => {
+
+    if (formSection.classList.contains("d-none"))
+        return;
+
+    saveDraft();
+
+});
