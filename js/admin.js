@@ -1,350 +1,247 @@
 import {
-    auth,
-    kayitSil,
-    checkinYap,
-    checkinIptal,
-    kayitlariDinle,
-    MAX_KONTENJAN
+    authListener,
+    logout,
+    getAllRegistrations,
+    getStatistics,
+    updateSeat,
+    deleteRegistration,
+    checkIn,
+    checkOut,
+    searchParticipants
 } from "./firebase.js";
 
-import {
-    onAuthStateChanged,
-    signOut
-} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+const table =
+    document.getElementById("participantTable");
 
-const totalCount = document.getElementById("totalCount");
-const checkedCount = document.getElementById("checkedCount");
-const waitingCount = document.getElementById("waitingCount");
-const remainingAdmin = document.getElementById("remainingAdmin");
+const totalCount =
+    document.getElementById("totalCount");
 
-const searchInput = document.getElementById("searchInput");
-const tableBody = document.getElementById("tableBody");
+const checkedCount =
+    document.getElementById("checkedCount");
 
-const excelBtn = document.getElementById("excelBtn");
-const refreshBtn = document.getElementById("refreshBtn");
-const logoutBtn = document.getElementById("logoutBtn");
-const checkinPage = document.getElementById("checkinPage");
+const remainingCount =
+    document.getElementById("remainingCount");
 
-let tumKayitlar = [];
-let unsubscribe = null;
+const searchInput =
+    document.getElementById("search");
 
-const loginTime = Number(localStorage.getItem("adminLoginTime"));
+const logoutBtn =
+    document.getElementById("logoutBtn");
 
-if (!loginTime || Date.now() - loginTime > 12 * 60 * 60 * 1000) {
+let participants = [];
 
-    localStorage.removeItem("adminLoginTime");
-
-    window.location.href = "login.html";
-
-}
-
-onAuthStateChanged(auth, (user) => {
+authListener(user => {
 
     if (!user) {
 
-        window.location.href = "login.html";
-        return;
+        location.href = "login.html";
 
     }
-
-    if (unsubscribe) {
-
-        unsubscribe();
-
-    }
-
-    unsubscribe = kayitlariDinle((liste) => {
-
-        tumKayitlar = liste;
-
-        tabloyuGoster(liste);
-
-        istatistikleriGuncelle(liste);
-
-    });
-
-});
-
-function normalize(text = "") {
-
-    return text
-        .toString()
-        .toLowerCase()
-        .replace(/ç/g, "c")
-        .replace(/ğ/g, "g")
-        .replace(/ı/g, "i")
-        .replace(/ö/g, "o")
-        .replace(/ş/g, "s")
-        .replace(/ü/g, "u");
-
-}
-function istatistikleriGuncelle(liste) {
-
-    const toplam = liste.length;
-
-    const checkin = liste.filter(k => k.checkin).length;
-
-    totalCount.textContent = toplam;
-
-    checkedCount.textContent = checkin;
-
-    waitingCount.textContent = toplam - checkin;
-
-    remainingAdmin.textContent = Math.max(
-        0,
-        MAX_KONTENJAN - toplam
-    );
-
-}
-
-function tabloyuGoster(liste) {
-
-    tableBody.innerHTML = "";
-
-    liste.sort((a, b) =>
-        (a.kayitNo || "").localeCompare(b.kayitNo || "")
-    );
-
-    liste.forEach(k => {
-
-        const tr = document.createElement("tr");
-
-        tr.innerHTML = `
-            <td>${k.kayitNo || "-"}</td>
-            <td>${k.adSoyad || "-"}</td>
-            <td>${k.tc || "-"}</td>
-            <td>
-                <a href="tel:${k.telefon || ""}">
-                    ${k.telefon || "-"}
-                </a>
-            </td>
-            <td>${k.dogumTarihi || "-"}</td>
-            <td>${k.cinsiyet || "-"}</td>
-            <td>
-                ${k.acilDurumKisi || "-"}<br>
-                <small>${k.acilDurumTelefonu || ""}</small>
-            </td>
-
-            <td>
-                ${
-                    k.checkin
-                    ? "✅ Yapıldı"
-                    : "⏳ Bekliyor"
-                }
-            </td>
-
-            <td>
-
-                ${
-                    k.checkin
-                    ? `<button class="cancelBtn" data-cancel="${k.id}">
-                        İptal
-                       </button>`
-                    : `<button class="checkBtn" data-check="${k.id}">
-                        Check-in
-                       </button>`
-                }
-
-                <button
-                    class="deleteBtn"
-                    data-delete="${k.id}">
-                    Sil
-                </button>
-
-            </td>
-        `;
-
-        tableBody.appendChild(tr);
-
-    });
-
-}
-searchInput.addEventListener("input", () => {
-
-    const ara = normalize(searchInput.value);
-
-    if (!ara) {
-
-        tabloyuGoster(tumKayitlar);
-
-        return;
-
-    }
-
-    const filtreli = tumKayitlar.filter(k => {
-
-        return [
-
-            k.adSoyad,
-            k.tc,
-            k.telefon,
-            k.kayitNo
-
-        ].some(deger =>
-            normalize(deger).includes(ara)
-        );
-
-    });
-
-    tabloyuGoster(filtreli);
-
-});
-
-tableBody.addEventListener("click", async (e) => {
-
-    const checkId = e.target.dataset.check;
-    const cancelId = e.target.dataset.cancel;
-    const deleteId = e.target.dataset.delete;
-
-    try {
-
-        if (checkId) {
-
-            await checkinYap(checkId);
-
-            return;
-
-        }
-
-        if (cancelId) {
-
-            await checkinIptal(cancelId);
-
-            return;
-
-        }
-
-        if (deleteId) {
-
-            const onay = confirm(
-                "Bu kayıt silinsin mi?"
-            );
-
-            if (!onay) return;
-
-            await kayitSil(deleteId);
-
-        }
-
-    } catch (err) {
-
-        console.error(err);
-
-        alert("İşlem sırasında hata oluştu.");
-
-    }
-
-});
-excelBtn.addEventListener("click", () => {
-
-    const veri = tumKayitlar.map(k => ({
-
-        "Kayıt No": k.kayitNo,
-        "Ad Soyad": k.adSoyad,
-        "T.C.": k.tc,
-        "Telefon": k.telefon,
-        "Doğum Tarihi": k.dogumTarihi,
-        "Cinsiyet": k.cinsiyet,
-        "E-Posta": k.email,
-        "Acil Durum Kişisi": k.acilDurumKisi,
-        "Acil Durum Telefonu": k.acilDurumTelefonu,
-        "Not": k.not,
-        "Check-in": k.checkin ? "Evet" : "Hayır",
-        "Check-in Saati": k.checkinSaati?.toDate?.().toLocaleString("tr-TR") || ""
-
-    }));
-
-    const ws = XLSX.utils.json_to_sheet(veri);
-
-    const wb = XLSX.utils.book_new();
-
-    XLSX.utils.book_append_sheet(
-        wb,
-        ws,
-        "Kayıtlar"
-    );
-
-    XLSX.writeFile(
-        wb,
-        "TUGVA_Yaz_Okulu_Kayitlari.xlsx"
-    );
-
-});
-
-refreshBtn.addEventListener("click", () => {
-
-    tabloyuGoster(tumKayitlar);
-
-    istatistikleriGuncelle(tumKayitlar);
-
-    searchInput.value = "";
-
-});
-
-checkinPage.addEventListener("click", () => {
-
-    window.location.href = "checkin.html";
 
 });
 
 logoutBtn.addEventListener("click", async () => {
 
-    await signOut(auth);
+    await logout();
 
-    localStorage.removeItem("adminLoginTime");
-
-    window.location.href = "login.html";
+    location.href = "login.html";
 
 });
-window.addEventListener("beforeunload", () => {
+async function loadStatistics() {
 
-    if (unsubscribe) {
+    const stats =
+        await getStatistics();
 
-        unsubscribe();
+    totalCount.textContent =
+        stats.total;
 
-    }
+    checkedCount.textContent =
+        stats.checkedIn;
+
+    remainingCount.textContent =
+        stats.remaining;
+
+}
+
+async function loadParticipants() {
+
+    participants =
+        await getAllRegistrations();
+
+    renderTable(participants);
+
+    loadStatistics();
+
+}
+function renderTable(list) {
+
+    table.innerHTML = "";
+
+    list.forEach(item => {
+
+        const row =
+            document.createElement("tr");
+
+        row.innerHTML = `
+
+<td>${item.kayitNo}</td>
+
+<td>${item.adSoyad}</td>
+
+<td>${item.telefon}</td>
+
+<td>
+
+<input
+class="seat-input"
+data-id="${item.kayitNo}"
+value="${item.seat || ""}"
+placeholder="A1">
+
+</td>
+
+<td>
+
+${item.checkedIn
+? "✅ Giriş"
+: "❌ Bekliyor"}
+
+</td>
+
+<td>
+
+<button
+class="check-btn"
+data-id="${item.kayitNo}">
+
+${item.checkedIn
+? "Çıkış"
+: "Giriş"}
+
+</button>
+
+<button
+class="delete-btn"
+data-id="${item.kayitNo}">
+
+Sil
+
+</button>
+
+</td>
+
+`;
+
+        table.appendChild(row);
+
+    });
+
+    bindEvents();
+
+}
+function bindEvents() {
+
+document.querySelectorAll(".seat-input")
+
+.forEach(input=>{
+
+input.addEventListener("change",async()=>{
+
+await updateSeat(
+
+input.dataset.id,
+
+input.value.trim()
+
+);
 
 });
 
-document.addEventListener("visibilitychange", () => {
+});
 
-    if (document.hidden) {
+document.querySelectorAll(".delete-btn")
 
-        return;
+.forEach(btn=>{
 
-    }
+btn.addEventListener("click",async()=>{
 
-    tabloyuGoster(tumKayitlar);
+if(!confirm("Bu kayıt silinsin mi?"))
 
-    istatistikleriGuncelle(tumKayitlar);
+return;
+
+await deleteRegistration(
+
+btn.dataset.id
+
+);
+
+loadParticipants();
 
 });
 
-setInterval(() => {
+});
 
-    const loginTime = Number(
-        localStorage.getItem("adminLoginTime")
-    );
+document.querySelectorAll(".check-btn")
 
-    if (!loginTime) {
+.forEach(btn=>{
 
-        window.location.href = "login.html";
-        return;
+btn.addEventListener("click",async()=>{
 
-    }
+const id=
 
-    const gecenSure = Date.now() - loginTime;
+btn.dataset.id;
 
-    if (gecenSure > 12 * 60 * 60 * 1000) {
+const participant=
 
-        signOut(auth);
+participants.find(
 
-        localStorage.removeItem("adminLoginTime");
+x=>x.kayitNo===id
 
-        alert("Oturum süreniz doldu.");
+);
 
-        window.location.href = "login.html";
+if(participant.checkedIn){
 
-    }
+await checkOut(id);
 
-}, 60000);
+}else{
+
+await checkIn(id);
+
+}
+
+loadParticipants();
+
+});
+
+});
+
+}
+searchInput.addEventListener(
+
+"input",
+
+async()=>{
+
+const text=
+
+searchInput.value.trim();
+
+if(text===""){
+
+renderTable(participants);
+
+return;
+
+}
+
+const result=
+
+await searchParticipants(text);
+
+renderTable(result);
+
+}
+
+);
+
+loadParticipants();
