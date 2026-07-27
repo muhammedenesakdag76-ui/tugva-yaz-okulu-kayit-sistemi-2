@@ -26,13 +26,7 @@ const firebaseConfig = {
   appId: "1:497137562254:web:0dae95a054ac7e21424fdf"
 };
 
-const app = initializeApp(firebaseConfig);
-
-const db = getFirestore(app);
-
-const registrationsRef = collection(
-    db,
-    "registrations"
+import { db } from "./config.js";
 );
 
 export const MAX_CAPACITY = 500;
