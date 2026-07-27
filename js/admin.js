@@ -475,3 +475,126 @@ async function saveSeat() {
 
 }
 <td>${item.seat || "-"}</td>
+function openEditModal(person) {
+
+    ADMIN.current = person;
+
+    document.getElementById("editName").value = person.name;
+
+    document.getElementById("editPhone").value = person.phone;
+
+    document.getElementById("editSchool").value = person.school;
+
+    document.getElementById("editClass").value = person.class;
+
+    document.getElementById("editParent").value = person.parent;
+
+    document.getElementById("editParentPhone").value = person.parentPhone;
+
+    document.getElementById("editAddress").value = person.address;
+
+    document.getElementById("editNote").value = person.note;
+
+    document.getElementById("editSeat").value = person.seat;
+
+    document
+        .getElementById("editModal")
+        .classList.add("show");
+
+}
+function closeEditModal() {
+
+    document
+        .getElementById("editModal")
+        .classList.remove("show");
+
+}
+async function saveEdit() {
+
+    if (!ADMIN.current) {
+
+        return;
+
+    }
+
+    const data = {
+
+        name: document.getElementById("editName").value.trim(),
+
+        phone: document.getElementById("editPhone").value.trim(),
+
+        school: document.getElementById("editSchool").value.trim(),
+
+        class: document.getElementById("editClass").value.trim(),
+
+        parent: document.getElementById("editParent").value.trim(),
+
+        parentPhone: document.getElementById("editParentPhone").value.trim(),
+
+        address: document.getElementById("editAddress").value.trim(),
+
+        note: document.getElementById("editNote").value.trim(),
+
+        seat: document.getElementById("editSeat").value.trim()
+
+    };
+
+    await updateRegistration(
+
+        ADMIN.current.id,
+
+        data
+
+    );
+
+    closeEditModal();
+
+    await loadRegistrations();
+
+}
+document.addEventListener(
+
+    "click",
+
+    e => {
+
+        if (
+
+            !e.target.classList.contains("edit-btn")
+
+        ) {
+
+            return;
+
+        }
+
+        const person =
+
+            ADMIN.registrations.find(
+
+                x => x.id ===
+
+                e.target.dataset.id
+
+            );
+
+        if (person) {
+
+            openEditModal(person);
+
+        }
+
+    }
+
+);
+document
+
+.getElementById("saveEditButton")
+
+.onclick = saveEdit;
+
+document
+
+.getElementById("closeEditButton")
+
+.onclick = closeEditModal;
