@@ -5,19 +5,12 @@ import { getFirestore } from "https://www.gstatic.com/firebasejs/10.13.2/firebas
 import { getAuth } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
 
 const firebaseConfig = {
-
-    apiKey: "API_KEY",
-
-    authDomain: "PROJECT.firebaseapp.com",
-
-    projectId: "PROJECT_ID",
-
-    storageBucket: "PROJECT.appspot.com",
-
-    messagingSenderId: "XXXXXXXX",
-
-    appId: "APP_ID"
-
+  apiKey: "AIzaSyA1PwF_MonQVMQ2zXnCJZbQWYkRgHpxxb8",
+  authDomain: "tugva-kayit-sistemi.firebaseapp.com",
+  projectId: "tugva-kayit-sistemi",
+  storageBucket: "tugva-kayit-sistemi.firebasestorage.app",
+  messagingSenderId: "497137562254",
+  appId: "1:497137562254:web:0dae95a054ac7e21424fdf"
 };
 
 export const app = initializeApp(firebaseConfig);
