@@ -617,3 +617,150 @@ function startRealtime() {
     });
 
 }
+const LAST_CHECKINS = [];
+
+function addLastCheckin(person){
+
+    LAST_CHECKINS.unshift({
+
+        name:person.name,
+
+        seat:person.seat,
+
+        time:new Date()
+
+    });
+
+    if(LAST_CHECKINS.length>20){
+
+        LAST_CHECKINS.pop();
+
+    }
+
+    renderLastCheckins();
+
+}
+
+function renderLastCheckins(){
+
+    const box=document.getElementById("lastCheckins");
+
+    box.innerHTML="";
+
+    LAST_CHECKINS.forEach(item=>{
+
+        box.innerHTML+=`
+
+        <div class="item">
+
+            <strong>${item.name}</strong>
+
+            <span>${item.seat||"-"}</span>
+
+            <small>${item.time.toLocaleTimeString("tr-TR")}</small>
+
+        </div>
+
+        `;
+
+    });
+
+}
+addLastCheckin(person);
+function successSound(){
+
+    const audio=new Audio("sounds/success.mp3");
+
+    audio.play();
+
+}
+function errorSound(){
+
+    const audio=new Audio("sounds/error.mp3");
+
+    audio.play();
+
+}
+function vibrate(){
+
+    if(navigator.vibrate){
+
+        navigator.vibrate(200);
+
+    }
+
+}
+successSound();
+
+vibrate();
+setTimeout(()=>{
+
+    startScanner();
+
+},1000);
+async function removeRegistration(id){
+
+    if(!confirm("Bu kayıt kalıcı olarak silinsin mi?")){
+
+        return;
+
+    }
+
+    await deleteRegistration(id);
+
+    await loadRegistrations();
+
+    showToast(
+
+        "Kayıt silindi.",
+
+        "success"
+
+    );
+
+}
+function exportExcel(){
+
+    const rows=ADMIN.registrations.map(x=>({
+
+        "Kayıt No":x.registerNumber,
+
+        "Ad Soyad":x.name,
+
+        "TC":x.tc,
+
+        "Telefon":x.phone,
+
+        "Okul":x.school,
+
+        "Sınıf":x.class,
+
+        "Koltuk":x.seat,
+
+        "Yoklama":x.checkedIn?"Geldi":"Gelmedi"
+
+    }));
+
+    const ws=XLSX.utils.json_to_sheet(rows);
+
+    const wb=XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(
+
+        wb,
+
+        ws,
+
+        "Kayıtlar"
+
+    );
+
+    XLSX.writeFile(
+
+        wb,
+
+        "TUGVA_Yaz_Okulu.xlsx"
+
+    );
+
+}
