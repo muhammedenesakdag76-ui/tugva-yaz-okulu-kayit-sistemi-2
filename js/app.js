@@ -1,267 +1,108 @@
-import {
+ import {
     addRegistration,
     getRemainingCapacity,
     isCapacityFull
 } from "./firebase.js";
 
-import {
-    validateAndNormalize
-} from "./validation.js";
+import { MAX_CAPACITY } from "./config.js";
 
-import {
-    generateQRCode
-} from "./qr.js";
+const form = document.getElementById("registrationForm");
 
-import {
-    downloadRegistrationPDF
-} from "./pdf.js";
+const capacityText = document.getElementById("capacityText");
+const capacityBar = document.getElementById("capacityBar");
 
-const APP = {
+const successSection = document.getElementById("successSection");
+const formSection = document.getElementById("formSection");
 
-    MAX_CAPACITY: 500,
+const qrImage = document.getElementById("qrImage");
+const registerNumberText = document.getElementById("registerNumber");
 
-    registration: null,
+const pdfButton = document.getElementById("downloadPdf");
 
-    loading: false,
+let lastRegistration = null;
 
-    dom: {}
+document.addEventListener("DOMContentLoaded", init);
 
-};
+/* ===================================================== */
 
-function cacheDOM() {
+async function init() {
 
-    APP.dom = {
+    await updateCapacity();
 
-        form: document.getElementById("registerForm"),
+    restoreDraft();
 
-        submit: document.getElementById("submitButton"),
-
-        reset: document.getElementById("resetButton"),
-
-        loading: document.getElementById("loading"),
-
-        success: document.getElementById("successSection"),
-
-        qr: document.getElementById("qr"),
-
-        pdf: document.getElementById("downloadPdfButton"),
-
-        again: document.getElementById("againButton"),
-
-        remaining: document.getElementById("remainingCapacity"),
-
-        remainingText: document.getElementById("remainingCapacityText"),
-
-        capacityBar: document.getElementById("capacityBar"),
-
-        successName: document.getElementById("successName"),
-
-        successRegisterNumber: document.getElementById("successRegisterNumber"),
-
-        successSeat: document.getElementById("successSeat"),
-
-        registrationInfo: document.getElementById("registrationInfo")
-
-    };
+    form.addEventListener("submit", submitForm);
 
 }
 
-function $(id) {
+/* ===================================================== */
 
-    return document.getElementById(id);
+async function updateCapacity() {
 
-}
+    const remain = await getRemainingCapacity();
 
-function value(id) {
+    const used = MAX_CAPACITY - remain;
 
-    const element = $(id);
+    capacityText.textContent =
+        `${used} / ${MAX_CAPACITY}`;
 
-    return element ? element.value.trim() : "";
+    const percent = (used / MAX_CAPACITY) * 100;
 
-}
+    capacityBar.style.width = percent + "%";
 
-function text(id, value) {
+    if (await isCapacityFull()) {
 
-    const element = $(id);
+        form.querySelectorAll("input,select,textarea,button")
+            .forEach(x => x.disabled = true);
 
-    if (element) {
+        capacityBar.classList.add("bg-danger");
 
-        element.textContent = value;
+        capacityText.textContent = "Kontenjan Doldu";
 
     }
 
 }
+/* ===================================================== */
 
-function html(id, value) {
-
-    const element = $(id);
-
-    if (element) {
-
-        element.innerHTML = value;
-
-    }
-
-}
-
-function show(element) {
-
-    if (!element) return;
-
-    element.style.display = "";
-
-    element.classList.remove("hidden");
-
-}
-
-function hide(element) {
-
-    if (!element) return;
-
-    element.style.display = "none";
-
-    element.classList.add("hidden");
-
-}
-
-function onlyDigits(value) {
-
-    return value.replace(/\D/g, "");
-
-}
-
-function setLoading(status) {
-
-    APP.loading = status;
-
-    if (APP.dom.submit) {
-
-        APP.dom.submit.disabled = status;
-
-    }
-
-    if (APP.dom.reset) {
-
-        APP.dom.reset.disabled = status;
-
-    }
-
-    if (APP.dom.loading) {
-
-        APP.dom.loading.style.display =
-
-            status ? "flex" : "none";
-
-    }
-
-}
-function getFormData() {
-
-    return {
-
-        name: value("name"),
-
-        tc: value("tc"),
-
-        phone: value("phone"),
-
-        email: value("email"),
-
-        birth: value("birth"),
-
-        gender: value("gender"),
-
-        school: value("school"),
-
-        class: value("class"),
-
-        parent: value("parent"),
-
-        parentPhone: value("parentPhone"),
-
-        address: value("address"),
-
-        note: value("note")
-
-    };
-
-}
-
-function fillForm(data = {}) {
-
-    Object.entries(data).forEach(([key, val]) => {
-
-        const input = $(key);
-
-        if (input) {
-
-            input.value = val ?? "";
-
-        }
-
-    });
-
-}
-
-function clearForm() {
-
-    if (APP.dom.form) {
-
-        APP.dom.form.reset();
-
-    }
-
-    APP.registration = null;
-
-}
+form.addEventListener("input", saveDraft);
 
 function saveDraft() {
 
-    try {
+    const data = Object.fromEntries(
 
-        localStorage.setItem(
+        new FormData(form)
 
-            "tyo-registration-draft",
+    );
 
-            JSON.stringify(getFormData())
+    localStorage.setItem(
 
-        );
+        "registrationDraft",
 
-    }
+        JSON.stringify(data)
 
-    catch (e) {
-
-        console.error(e);
-
-    }
+    );
 
 }
 
-function loadDraft() {
+function restoreDraft() {
 
-    try {
+    const draft = localStorage.getItem(
 
-        const draft = localStorage.getItem(
+        "registrationDraft"
 
-            "tyo-registration-draft"
+    );
 
-        );
+    if (!draft) return;
 
-        if (!draft) {
+    const data = JSON.parse(draft);
 
-            return;
+    Object.keys(data).forEach(key => {
 
-        }
+        if (form[key])
 
-        fillForm(JSON.parse(draft));
+            form[key].value = data[key];
 
-    }
-
-    catch (e) {
-
-        console.error(e);
-
-    }
+    });
 
 }
 
@@ -269,378 +110,156 @@ function clearDraft() {
 
     localStorage.removeItem(
 
-        "tyo-registration-draft"
+        "registrationDraft"
 
     );
 
 }
-
-function saveLastRegistration(registration) {
-
-    sessionStorage.setItem(
-
-        "tyo-last-registration",
-
-        JSON.stringify(registration)
-
-    );
-
-}
-
-function loadLastRegistration() {
-
-    try {
-
-        const json = sessionStorage.getItem(
-
-            "tyo-last-registration"
-
-        );
-
-        if (!json) {
-
-            return null;
-
-        }
-
-        return JSON.parse(json);
-
-    }
-
-    catch (e) {
-
-        return null;
-
-    }
-
-}
-
-function clearLastRegistration() {
-
-    sessionStorage.removeItem(
-
-        "tyo-last-registration"
-
-    );
-
-}
-
-function bindDraftEvents() {
-
-    if (!APP.dom.form) {
-
-        return;
-
-    }
-
-    APP.dom.form
-
-        .querySelectorAll(
-
-            "input,select,textarea"
-
-        )
-
-        .forEach(input => {
-
-            input.addEventListener(
-
-                "input",
-
-                saveDraft
-
-            );
-
-        });
-
-}
-
-function setupInputFormatting() {
-
-    const tc = $("tc");
-
-    if (tc) {
-
-        tc.addEventListener("input", e => {
-
-            e.target.value =
-
-                onlyDigits(
-
-                    e.target.value
-
-                ).slice(0, 11);
-
-        });
-
-    }
-
-    const phone = $("phone");
-
-    if (phone) {
-
-        phone.addEventListener("input", e => {
-
-            e.target.value =
-
-                onlyDigits(
-
-                    e.target.value
-
-                ).slice(0, 10);
-
-        });
-
-    }
-
-    const parentPhone = $("parentPhone");
-
-    if (parentPhone) {
-
-        parentPhone.addEventListener("input", e => {
-
-            e.target.value =
-
-                onlyDigits(
-
-                    e.target.value
-
-                ).slice(0, 10);
-
-        });
-
-    }
-
-}
-function clearErrors() {
-
-    document
-        .querySelectorAll(".is-invalid")
-        .forEach(input => {
-
-            input.classList.remove("is-invalid");
-
-        });
-
-    document
-        .querySelectorAll(".invalid-feedback")
-        .forEach(error => {
-
-            error.remove();
-
-        });
-
-}
-
-function showErrors(errors) {
-
-    clearErrors();
-
-    Object.entries(errors).forEach(([field, message]) => {
-
-        const input = $(field);
-
-        if (!input) {
-
-            return;
-
-        }
-
-        input.classList.add("is-invalid");
-
-        const feedback = document.createElement("div");
-
-        feedback.className = "invalid-feedback";
-
-        feedback.textContent = message;
-
-        input.insertAdjacentElement(
-
-            "afterend",
-
-            feedback
-
-        );
-
-    });
-
-}
+/* =====================================================
+   DOĞRULAMA
+===================================================== */
 
 function validateForm() {
 
-    const result = validateAndNormalize(
-
-        getFormData()
-
+    const data = Object.fromEntries(
+        new FormData(form)
     );
 
-    if (!result.valid) {
+    if (!data.name.trim())
+        throw new Error("Ad Soyad zorunludur.");
 
-        showErrors(result.errors);
+    if (!/^\d{11}$/.test(data.tc))
+        throw new Error("TC Kimlik No 11 haneli olmalıdır.");
 
-        return null;
+    if (!/^05\d{9}$/.test(data.phone))
+        throw new Error("Telefon numarası hatalı.");
 
+    if (!data.parent.trim())
+        throw new Error("Veli adı zorunludur.");
+
+    if (!/^05\d{9}$/.test(data.parentPhone))
+        throw new Error("Veli telefonu hatalı.");
+
+    if (!data.gender)
+        throw new Error("Cinsiyet seçiniz.");
+
+    if (!data.birth)
+        throw new Error("Doğum tarihi seçiniz.");
+
+    const birth = new Date(data.birth);
+
+    const today = new Date();
+
+    let age = today.getFullYear() - birth.getFullYear();
+
+    const month =
+        today.getMonth() - birth.getMonth();
+
+    if (
+        month < 0 ||
+        (month === 0 &&
+            today.getDate() < birth.getDate())
+    ) {
+        age--;
     }
 
-    clearErrors();
-
-    return result.data;
-
-}
-
-async function updateCapacity() {
-
-    try {
-
-        const remaining =
-
-            await getRemainingCapacity();
-
-        const used =
-
-            APP.MAX_CAPACITY - remaining;
-
-        const percent = Math.min(
-
-            (used / APP.MAX_CAPACITY) * 100,
-
-            100
-
+    if (age < 7 || age > 18) {
+        throw new Error(
+            "Yaş aralığı uygun değildir."
         );
-
-        if (APP.dom.remaining) {
-
-            APP.dom.remaining.textContent =
-
-                remaining;
-
-        }
-
-        if (APP.dom.remainingText) {
-
-            APP.dom.remainingText.textContent =
-
-                `${used} / ${APP.MAX_CAPACITY}`;
-
-        }
-
-        if (APP.dom.capacityBar) {
-
-            APP.dom.capacityBar.style.width =
-
-                `${percent}%`;
-
-        }
-
     }
 
-    catch (error) {
+    return data;
 
-        console.error(error);
+}
+
+/* =====================================================
+   LOADING
+===================================================== */
+
+function setLoading(status) {
+
+    const button =
+        form.querySelector("button[type=submit]");
+
+    button.disabled = status;
+
+    if (status) {
+
+        button.dataset.old = button.innerHTML;
+
+        button.innerHTML =
+            '<span class="spinner-border spinner-border-sm"></span> Kaydediliyor...';
+
+    } else {
+
+        button.innerHTML =
+            button.dataset.old;
 
     }
 
 }
 
-async function checkCapacityBeforeSubmit() {
+/* =====================================================
+   TOAST
+===================================================== */
 
-    const full = await isCapacityFull();
+function showToast(message, success = true) {
 
-    if (!full) {
+    const toast =
+        document.getElementById("toast");
 
-        return true;
+    toast.className =
+        `toast align-items-center text-bg-${success ? "success" : "danger"} border-0 show`;
 
-    }
+    toast.querySelector(".toast-body")
+        .textContent = message;
 
-    alert(
+    setTimeout(() => {
 
-        "Üzgünüz, kontenjan dolmuştur."
+        toast.classList.remove("show");
 
-    );
-
-    await updateCapacity();
-
-    return false;
+    }, 3000);
 
 }
-async function handleSubmit(event) {
+/* =====================================================
+   FORM GÖNDER
+===================================================== */
 
-    event.preventDefault();
+async function submitForm(e) {
 
-    if (APP.loading) {
-
-        return;
-
-    }
-
-    const available =
-
-        await checkCapacityBeforeSubmit();
-
-    if (!available) {
-
-        return;
-
-    }
-
-    const registration = validateForm();
-
-    if (!registration) {
-
-        return;
-
-    }
+    e.preventDefault();
 
     try {
 
         setLoading(true);
 
-        const savedRegistration =
+        const data = validateForm();
 
-            await addRegistration(
+        const registration =
+            await addRegistration(data);
 
-                registration
-
-            );
-
-        APP.registration = savedRegistration;
+        lastRegistration = registration;
 
         clearDraft();
 
-        saveLastRegistration(
-
-            savedRegistration
-
-        );
-
         await updateCapacity();
 
-        await showSuccess(
-
-            savedRegistration
-
-        );
+        showSuccess(registration);
 
         showToast(
-
             "Kayıt başarıyla oluşturuldu."
-
         );
 
     }
 
-    catch (error) {
+    catch (err) {
 
-        console.error(error);
+        console.error(err);
 
         showToast(
-
-            error.message ||
-
-            "Kayıt oluşturulamadı.",
-
-            "error"
-
+            err.message,
+            false
         );
 
     }
@@ -652,358 +271,78 @@ async function handleSubmit(event) {
     }
 
 }
+/* =====================================================
+   BAŞARI EKRANI
+===================================================== */
 
-async function showSuccess(registration) {
+function showSuccess(registration) {
 
-    APP.registration = registration;
+    formSection.classList.add("d-none");
+    successSection.classList.remove("d-none");
 
-    if (APP.dom.successName) {
+    registerNumberText.textContent =
+        registration.registerNumber;
 
-        APP.dom.successName.textContent =
-
-            registration.name;
-
-    }
-
-    if (APP.dom.successRegisterNumber) {
-
-        APP.dom.successRegisterNumber.textContent =
-
-            registration.registerNumber;
-
-    }
-
-    if (APP.dom.successSeat) {
-
-        APP.dom.successSeat.textContent =
-
-            registration.seat ||
-
-            "Henüz atanmadı";
-
-    }
-
-    if (APP.dom.registrationInfo) {
-
-        APP.dom.registrationInfo.innerHTML = `
-
-            <div class="success-card">
-
-                <p><strong>Ad Soyad:</strong> ${registration.name}</p>
-
-                <p><strong>Kayıt No:</strong> ${registration.registerNumber}</p>
-
-                <p><strong>Telefon:</strong> ${registration.phone}</p>
-
-                <p><strong>Okul:</strong> ${registration.school}</p>
-
-                <p><strong>Sınıf:</strong> ${registration.class}</p>
-
-                <p><strong>Koltuk:</strong> ${registration.seat || "Henüz atanmadı"}</p>
-
-            </div>
-
-        `;
-
-    }
-
-    if (
-
-        APP.dom.qr &&
-
-        typeof generateQRCode === "function"
-
-    ) {
-
-        APP.dom.qr.innerHTML = "";
-
-        await generateQRCode(
-
-            APP.dom.qr,
-
-            registration
-
-        );
-
-    }
-
-    if (APP.dom.form) {
-
-        APP.dom.form.style.display =
-
-            "none";
-
-    }
-
-    show(APP.dom.success);
-
-    window.scrollTo({
-
-        top: 0,
-
-        behavior: "smooth"
-
-    });
+    createQRCode(registration);
 
 }
-async function downloadCurrentPDF() {
 
-    if (!APP.registration) {
+/* =====================================================
+   QR OLUŞTUR
+===================================================== */
 
-        showToast(
+function createQRCode(registration) {
 
-            "PDF oluşturulacak kayıt bulunamadı.",
+    qrImage.innerHTML = "";
 
-            "error"
+    new QRCode(qrImage, {
 
-        );
+        text: JSON.stringify({
 
-        return;
+            id: registration.id,
+            registerNumber: registration.registerNumber,
+            name: registration.name
 
-    }
+        }),
 
-    try {
-
-        await downloadRegistrationPDF(
-
-            APP.registration
-
-        );
-
-    }
-
-    catch (error) {
-
-        console.error(error);
-
-        showToast(
-
-            "PDF oluşturulamadı.",
-
-            "error"
-
-        );
-
-    }
-
-}
-
-function hideSuccess() {
-
-    hide(APP.dom.success);
-
-}
-
-function startNewRegistration() {
-
-    hideSuccess();
-
-    clearErrors();
-
-    clearForm();
-
-    clearLastRegistration();
-
-    if (APP.dom.qr) {
-
-        APP.dom.qr.innerHTML = "";
-
-    }
-
-    if (APP.dom.form) {
-
-        APP.dom.form.style.display = "";
-
-    }
-
-    window.scrollTo({
-
-        top: 0,
-
-        behavior: "smooth"
+        width: 220,
+        height: 220,
+        correctLevel: QRCode.CorrectLevel.H
 
     });
 
 }
 
-async function restoreLastRegistration() {
+/* =====================================================
+   PDF
+===================================================== */
 
-    const registration =
+pdfButton.addEventListener("click", () => {
 
-        loadLastRegistration();
+    if (!lastRegistration) return;
 
-    if (!registration) {
+    downloadPDF(lastRegistration);
 
-        return;
+});
 
-    }
+/* =====================================================
+   YENİ KAYIT
+===================================================== */
 
-    APP.registration = registration;
+document
+.getElementById("newRegistration")
+.addEventListener("click", () => {
 
-    await showSuccess(registration);
+    form.reset();
 
-}
-function showToast(message, type = "success") {
+    lastRegistration = null;
 
-    const toast = document.createElement("div");
+    successSection.classList.add("d-none");
 
-    toast.className = `toast ${type}`;
+    formSection.classList.remove("d-none");
 
-    toast.textContent = message;
+    qrImage.innerHTML = "";
 
-    document.body.appendChild(toast);
+    restoreDraft();
 
-    requestAnimationFrame(() => {
-
-        toast.classList.add("show");
-
-    });
-
-    setTimeout(() => {
-
-        toast.classList.remove("show");
-
-        setTimeout(() => {
-
-            toast.remove();
-
-        }, 300);
-
-    }, 3000);
-
-}
-function bindEvents() {
-
-    if (APP.dom.form) {
-
-        APP.dom.form.addEventListener(
-
-            "submit",
-
-            handleSubmit
-
-        );
-
-    }
-
-    if (APP.dom.reset) {
-
-        APP.dom.reset.addEventListener(
-
-            "click",
-
-            () => {
-
-                clearErrors();
-
-                clearDraft();
-
-            }
-
-        );
-
-    }
-
-    if (APP.dom.pdf) {
-
-        APP.dom.pdf.addEventListener(
-
-            "click",
-
-            downloadCurrentPDF
-
-        );
-
-    }
-
-    if (APP.dom.again) {
-
-        APP.dom.again.addEventListener(
-
-            "click",
-
-            startNewRegistration
-
-        );
-
-    }
-
-    bindDraftEvents();
-
-}
-
-function setupConnectionEvents() {
-
-    window.addEventListener(
-
-        "online",
-
-        () => {
-
-            showToast(
-
-                "İnternet bağlantısı yeniden sağlandı."
-
-            );
-
-        }
-
-    );
-
-    window.addEventListener(
-
-        "offline",
-
-        () => {
-
-            showToast(
-
-                "İnternet bağlantısı kesildi.",
-
-                "error"
-
-            );
-
-        }
-
-    );
-
-}
-
-async function init() {
-
-    cacheDOM();
-
-    if (!APP.dom.form) {
-
-        console.error(
-
-            "registerForm bulunamadı."
-
-        );
-
-        return;
-
-    }
-
-    setupInputFormatting();
-
-    bindEvents();
-
-    loadDraft();
-
-    setupConnectionEvents();
-
-    await updateCapacity();
-
-    await restoreLastRegistration();
-
-}
-
-document.addEventListener(
-
-    "DOMContentLoaded",
-
-    init
-
-);
+});
