@@ -525,3 +525,186 @@ checkedIn:false
 await batch.commit();
 
 }
+// firebase.js
+// Ek Fonksiyonlar
+// Parça 11/15
+
+export async function searchParticipants(keyword){
+
+const list=
+
+await getAllRegistrations();
+
+const text=
+
+keyword
+
+.trim()
+
+.toLowerCase();
+
+return list.filter(item=>{
+
+return(
+
+item.kayitNo
+
+.toLowerCase()
+
+.includes(text)
+
+||
+
+item.adSoyad
+
+.toLowerCase()
+
+.includes(text)
+
+||
+
+item.tc
+
+.includes(text)
+
+||
+
+item.telefon
+
+.includes(text)
+
+||
+
+(item.okul||"")
+
+.toLowerCase()
+
+.includes(text)
+
+);
+
+});
+
+}
+// firebase.js
+// Parça 12/15
+
+export async function getRemainingCapacity(){
+
+const list=
+
+await getAllRegistrations();
+
+return MAX_CAPACITY-list.length;
+
+}
+
+export async function isFull(){
+
+const remaining=
+
+await getRemainingCapacity();
+
+return remaining<=0;
+
+}
+// firebase.js
+// Parça 13/15
+
+export async function registrationExists(tc){
+
+const list=
+
+await getAllRegistrations();
+
+return list.some(
+
+item=>item.tc===tc
+
+);
+
+}
+
+export async function phoneExists(phone){
+
+const list=
+
+await getAllRegistrations();
+
+return list.some(
+
+item=>item.telefon===phone
+
+);
+
+}
+// firebase.js
+// Parça 14/15
+
+export async function createRegistration(data){
+
+await setDoc(
+
+doc(
+
+db,
+
+COLLECTION,
+
+data.kayitNo
+
+),
+
+{
+
+...data,
+
+checkedIn:false,
+
+seat:"",
+
+createdAt:
+
+serverTimestamp()
+
+}
+
+);
+
+await addLog(
+
+"Kayıt Oluşturuldu",
+
+data.kayitNo
+
+);
+
+}
+// firebase.js
+// Parça 15/15 (Son)
+
+export async function generateRegisterNumber(){
+
+const list=
+
+await getAllRegistrations();
+
+const no=
+
+String(
+
+list.length+1
+
+)
+
+.padStart(
+
+4,
+
+"0"
+
+);
+
+return `TYG26-${no}`;
+
+}
