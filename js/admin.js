@@ -1,5 +1,13 @@
 import {
 
+    login,
+    logout,
+    checkAuth
+
+} from "./auth.js";
+
+import {
+
     getRegistrations,
     getStatistics,
     updateSeat,
