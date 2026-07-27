@@ -111,3 +111,96 @@ function toast(message,success=true){
     },3000);
 
 }
+/* ==========================================
+   GİRİŞ
+========================================== */
+
+async function login(e){
+
+    e.preventDefault();
+
+    loading(true);
+
+    try{
+
+        await signInWithEmailAndPassword(
+
+            auth,
+
+            email.value.trim(),
+
+            password.value
+
+        );
+
+        toast("Giriş başarılı.",true);
+
+        setTimeout(()=>{
+
+            location.href="admin.html";
+
+        },700);
+
+    }
+
+    catch(error){
+
+        let message="Giriş yapılamadı.";
+
+        switch(error.code){
+
+            case "auth/invalid-credential":
+            case "auth/wrong-password":
+                message="E-posta veya şifre hatalı.";
+                break;
+
+            case "auth/user-not-found":
+                message="Kullanıcı bulunamadı.";
+                break;
+
+            case "auth/invalid-email":
+                message="Geçersiz e-posta adresi.";
+                break;
+
+            case "auth/too-many-requests":
+                message="Çok fazla deneme yapıldı. Lütfen daha sonra tekrar deneyin.";
+                break;
+
+            case "auth/network-request-failed":
+                message="İnternet bağlantısı bulunamadı.";
+                break;
+        }
+
+        toast(message,false);
+
+    }
+
+    finally{
+
+        loading(false);
+
+    }
+
+}
+/* ==========================================
+   ENTER
+========================================== */
+
+document.addEventListener("keydown",e=>{
+
+    if(e.key==="Enter"){
+
+        form.requestSubmit();
+
+    }
+
+});
+/* ==========================================
+   RESET
+========================================== */
+
+window.addEventListener("pageshow",()=>{
+
+    password.value="";
+
+});
