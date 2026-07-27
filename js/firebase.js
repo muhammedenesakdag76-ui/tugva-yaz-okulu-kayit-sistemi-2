@@ -149,45 +149,43 @@ return snap.docs.map(d => ({
 
 }
 
-export function listenRegistrations(
+export function listenRegistrations(callback){
 
-callback
+    const q=query(
 
-){
+        collection(db,COLLECTION),
 
-const q=query(
+        orderBy(
 
-collection(db,COLLECTION),
+            "createdAt",
 
-orderBy(
+            "desc"
 
-"createdAt",
+        )
 
-"desc"
+    );
 
-)
+    return onSnapshot(
 
-);
+        q,
 
-return onSnapshot(
+        snapshot=>{
 
-q,
+            callback(
 
-snapshot=>{
+                snapshot.docs.map(doc=>({
 
-callback(
+                    id:doc.id,
 
-snapshot.docs.map(
+                    ...doc.data()
 
-d=>d.data()
+                }))
 
-)
+            );
 
-);
+        }
 
-}
-
-);
+    );
 
 }
 // firebase.js
@@ -195,51 +193,25 @@ d=>d.data()
 
 export async function getRegistration(id){
 
-const ref=
+    const ref=
 
-doc(
+        doc(db,COLLECTION,id);
 
-db,
+    const snap=
 
-COLLECTION,
+        await getDoc(ref);
 
-id
+    if(!snap.exists())
 
-);
+        return null;
 
-const snap=
+    return{
 
-await getDoc(ref);
+        id:snap.id,
 
-if(!snap.exists()){
+        ...snap.data()
 
-return null;
-
-}
-
-return snap.data();
-
-}
-
-export async function updateSeat(
-
-id,
-
-seat
-
-){
-
-await updateDoc(
-
-doc(db,COLLECTION,id),
-
-{
-
-seat
-
-}
-
-);
+    };
 
 }
 // firebase.js
@@ -404,29 +376,41 @@ serverTimestamp()
 
 export async function batchDelete(ids){
 
-const batch=
+    const batch=
 
-writeBatch(db);
+        writeBatch(db);
 
-ids.forEach(id=>{
+    ids.forEach(id=>{
 
-batch.delete(
+        batch.delete(
 
-doc(
+            doc(
 
-db,
+                db,
 
-COLLECTION,
+                COLLECTION,
 
-id
+                id
 
-)
+            )
 
-);
+        );
 
-});
+    });
 
-await batch.commit();
+    await batch.commit();
+
+    for(const id of ids){
+
+        await addLog(
+
+            "Toplu Silme",
+
+            id
+
+        );
+
+    }
 
 }
 // firebase.js
@@ -688,3 +672,77 @@ list.length+1
 return `TYG26-${no}`;
 
 }
+/* ==========================================
+YENİ PANEL UYUMLULUĞU
+========================================== */
+
+export async function updateRegistration(id,data){
+
+    await updateDoc(
+
+        doc(db,COLLECTION,id),
+
+        data
+
+    );
+
+    await addLog(
+
+        "Kayıt Güncellendi",
+
+        id
+
+    );
+
+}
+
+export async function addRegistration(data){
+
+    const ref=doc(
+
+        collection(db,COLLECTION)
+
+    );
+
+    await setDoc(
+
+        ref,
+
+        {
+
+            ...data,
+
+            checkedIn:false,
+
+            createdAt:serverTimestamp()
+
+        }
+
+    );
+
+    await addLog(
+
+        "Yeni Kayıt",
+
+        ref.id
+
+    );
+
+}
+export {
+
+createRegistration as createParticipant,
+
+generateRegisterNumber as generateRegistrationNumber,
+
+checkIn,
+
+checkOut,
+
+batchCheckIn,
+
+batchCheckOut,
+
+deleteRegistration
+
+};
