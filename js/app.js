@@ -182,7 +182,7 @@ return;
 
 }
 
-if(await phoneExists(data.telefon)){
+if(await phoneExists(data.phone)){
 
 alert(
 
