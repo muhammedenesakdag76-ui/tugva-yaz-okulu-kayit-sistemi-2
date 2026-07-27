@@ -241,42 +241,41 @@ return "";
 
 export function validateForm(data){
 
-let error="";
+    let error = "";
 
-error=validateRequired(data);
+    if(isEmpty(data.name)) return "Ad Soyad boş bırakılamaz.";
+    if(isEmpty(data.tc)) return "TC Kimlik boş bırakılamaz.";
+    if(isEmpty(data.phone)) return "Telefon boş bırakılamaz.";
+    if(isEmpty(data.birth)) return "Doğum tarihi seçiniz.";
+    if(isEmpty(data.gender)) return "Cinsiyet seçiniz.";
+    if(isEmpty(data.school)) return "Okul boş bırakılamaz.";
+    if(isEmpty(data.class)) return "Sınıf boş bırakılamaz.";
+    if(isEmpty(data.parent)) return "Veli adı boş bırakılamaz.";
+    if(isEmpty(data.parentPhone)) return "Veli telefonu boş bırakılamaz.";
+    if(isEmpty(data.address)) return "Adres boş bırakılamaz.";
 
-if(error)return error;
+    error = validateName(data.name);
+    if(error) return error;
 
-error=validateName(data.adSoyad);
+    error = validateTC(data.tc);
+    if(error) return error;
 
-if(error)return error;
+    error = validatePhone(data.phone);
+    if(error) return error;
 
-error=validateTC(data.tc);
+    error = validatePhone(data.parentPhone);
+    if(error) return error;
 
-if(error)return error;
+    error = validateEmail(data.email);
+    if(error) return error;
 
-error=validatePhone(data.telefon);
+    error = validateBirth(data.birth);
+    if(error) return error;
 
-if(error)return error;
+    error = validateCheckboxes();
+    if(error) return error;
 
-error=validatePhone(data.veliTelefon);
-
-if(error)return error;
-
-error=validateEmail(data.email);
-
-if(error)return error;
-
-error=validateBirth(data.dogumTarihi);
-
-if(error)return error;
-
-error=validateCheckboxes();
-
-if(error)return error;
-
-return "";
-
+    return "";
 }
 // validation.js
 // Parça 8/8 (Son)
