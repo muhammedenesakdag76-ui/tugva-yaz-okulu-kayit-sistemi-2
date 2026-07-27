@@ -1,151 +1,223 @@
-// ===============================
-// QR Code Module
-// ===============================
+// qr.js
+// Profesyonel Sürüm
+// Parça 1/6
 
-let qrInstance = null;
+let qrInstance=null;
 
+export function generateQR(
 
-// ===============================
-// Generate QR
-// ===============================
+text,
 
-export function generateQR(text, elementId = "qrcode") {
+elementId="qrcode"
 
-    const container =
-        document.getElementById(elementId);
+){
 
-    if (!container)
-        return;
+const container=
 
-    container.innerHTML = "";
+document.getElementById(
 
-    qrInstance = new QRCode(container, {
+elementId
 
-        text,
+);
 
-        width: 220,
+container.innerHTML="";
 
-        height: 220,
+qrInstance=
 
-        colorDark: "#111827",
+new QRCode(
 
-        colorLight: "#ffffff",
+container,
 
-        correctLevel: QRCode.CorrectLevel.H
+{
 
-    });
+text,
 
-}
+width:220,
 
+height:220,
 
-// ===============================
-// Clear QR
-// ===============================
+colorDark:"#000",
 
-export function clearQR(elementId = "qrcode") {
+colorLight:"#fff",
 
-    const container =
-        document.getElementById(elementId);
+correctLevel:
 
-    if (!container)
-        return;
-
-    container.innerHTML = "";
-
-    qrInstance = null;
+QRCode.CorrectLevel.H
 
 }
 
-
-// ===============================
-// Download QR
-// ===============================
-
-export function downloadQR(fileName = "qr-code") {
-
-    const canvas =
-        document.querySelector("#qrcode canvas");
-
-    if (!canvas)
-        return;
-
-    const link =
-        document.createElement("a");
-
-    link.download =
-        `${fileName}.png`;
-
-    link.href =
-        canvas.toDataURL("image/png");
-
-    link.click();
+);
 
 }
-// ===============================
-// Get QR Image
-// ===============================
+// qr.js
+// Parça 2/6
 
-export function getQRImage() {
+export function clearQR(
 
-    const canvas =
-        document.querySelector("#qrcode canvas");
+elementId="qrcode"
 
-    if (!canvas)
-        return null;
+){
 
-    return canvas.toDataURL("image/png");
+const container=
+
+document.getElementById(
+
+elementId
+
+);
+
+container.innerHTML="";
+
+qrInstance=null;
 
 }
 
+export function hasQR(){
 
-// ===============================
-// Print QR
-// ===============================
+return qrInstance!==null;
 
-export function printQR() {
+}
+// qr.js
+// Parça 3/6
 
-    const image =
-        getQRImage();
+export function getQRImage(
 
-    if (!image)
-        return;
+elementId="qrcode"
 
-    const win =
-        window.open("", "_blank");
+){
 
-    win.document.write(`
+const container=
 
-        <html>
+document.getElementById(
 
-        <head>
+elementId
 
-        <title>QR Kod</title>
+);
 
-        </head>
+const img=
 
-        <body style="display:flex;justify-content:center;align-items:center;height:100vh;">
+container.querySelector("img");
 
-        <img src="${image}" style="width:300px;">
+if(img){
 
-        </body>
-
-        </html>
-
-    `);
-
-    win.document.close();
-
-    win.print();
+return img.src;
 
 }
 
+const canvas=
 
-// ===============================
-// QR Exists
-// ===============================
+container.querySelector("canvas");
 
-export function hasQR() {
+if(canvas){
 
-    return document.querySelector("#qrcode canvas") !== null;
+return canvas.toDataURL(
+
+"image/png"
+
+);
+
+}
+
+return null;
+
+}
+// qr.js
+// Parça 4/6
+
+export function downloadQR(
+
+filename="qr.png",
+
+elementId="qrcode"
+
+){
+
+const image=
+
+getQRImage(
+
+elementId
+
+);
+
+if(!image)return;
+
+const a=
+
+document.createElement("a");
+
+a.href=image;
+
+a.download=filename;
+
+a.click();
+
+}
+// qr.js
+// Parça 5/6
+
+export function printQR(
+
+elementId="qrcode"
+
+){
+
+const image=
+
+getQRImage(
+
+elementId
+
+);
+
+if(!image)return;
+
+const w=
+
+window.open(
+
+"",
+
+"_blank"
+
+);
+
+w.document.write(`
+
+<img
+src="${image}"
+style="width:300px">
+
+`);
+
+w.document.close();
+
+w.print();
+
+}
+// qr.js
+// Parça 6/6 (Son)
+
+export function regenerateQR(
+
+text,
+
+elementId="qrcode"
+
+){
+
+clearQR(
+
+elementId
+
+);
+
+generateQR(
+
+text,
+
+elementId
+
+);
 
 }
