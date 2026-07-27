@@ -197,12 +197,23 @@ return;
 data.registerNumber =
 await generateRegisterNumber();
 
-await addRegistration(data);
+try {
 
-currentParticipant=data;
+    await addRegistration(data);
 
-showSuccess();
+    console.log("Kayıt başarıyla eklendi.");
 
+    currentParticipant = data;
+
+    showSuccess();
+
+} catch (err) {
+
+    console.error(err);
+
+    alert(err.message);
+
+}
 }
 // app.js
 // Düzeltme Paketi
