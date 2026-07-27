@@ -3,196 +3,78 @@
 
 <head>
 
-<meta charset="UTF-8">
+    <meta charset="UTF-8">
 
-<meta name="viewport" content="width=device-width,initial-scale=1.0">
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0">
 
-<title>Yönetici Paneli | TÜGVA İstanbul Final Gezisi</title>
+    <title>TÜGVA Yaz Okulu Yönetim Paneli</title>
 
-<link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="stylesheet"
+          href="css/admin.css">
 
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet"
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css">
 
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
-
-<link rel="stylesheet" href="admin.css">
+    <script src="https://unpkg.com/html5-qrcode"></script>
 
 </head>
 
 <body>
 
-<div id="loading">
+<div class="admin-layout">
+<aside class="sidebar">
 
-<div class="loader"></div>
+    <div class="logo">
 
-<h2>Yükleniyor...</h2>
+        <h2>TÜGVA</h2>
 
-</div>
+        <span>Yaz Okulu</span>
 
-<section id="loginPage">
+    </div>
 
-<div class="loginCard">
+    <nav>
 
-<div class="loginLogo">
+        <button id="dashboardMenu">
+            Dashboard
+        </button>
 
-<i class="fa-solid fa-user-shield"></i>
+        <button id="studentsMenu">
+            Kayıtlar
+        </button>
 
-</div>
+        <button id="scannerMenu">
+            QR Okut
+        </button>
 
-<h1>Yönetici Girişi</h1>
+        <button id="reportsMenu">
+            Raporlar
+        </button>
 
-<p>Firebase Authentication ile giriş yapınız.</p>
+        <button id="settingsMenu">
+            Ayarlar
+        </button>
 
-<form id="loginForm">
+    </nav>
 
-<div class="input">
+</aside>
+<main class="content">
 
-<label>E-Posta</label>
-
-<input
-type="email"
-id="email"
-required>
-
-</div>
-
-<div class="input">
-
-<label>Şifre</label>
-
-<input
-type="password"
-id="password"
-required>
-
-</div>
-
-<button
-type="submit"
-class="primary">
-
-<i class="fa-solid fa-right-to-bracket"></i>
-
-Giriş Yap
-
-</button>
-
-</form>
-
-</div>
-
-</section>
-
-<section id="adminPanel" class="hidden">
-
-<header>
-
-<div class="headerLeft">
+<header class="topbar">
 
 <h1>
 
-<i class="fa-solid fa-bus"></i>
-
-İstanbul Final Gezisi
+Yönetici Paneli
 
 </h1>
 
-</div>
-
-<div class="headerRight">
+<div>
 
 <button
-id="logoutButton"
-class="danger">
 
-<i class="fa-solid fa-right-from-bracket"></i>
-
-Çıkış Yap
-
-</button>
-
-</div>
-
-</header>
-
-<main>
-
-<div class="stats">
-
-<div class="statCard">
-
-<h2 id="totalCount">0</h2>
-
-<span>Toplam Kayıt</span>
-
-</div>
-
-<div class="statCard">
-
-<h2 id="adultCount">0</h2>
-
-<span>18 Yaş Üstü</span>
-
-</div>
-
-<div class="statCard">
-
-<h2 id="childCount">0</h2>
-
-<span>18 Yaş Altı</span>
-
-</div>
-
-<div class="statCard">
-
-<h2 id="assignedCount">0</h2>
-
-<span>Koltuk Atanan</span>
-
-</div>
-
-</div>
-
-<div class="toolbar">
-
-<input
-type="text"
-id="searchInput"
-placeholder="Ad Soyad veya T.C. Ara...">
-
-<select id="filterBus">
-
-<option value="">Tüm Otobüsler</option>
-
-<option>1</option>
-
-<option>2</option>
-
-<option>3</option>
-
-<option>4</option>
-
-<option>5</option>
-
-<option>6</option>
-
-<option>7</option>
-
-<option>8</option>
-
-<option>9</option>
-
-<option>10</option>
-
-</select>
-
-<button
 id="refreshButton"
-class="secondary">
 
-<i class="fa-solid fa-rotate"></i>
+class="btn btn-primary">
 
 Yenile
 
@@ -200,27 +82,112 @@ Yenile
 
 </div>
 
-<div class="tableContainer">
+</header>
+<section class="stats">
 
-<table>
+<div class="stat-card">
+
+<h3 id="statTotal">
+
+0
+
+</h3>
+
+<p>
+
+Toplam
+
+</p>
+
+</div>
+
+<div class="stat-card">
+
+<h3 id="statChecked">
+
+0
+
+</h3>
+
+<p>
+
+Giriş Yapan
+
+</p>
+
+</div>
+
+<div class="stat-card">
+
+<h3 id="statAbsent">
+
+0
+
+</h3>
+
+<p>
+
+Gelmeyen
+
+</p>
+
+</div>
+
+<div class="stat-card">
+
+<h3 id="statRemaining">
+
+0
+
+</h3>
+
+<p>
+
+Kalan Kontenjan
+
+</p>
+
+</div>
+
+</section>
+<section class="search-bar">
+
+<input
+
+type="text"
+
+id="searchInput"
+
+class="form-control"
+
+placeholder="Ad, TC, Telefon, Okul, Koltuk..."
+
+>
+
+</section>
+<section class="table-section">
+
+<div class="table-responsive">
+
+<table class="table table-striped table-hover align-middle">
 
 <thead>
 
 <tr>
 
-<th>Kayıt</th>
+<th>Kayıt No</th>
 
 <th>Ad Soyad</th>
 
-<th>T.C.</th>
-
 <th>Telefon</th>
 
-<th>Yaş</th>
+<th>Okul</th>
 
-<th>Otobüs</th>
+<th>Sınıf</th>
 
 <th>Koltuk</th>
+
+<th>Durum</th>
 
 <th>İşlemler</th>
 
@@ -228,7 +195,7 @@ Yenile
 
 </thead>
 
-<tbody id="participantTable">
+<tbody id="registrationTable">
 
 </tbody>
 
@@ -236,87 +203,147 @@ Yenile
 
 </div>
 
-</main>
+</section>
+<section class="scanner-section">
+
+<div class="scanner-card">
+
+<h3>QR Kod Okut</h3>
+
+<div id="qr-reader"></div>
+
+<div id="qrResult"></div>
+
+<div class="scanner-buttons">
+
+<button
+id="startScannerButton"
+class="btn btn-success">
+
+Kamerayı Aç
+
+</button>
+
+<button
+id="stopScannerButton"
+class="btn btn-danger">
+
+Kamerayı Kapat
+
+</button>
+
+</div>
+
+</div>
 
 </section>
+<section class="last-checkins">
 
-<div id="editModal" class="modal hidden">
+<h3>
 
-<div class="modalContent">
+Son Okutulanlar
+
+</h3>
+
+<div id="lastCheckins">
+
+<div class="empty">
+
+Henüz okutma yapılmadı.
+
+</div>
+
+</div>
+
+</section>
+<div id="editModal" class="modal-custom">
+
+<div class="modal-box">
 
 <h2>
 
-Katılımcıyı Düzenle
+Kayıt Düzenle
 
 </h2>
 
-<input
-type="hidden"
-id="editId">
+<input id="editName" class="form-control" placeholder="Ad Soyad">
 
-<div class="grid">
+<input id="editPhone" class="form-control" placeholder="Telefon">
 
-<div class="input">
+<input id="editSchool" class="form-control" placeholder="Okul">
 
-<label>Otobüs No</label>
+<input id="editClass" class="form-control" placeholder="Sınıf">
 
-<select id="editBus">
+<input id="editParent" class="form-control" placeholder="Veli">
 
-<option value="">Seçiniz</option>
+<input id="editParentPhone" class="form-control" placeholder="Veli Telefon">
 
-<option>1</option>
+<textarea
+id="editAddress"
+class="form-control"
+placeholder="Adres"></textarea>
 
-<option>2</option>
+<textarea
+id="editNote"
+class="form-control"
+placeholder="Not"></textarea>
 
-<option>3</option>
+<input id="editSeat"
+class="form-control"
+placeholder="Koltuk">
 
-<option>4</option>
-
-<option>5</option>
-
-<option>6</option>
-
-<option>7</option>
-
-<option>8</option>
-
-<option>9</option>
-
-<option>10</option>
-
-</select>
-
-</div>
-
-<div class="input">
-
-<label>Koltuk No</label>
-
-<input
-type="number"
-id="editSeat"
-min="1"
-max="60">
-
-</div>
-
-</div>
-
-<div class="modalButtons">
+<div class="modal-actions">
 
 <button
-id="saveButton"
-class="primary">
-
-<i class="fa-solid fa-floppy-disk"></i>
+id="saveEditButton"
+class="btn btn-success">
 
 Kaydet
 
 </button>
 
 <button
-id="cancelButton"
-class="secondary">
+id="closeEditButton"
+class="btn btn-secondary">
+
+Vazgeç
+
+</button>
+
+</div>
+
+</div>
+
+</div>
+<div id="deleteModal" class="modal-custom">
+
+<div class="modal-box">
+
+<h2>
+
+Kayıt Sil
+
+</h2>
+
+<p id="deleteMessage">
+
+Bu kayıt silinecek.
+
+</p>
+
+<div class="modal-actions">
+
+<button
+id="confirmDeleteButton"
+class="btn btn-danger">
+
+Sil
+
+</button>
+
+<button
+id="cancelDeleteButton"
+class="btn btn-secondary">
 
 İptal
 
@@ -327,10 +354,18 @@ class="secondary">
 </div>
 
 </div>
+<div
+id="toastContainer"
+class="toast-container position-fixed bottom-0 end-0 p-3">
 
-<script type="module" src="firebase.js"></script>
+</div>
+<script
+type="module"
+src="js/admin.js"></script>
 
-<script type="module" src="admin.js"></script>
+</main>
+
+</div>
 
 </body>
 
