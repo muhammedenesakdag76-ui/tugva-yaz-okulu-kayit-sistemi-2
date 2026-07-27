@@ -1,223 +1,823 @@
-<!-- admin.html -->
-<!-- Parça 1/8 -->
+<!-- ==========================================
+KATILIMCI TABLOSU
+========================================== -->
 
-<!DOCTYPE html>
-<html lang="tr">
+<section id="participantsPage" class="page active">
 
-<head>
+<div class="table-card">
 
-<meta charset="UTF-8">
+<div class="table-header">
 
-<meta
-name="viewport"
-content="width=device-width, initial-scale=1.0">
+<label class="checkbox">
 
-<title>Yönetim Paneli</title>
+<input type="checkbox" id="selectAll">
 
-<link
-rel="stylesheet"
-href="css/style.css">
+<span>Tümünü Seç</span>
 
-</head>
+</label>
 
-<body>
+<div class="table-actions">
 
-<div class="background"></div>
+<button id="bulkCheckIn" class="btn btn-success">
 
-<div class="container admin-container">
-
-<header class="hero">
-
-<div>
-
-<h1>
-
-Yönetim Paneli
-
-</h1>
-
-<p>
-
-TÜGVA Yaz Okulu Kayıt Sistemi
-
-</p>
-
-</div>
-
-<button
-id="logoutBtn"
-class="btn btn-secondary">
-
-Çıkış Yap
+Toplu Giriş
 
 </button>
 
-</header>
+<button id="bulkCheckOut" class="btn btn-success">
 
-<section class="stats-grid">
+Toplu Çıkış
 
-<div class="stat-card">
+</button>
 
-<div class="stat-title">
+<button id="bulkDelete" class="btn btn-danger">
 
-Toplam Kayıt
+Toplu Sil
 
-</div>
-
-<div
-id="totalCount"
-class="stat-value">
-
-0
+</button>
 
 </div>
 
 </div>
 
-<div class="stat-card">
+<div class="table-responsive">
 
-<div class="stat-title">
+<table id="participantsTable">
 
-Giriş Yapan
+<thead>
 
-</div>
+<tr>
 
-<div
-id="checkedCount"
-class="stat-value">
+<th width="40"></th>
 
-0
+<th>QR</th>
 
-</div>
+<th>Kayıt No</th>
 
-</div>
+<th>Ad Soyad</th>
 
-<div class="stat-card">
+<th>TC</th>
 
-<div class="stat-title">
+<th>Telefon</th>
 
-Bekleyen
+<th>Okul</th>
 
-</div>
+<th>Sınıf</th>
 
-<div
-id="waitingCount"
-class="stat-value">
+<th>Koltuk</th>
 
-0
+<th>Durum</th>
 
-</div>
+<th width="320">İşlemler</th>
 
-</div>
+</tr>
 
-<div class="stat-card">
+</thead>
 
-<div class="stat-title">
+<tbody id="participantsBody">
 
-Kalan Kontenjan
+<tr>
 
-</div>
+<td colspan="11" class="empty">
 
-<div
-id="remainingCount"
-class="stat-value">
+Henüz kayıt bulunmuyor.
 
-45
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
 
 </div>
 
 </div>
 
 </section>
-<!-- admin.html -->
-<!-- Parça 2/8 -->
 
-<section class="card">
+<!-- ==========================================
+DETAY PANELİ
+========================================== -->
 
-<div class="toolbar">
+<aside id="detailPanel" class="detail-panel">
 
-<input
-type="text"
-id="search"
-placeholder="Ad Soyad, TC, Telefon veya Kayıt No ile ara...">
+<div class="detail-top">
 
-<select id="statusFilter">
+<div id="detailQr" class="qr-preview"></div>
 
-<option value="all">
+<h3 id="detailName">
 
-Tümü
+Katılımcı Seçilmedi
 
-</option>
+</h3>
 
-<option value="checked">
+<p id="detailRegister">
 
-Giriş Yapanlar
+-
 
-</option>
+</p>
 
-<option value="waiting">
+</div>
 
-Bekleyenler
+<div class="detail-info">
 
-</option>
+<div class="row">
 
-</select>
+<span>TC</span>
 
-<select id="sortSelect">
+<strong id="detailTc">-</strong>
 
-<option value="newest">
+</div>
 
-En Yeni
+<div class="row">
 
-</option>
+<span>Telefon</span>
 
-<option value="oldest">
+<strong id="detailPhone">-</strong>
 
-En Eski
+</div>
 
-</option>
+<div class="row">
 
-<option value="name">
+<span>Okul</span>
 
-Ada Göre
+<strong id="detailSchool">-</strong>
 
-</option>
+</div>
 
-<option value="seat">
+<div class="row">
 
-Koltuğa Göre
+<span>Sınıf</span>
 
-</option>
+<strong id="detailClass">-</strong>
 
-</select>
+</div>
 
-<button
-id="exportExcel"
-class="btn btn-primary">
+<div class="row">
 
-Excel'e Aktar
+<span>Veli</span>
+
+<strong id="detailParent">-</strong>
+
+</div>
+
+<div class="row">
+
+<span>Veli Telefon</span>
+
+<strong id="detailParentPhone">-</strong>
+
+</div>
+
+<div class="row">
+
+<span>Koltuk</span>
+
+<strong id="detailSeat">-</strong>
+
+</div>
+
+<div class="row">
+
+<span>Durum</span>
+
+<strong id="detailStatus">Bekliyor</strong>
+
+</div>
+
+</div>
+
+<div class="detail-buttons">
+
+<button id="btnEdit" class="btn btn-success">
+
+Düzenle
 
 </button>
 
-<label
-for="importExcel"
-class="btn btn-success">
+<button id="btnQr" class="btn btn-success">
 
-Excel'den Yükle
+QR Göster
+
+</button>
+
+<button id="btnQrDownload" class="btn btn-success">
+
+QR İndir
+
+</button>
+
+<button id="btnPdf" class="btn btn-success">
+
+PDF Oluştur
+
+</button>
+
+<button id="btnDelete" class="btn btn-danger">
+
+Sil
+
+</button>
+
+</div>
+
+</aside>
+<!-- ==========================================
+DÜZENLE MODALI
+========================================== -->
+
+<div
+class="modal"
+id="editModal">
+
+<div
+class="modal-content large">
+
+<div class="modal-header">
+
+<h2>
+
+Katılımcıyı Düzenle
+
+</h2>
+
+<button
+id="closeEditModal"
+class="close-btn">
+
+✕
+
+</button>
+
+</div>
+
+<div class="modal-body">
+
+<form
+id="editForm">
+
+<div class="grid">
+
+<div class="form-group">
+
+<label>
+
+Ad Soyad
 
 </label>
 
 <input
-type="file"
-id="importExcel"
-accept=".xlsx,.xls,.csv"
-hidden>
+type="text"
+id="editName">
 
 </div>
 
-<div class="table-wrapper">
+<div class="form-group">
 
-<table class="admin-table">
+<label>
+
+TC Kimlik
+
+</label>
+
+<input
+type="text"
+id="editTc">
+
+</div>
+
+<div class="form-group">
+
+<label>
+
+Telefon
+
+</label>
+
+<input
+type="text"
+id="editPhone">
+
+</div>
+
+<div class="form-group">
+
+<label>
+
+E-Posta
+
+</label>
+
+<input
+type="email"
+id="editEmail">
+
+</div>
+
+<div class="form-group">
+
+<label>
+
+Doğum Tarihi
+
+</label>
+
+<input
+type="date"
+id="editBirth">
+
+</div>
+
+<div class="form-group">
+
+<label>
+
+Cinsiyet
+
+</label>
+
+<select
+id="editGender">
+
+<option>
+
+Erkek
+
+</option>
+
+<option>
+
+Kız
+
+</option>
+
+</select>
+
+</div>
+
+<div class="form-group">
+
+<label>
+
+Okul
+
+</label>
+
+<input
+type="text"
+id="editSchool">
+
+</div>
+
+<div class="form-group">
+
+<label>
+
+Sınıf
+
+</label>
+
+<input
+type="text"
+id="editClass">
+
+</div>
+
+<div class="form-group">
+
+<label>
+
+Veli Adı
+
+</label>
+
+<input
+type="text"
+id="editParent">
+
+</div>
+
+<div class="form-group">
+
+<label>
+
+Veli Telefon
+
+</label>
+
+<input
+type="text"
+id="editParentPhone">
+
+</div>
+
+<div class="form-group full">
+
+<label>
+
+Adres
+
+</label>
+
+<textarea
+id="editAddress"
+rows="3"></textarea>
+
+</div>
+
+<div class="form-group full">
+
+<label>
+
+Not
+
+</label>
+
+<textarea
+id="editNote"
+rows="3"></textarea>
+
+</div>
+
+<div class="form-group">
+
+<label>
+
+Koltuk
+
+</label>
+
+<input
+type="text"
+id="editSeat">
+
+</div>
+
+</div>
+
+</form>
+
+</div>
+
+<div class="modal-footer">
+
+<button
+id="cancelEdit"
+class="btn btn-secondary">
+
+İptal
+
+</button>
+
+<button
+id="saveEdit"
+class="btn btn-success">
+
+Kaydet
+
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+<!-- ==========================================
+QR MODALI
+========================================== -->
+
+<div
+class="modal"
+id="qrModal">
+
+<div
+class="modal-content small">
+
+<div class="modal-header">
+
+<h2>
+
+QR Kod
+
+</h2>
+
+<button
+id="closeQrModal"
+class="close-btn">
+
+✕
+
+</button>
+
+</div>
+
+<div class="modal-body center">
+
+<div
+id="qrModalImage">
+
+</div>
+
+<h3
+id="qrModalNumber">
+
+TYG26-0001
+
+</h3>
+
+<p
+id="qrModalName">
+
+Katılımcı
+
+</p>
+
+<div class="modal-actions">
+
+<button
+id="downloadQrPng"
+class="btn btn-success">
+
+PNG İndir
+
+</button>
+
+<button
+id="printQr"
+class="btn btn-success">
+
+Yazdır
+
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+<!-- ==========================================
+SİLME ONAYI
+========================================== -->
+
+<div
+class="modal"
+id="deleteModal">
+
+<div
+class="modal-content small">
+
+<div class="modal-header">
+
+<h2>
+
+Katılımcıyı Sil
+
+</h2>
+
+</div>
+
+<div class="modal-body center">
+
+<p>
+
+Bu katılımcıyı kalıcı olarak silmek istediğinize emin misiniz?
+
+</p>
+
+<p class="danger-text">
+
+Bu işlem geri alınamaz.
+
+</p>
+
+</div>
+
+<div class="modal-footer">
+
+<button
+id="cancelDelete"
+class="btn btn-secondary">
+
+Vazgeç
+
+</button>
+
+<button
+id="confirmDelete"
+class="btn btn-danger">
+
+Sil
+
+</button>
+
+</div>
+
+</div>
+
+</div>
+<!-- ==========================================
+LOADING OVERLAY
+========================================== -->
+
+<div
+id="loadingOverlay"
+class="loading-overlay hidden">
+
+<div class="loader"></div>
+
+<h3>
+
+İşlem Yapılıyor...
+
+</h3>
+
+<p>
+
+Lütfen bekleyiniz.
+
+</p>
+
+</div>
+
+<!-- ==========================================
+TOAST
+========================================== -->
+
+<div
+id="toast"
+class="toast">
+
+<div
+id="toastIcon"
+class="toast-icon">
+
+✔
+
+</div>
+
+<div
+class="toast-content">
+
+<h4
+id="toastTitle">
+
+Başarılı
+
+</h4>
+
+<p
+id="toastMessage">
+
+İşlem başarıyla tamamlandı.
+
+</p>
+
+</div>
+
+<button
+id="closeToast"
+class="toast-close">
+
+✕
+
+</button>
+
+</div>
+
+<!-- ==========================================
+RAPORLAR
+========================================== -->
+
+<section
+id="reportsPage"
+class="page">
+
+<div class="page-header">
+
+<h2>
+
+Raporlar
+
+</h2>
+
+<p>
+
+Yaz Okulu istatistikleri
+
+</p>
+
+</div>
+
+<div class="report-grid">
+
+<div class="report-card">
+
+<h4>
+
+Erkek
+
+</h4>
+
+<h2
+id="maleCount">
+
+0
+
+</h2>
+
+</div>
+
+<div class="report-card">
+
+<h4>
+
+Kız
+
+</h4>
+
+<h2
+id="femaleCount">
+
+0
+
+</h2>
+
+</div>
+
+<div class="report-card">
+
+<h4>
+
+Bugünkü Kayıt
+
+</h4>
+
+<h2
+id="todayRegister">
+
+0
+
+</h2>
+
+</div>
+
+<div class="report-card">
+
+<h4>
+
+Doluluk
+
+</h4>
+
+<h2
+id="capacityRate">
+
+0%
+
+</h2>
+
+</div>
+
+</div>
+
+<div class="chart-card">
+
+<canvas
+id="reportChart">
+
+</canvas>
+
+</div>
+
+</section>
+
+<!-- ==========================================
+İŞLEM GEÇMİŞİ
+========================================== -->
+
+<section
+id="logsPage"
+class="page">
+
+<div class="page-header">
+
+<h2>
+
+İşlem Geçmişi
+
+</h2>
+
+</div>
+
+<div class="table-card">
+
+<table
+class="history-table">
 
 <thead>
 
@@ -225,43 +825,25 @@ hidden>
 
 <th>
 
-Kayıt No
+Tarih
 
 </th>
 
 <th>
 
-Ad Soyad
+İşlem
 
 </th>
 
 <th>
 
-Telefon
+Katılımcı
 
 </th>
 
 <th>
 
-Okul
-
-</th>
-
-<th>
-
-Koltuk
-
-</th>
-
-<th>
-
-Durum
-
-</th>
-
-<th>
-
-İşlemler
+Yönetici
 
 </th>
 
@@ -269,7 +851,19 @@ Durum
 
 </thead>
 
-<tbody id="participantTable">
+<tbody
+id="logsBody">
+
+<tr>
+
+<td
+colspan="4">
+
+Henüz işlem bulunmuyor.
+
+</td>
+
+</tr>
 
 </tbody>
 
@@ -278,577 +872,187 @@ Durum
 </div>
 
 </section>
-<!-- admin.html -->
-<!-- Parça 3/8 -->
 
-<section class="card">
+<!-- ==========================================
+AYARLAR
+========================================== -->
 
-<h2>
+<section
+id="settingsPage"
+class="page">
 
-Katılımcı Detayı
-
-</h2>
-
-<div
-id="detailPanel"
-class="detail-panel">
-
-<p>
-
-Tablodan bir katılımcı seçiniz.
-
-</p>
-
-</div>
-
-</section>
-
-<div
-id="participantModal"
-class="modal">
-
-<div class="modal-content">
-
-<div class="modal-header">
+<div class="page-header">
 
 <h2>
 
-Katılımcı Bilgileri
+Sistem Ayarları
 
 </h2>
 
-<button
-id="closeModal"
-class="close-btn">
-
-×
-
-</button>
-
 </div>
 
-<div
-id="modalBody"
-class="modal-body">
+<div class="settings-grid">
 
-</div>
+<div class="setting-card">
 
-<div class="modal-footer">
+<h3>
+
+Kontenjan
+
+</h3>
+
+<input
+type="number"
+id="capacityInput"
+value="45">
 
 <button
-id="saveSeatBtn"
+id="saveCapacityBtn"
 class="btn btn-success">
 
 Kaydet
 
 </button>
 
-<button
-id="closeModalBottom"
-class="btn btn-secondary">
+</div>
 
-Kapat
+<div class="setting-card">
 
-</button>
+<h3>
+
+QR Boyutu
+
+</h3>
+
+<select
+id="qrSize">
+
+<option value="256">
+
+256 px
+
+</option>
+
+<option value="512">
+
+512 px
+
+</option>
+
+<option value="1024">
+
+1024 px
+
+</option>
+
+</select>
 
 </div>
 
-</div>
+<div class="setting-card">
 
-</div>
-<!-- admin.html -->
-<!-- Parça 4/8 -->
+<h3>
 
-<section class="card">
+Otomatik PDF
 
-<h2>
+</h3>
 
-Toplu İşlemler
-
-</h2>
-
-<div class="bulk-actions">
-
-<button
-id="refreshBtn"
-class="btn btn-primary">
-
-Listeyi Yenile
-
-</button>
-
-<button
-id="checkAllBtn"
-class="btn btn-success">
-
-Seçilenleri Giriş Yap
-
-</button>
-
-<button
-id="uncheckAllBtn"
-class="btn btn-secondary">
-
-Seçilenleri Çıkış Yap
-
-</button>
-
-<button
-id="deleteSelectedBtn"
-class="btn btn-danger">
-
-Seçilenleri Sil
-
-</button>
-
-</div>
-
-</section>
-
-<footer class="admin-footer">
-
-<p>
-
-© 2026 TÜGVA Yaz Okulu Yönetim Sistemi
-
-</p>
-
-</footer>
-
-<script
-type="module"
-src="js/admin.js">
-
-</script>
-
-</div>
-
-</body>
-
-</html>
-<!-- admin.html -->
-<!-- Parça 5/8 -->
-
-<div
-id="loadingOverlay"
-class="loading-overlay hidden">
-
-<div class="spinner"></div>
-
-<p>
-
-Yükleniyor...
-
-</p>
-
-</div>
-
-<div
-id="emptyState"
-class="empty-state hidden">
-
-<h2>
-
-Kayıt Bulunamadı
-
-</h2>
-
-<p>
-
-Aramanızla eşleşen herhangi bir katılımcı bulunamadı.
-
-</p>
-
-<button
-id="clearSearchBtn"
-class="btn btn-primary">
-
-Filtreleri Temizle
-
-</button>
-
-</div>
-
-<div
-id="toast"
-class="toast hidden">
-
-<span id="toastMessage">
-
-İşlem başarılı.
-
-</span>
-
-</div>
-
-<template id="participantTemplate">
-
-<tr>
-
-<td class="col-select">
+<label>
 
 <input
 type="checkbox"
-class="row-checkbox">
+id="autoPdf">
 
-</td>
+Kayıttan sonra PDF oluştur
 
-<td class="col-register"></td>
+</label>
 
-<td class="col-name"></td>
+</div>
 
-<td class="col-phone"></td>
+<div class="setting-card">
 
-<td class="col-school"></td>
+<h3>
 
-<td class="col-seat"></td>
+Veriler
 
-<td class="col-status"></td>
-
-<td class="col-actions"></td>
-
-</tr>
-
-</template>
-<!-- admin.html -->
-<!-- Parça 6/8 -->
-
-<dialog
-id="confirmDialog"
-class="confirm-dialog">
-
-<h2>
-
-İşlem Onayı
-
-</h2>
-
-<p
-id="confirmText">
-
-Bu işlemi gerçekleştirmek istediğinize emin misiniz?
-
-</p>
-
-<div class="dialog-buttons">
+</h3>
 
 <button
-id="confirmYes"
-class="btn btn-danger">
-
-Evet
-
-</button>
-
-<button
-id="confirmNo"
-class="btn btn-secondary">
-
-Vazgeç
-
-</button>
-
-</div>
-
-</dialog>
-
-<dialog
-id="participantDialog"
-class="participant-dialog">
-
-<div class="dialog-header">
-
-<h2>
-
-Katılımcı Bilgileri
-
-</h2>
-
-<button
-id="participantDialogClose"
-class="close-btn">
-
-×
-
-</button>
-
-</div>
-
-<div
-id="participantDialogBody"
-class="dialog-body">
-
-<div class="detail-grid">
-
-<div>
-
-<strong>
-
-Kayıt No
-
-</strong>
-
-<p id="detailRegisterNo"></p>
-
-</div>
-
-<div>
-
-<strong>
-
-Ad Soyad
-
-</strong>
-
-<p id="detailName"></p>
-
-</div>
-
-<div>
-
-<strong>
-
-TC Kimlik
-
-</strong>
-
-<p id="detailTC"></p>
-
-</div>
-
-<div>
-
-<strong>
-
-Telefon
-
-</strong>
-
-<p id="detailPhone"></p>
-
-</div>
-
-<div>
-
-<strong>
-
-Veli
-
-</strong>
-
-<p id="detailParent"></p>
-
-</div>
-
-<div>
-
-<strong>
-
-Veli Telefon
-
-</strong>
-
-<p id="detailParentPhone"></p>
-
-</div>
-
-<div>
-
-<strong>
-
-Okul
-
-</strong>
-
-<p id="detailSchool"></p>
-
-</div>
-
-<div>
-
-<strong>
-
-Sınıf
-
-</strong>
-
-<p id="detailClass"></p>
-
-</div>
-
-<div>
-
-<strong>
-
-Durum
-
-</strong>
-
-<p id="detailStatus"></p>
-
-</div>
-
-<div>
-
-<strong>
-
-Koltuk
-
-</strong>
-
-<input
-type="text"
-id="detailSeat"
-maxlength="5">
-
-</div>
-
-</div>
-
-</div>
-
-<div class="dialog-footer">
-
-<button
-id="saveParticipantBtn"
+id="backupBtn"
 class="btn btn-success">
 
-Kaydet
+Yedek Al
 
 </button>
 
 <button
-id="closeParticipantBtn"
+id="restoreBtn"
 class="btn btn-secondary">
 
-Kapat
+Geri Yükle
 
 </button>
 
 </div>
 
-</dialog>
-<!-- admin.html -->
-<!-- Parça 7/8 -->
+</div>
 
-<template id="rowActionsTemplate">
+</section>
+<!-- ==========================================
+FOOTER
+========================================== -->
 
-<div class="action-buttons">
+<footer class="admin-footer">
 
-<button
-class="btn-icon view-btn"
-title="Detay">
+<div class="footer-left">
 
-👁
-
-</button>
-
-<button
-class="btn-icon checkin-btn"
-title="Giriş / Çıkış">
-
-✅
-
-</button>
-
-<button
-class="btn-icon delete-btn"
-title="Sil">
-
-🗑️
-
-</button>
+© 2026 TÜGVA Yaz Okulu Kayıt Sistemi
 
 </div>
 
-</template>
+<div class="footer-right">
 
-<template id="statusTemplate">
+v1.0.0
 
-<span class="status waiting">
+</div>
 
-Bekliyor
+</footer>
 
-</span>
+</main>
 
-</template>
+</div>
 
-<template id="seatTemplate">
+<!-- ==========================================
+GİZLİ DOSYA YÜKLEYİCİLER
+========================================== -->
 
 <input
-type="text"
-class="seat-input"
-maxlength="5"
-placeholder="A01">
-
-</template>
-
-<div
-id="pageMask"
-class="page-mask hidden">
-
-</div>
-
-<div
-id="notificationArea"
-class="notification-area">
-
-</div>
-<!-- admin.html -->
-<!-- Parça 8/8 (Son) -->
-
-<template id="detailRowTemplate">
-
-<div class="detail-row">
-
-<span class="detail-label"></span>
-
-<span class="detail-value"></span>
-
-</div>
-
-</template>
-
-<template id="statCardTemplate">
-
-<div class="stat-card">
-
-<div class="stat-title"></div>
-
-<div class="stat-value"></div>
-
-</div>
-
-</template>
-
-<template id="optionTemplate">
-
-<option></option>
-
-</template>
+type="file"
+id="importJson"
+accept=".json"
+hidden>
 
 <input
-type="hidden"
-id="selectedParticipantId">
+type="file"
+id="importExcelHidden"
+accept=".xlsx,.xls"
+hidden>
 
-<input
-type="hidden"
-id="selectedAction">
+<!-- ==========================================
+SCRIPTLER
+========================================== -->
 
-<div
-id="screenReaderStatus"
-class="sr-only"
-aria-live="polite">
+<script type="module" src="js/firebase.js"></script>
 
-</div>
+<script src="js/validation.js"></script>
 
-</div>
+<script src="js/qr.js"></script>
 
-<script
-type="module"
-src="js/admin.js">
+<script src="js/pdf.js"></script>
 
-</script>
+<script src="js/excel.js"></script>
+
+<script src="js/admin.js"></script>
 
 </body>
 
