@@ -54,20 +54,13 @@ onAuthStateChanged
 from
 "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
 
-const firebaseConfig={
-
-apiKey:"",
-
-authDomain:"",
-
-projectId:"",
-
-storageBucket:"",
-
-messagingSenderId:"",
-
-appId:""
-
+const firebaseConfig = {
+  apiKey: "AIzaSyA1PwF_MonQVMQ2zXnCJZbQWYkRgHpxxb8",
+  authDomain: "tugva-kayit-sistemi.firebaseapp.com",
+  projectId: "tugva-kayit-sistemi",
+  storageBucket: "tugva-kayit-sistemi.firebasestorage.app",
+  messagingSenderId: "497137562254",
+  appId: "1:497137562254:web:0dae95a054ac7e21424fdf"
 };
 
 const app=
