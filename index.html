@@ -1,33 +1,1187 @@
-<!-- index.html içindeki formun hemen altına gelecek alan -->
-<div id="successCard" class="card-result" style="display: none;">
-    
-    <!-- İndirmesi gerektiğini söyleyen uyarı kutusu -->
-    <div class="alert-box warning">
-        ⚠️ <strong>DİKKAT:</strong> Kaydınız başarıyla alındı! Lütfen aşağıdaki QR Kodunuzu içeren **PDF Belgenizi indirmeyi unutmayınız**. Girişlerde bu belgedeki QR Kod kontrol edilecektir.
-    </div>
+<!DOCTYPE html>
+<html lang="tr">
 
-    <!-- PDF'e Dönüştürülecek Şık Alan -->
-    <div id="pdfExportArea" class="pdf-card">
-        <div class="pdf-header">
-            <img src="assets/logo.png" alt="TÜGVA Logo" class="pdf-logo">
-            <h2>TÜGVA İSTANBUL YAZ OKULU & GEZİSİ</h2>
-            <p>Kayıt Onay Belgesi</p>
-        </div>
-        
-        <div class="pdf-body">
-            <div class="info-group">
-                <p><strong>Kayıt ID:</strong> <span id="pdfDocId"></span></p>
-                <p><strong>Ad Soyad:</strong> <span id="pdfName"></span></p>
-                <p><strong>Telefon:</strong> <span id="pdfPhone"></span></p>
-                <p><strong>T.C. No:</strong> <span id="pdfTc"></span></p>
-            </div>
-            
-            <div class="qr-group">
-                <div id="qrcodeCanvas"></div>
-                <small>Giriş Kontrol QR Kodu</small>
-            </div>
-        </div>
-    </div>
+<head>
 
-    <button id="downloadPdfBtn" class="btn-primary-lg">📄 PDF Olarak İndir</button>
+<meta charset="UTF-8">
+
+<meta name="viewport"
+      content="width=device-width, initial-scale=1.0">
+
+<title>TÜGVA Yaz Okulu Kayıt Sistemi</title>
+
+<meta name="theme-color"
+      content="#006633">
+
+<meta name="description"
+      content="TÜGVA Yaz Okulu Online Kayıt Sistemi">
+
+<link rel="preconnect"
+      href="https://fonts.googleapis.com">
+
+<link rel="preconnect"
+      href="https://fonts.gstatic.com"
+      crossorigin>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+      rel="stylesheet">
+
+<link rel="stylesheet"
+      href="css/style.css">
+
+<script type="module"
+        src="js/app.js"
+        defer></script>
+
+</head>
+
+<body>
+
+<header class="topbar">
+
+<div class="container">
+
+<img
+src="assets/logo.png"
+class="logo"
+alt="TÜGVA">
+
+<h1>
+
+TÜGVA Yaz Okulu
+
+</h1>
+
+<div class="capacity">
+
+Kontenjan
+
+<span id="remainingCapacity">
+
+...
+
+</span>
+
 </div>
+
+</div>
+
+</header>
+
+<main class="container">
+
+<section class="card">
+
+<h2>
+
+Online Kayıt Formu
+
+</h2>
+
+<p>
+
+Lütfen tüm bilgileri eksiksiz doldurunuz.
+
+</p>
+
+<form
+
+id="registrationForm"
+
+autocomplete="off">
+
+<div class="grid">
+
+<div class="form-group">
+
+<label>
+
+Ad Soyad
+
+</label>
+
+<input
+
+type="text"
+
+name="name"
+
+required>
+
+<small
+
+id="nameError"
+
+class="error-message">
+
+</small>
+
+</div>
+
+<div class="form-group">
+
+<label>
+
+T.C. Kimlik No
+
+</label>
+
+<input
+
+type="text"
+
+name="tc"
+
+maxlength="11"
+
+required>
+
+<small
+
+id="tcError"
+
+class="error-message">
+
+</small>
+
+</div>
+<div class="form-group">
+
+<label>
+
+Telefon
+
+</label>
+
+<input
+type="tel"
+name="phone"
+maxlength="11"
+required>
+
+<small
+id="phoneError"
+class="error-message">
+</small>
+
+</div>
+
+<div class="form-group">
+
+<label>
+
+E-posta (İsteğe Bağlı)
+
+</label>
+
+<input
+type="email"
+name="email">
+
+<small
+id="emailError"
+class="error-message">
+</small>
+
+</div>
+
+<div class="form-group">
+
+<label>
+
+Doğum Tarihi
+
+</label>
+
+<input
+type="date"
+name="birth"
+required>
+
+<small
+id="birthError"
+class="error-message">
+</small>
+
+</div>
+
+<div class="form-group">
+
+<label>
+
+Cinsiyet
+
+</label>
+
+<select
+name="gender"
+required>
+
+<option value="">
+Seçiniz
+</option>
+
+<option value="Erkek">
+Erkek
+</option>
+
+<option value="Kız">
+Kız
+</option>
+
+</select>
+
+<small
+id="genderError"
+class="error-message">
+</small>
+
+</div>
+
+<div class="form-group">
+
+<label>
+
+Okul
+
+</label>
+
+<input
+type="text"
+name="school"
+required>
+
+<small
+id="schoolError"
+class="error-message">
+</small>
+
+</div>
+
+<div class="form-group">
+
+<label>
+
+Sınıf
+
+</label>
+
+<input
+type="text"
+name="class"
+placeholder="Örn: 6-A"
+required>
+
+<small
+id="classError"
+class="error-message">
+</small>
+
+</div>
+<div class="form-group">
+
+<label>
+
+Veli Adı Soyadı
+
+</label>
+
+<input
+type="text"
+name="parent"
+required>
+
+<small
+id="parentError"
+class="error-message">
+</small>
+
+</div>
+
+<div class="form-group">
+
+<label>
+
+Veli Telefonu
+
+</label>
+
+<input
+type="tel"
+name="parentPhone"
+maxlength="11"
+required>
+
+<small
+id="parentPhoneError"
+class="error-message">
+</small>
+
+</div>
+
+<div class="form-group full">
+
+<label>
+
+Adres
+
+</label>
+
+<textarea
+
+name="address"
+
+rows="4"
+
+required>
+
+</textarea>
+
+<small
+
+id="addressError"
+
+class="error-message">
+
+</small>
+
+</div>
+
+<div class="form-group full">
+
+<label>
+
+Not (İsteğe Bağlı)
+
+</label>
+
+<textarea
+
+name="note"
+
+rows="3"
+
+placeholder="Eklemek istediğiniz bilgiler...">
+
+</textarea>
+
+<small
+
+id="noteError"
+
+class="error-message">
+
+</small>
+
+</div>
+
+</div>
+
+<div class="form-actions">
+
+<button
+
+id="submitButton"
+
+type="submit"
+
+class="btn btn-primary">
+
+Kaydı Tamamla
+
+</button>
+
+<button
+
+type="reset"
+
+class="btn btn-secondary">
+
+Temizle
+
+</button>
+
+</div>
+
+</form>
+
+</section>
+<section
+
+id="successModal"
+
+class="modal">
+
+<div class="modal-content">
+
+<div class="modal-icon">
+
+✓
+
+</div>
+
+<h2>
+
+Kayıt Başarıyla Tamamlandı
+
+</h2>
+
+<p>
+
+Başvurunuz sisteme başarıyla kaydedildi.
+
+Lütfen kayıt belgenizi indiriniz.
+
+</p>
+
+<div class="modal-buttons">
+
+<button
+
+id="downloadPdf"
+
+class="btn btn-primary">
+
+📄 PDF İndir
+
+</button>
+
+<button
+
+id="newRegistration"
+
+class="btn btn-secondary">
+
+Yeni Kayıt
+
+</button>
+
+</div>
+
+</div>
+
+</section>
+
+</main>
+
+<footer class="footer">
+
+<div class="container">
+
+<p>
+
+© 2026 TÜGVA Yaz Okulu Kayıt Sistemi
+
+</p>
+
+<p>
+
+Tüm Hakları Saklıdır.
+
+</p>
+
+</div>
+
+</footer>
+
+</body>
+
+</html>
+<section class="info-section">
+
+    <div class="info-card">
+
+        <div class="info-icon">
+            📢
+        </div>
+
+        <h3>Duyuru</h3>
+
+        <p>
+
+            Kayıt tamamlandıktan sonra oluşturulan
+            PDF belgesini telefonunuza indiriniz ve
+            ilk gün yanınızda getiriniz.
+
+        </p>
+
+    </div>
+
+    <div class="info-card">
+
+        <div class="info-icon">
+            📊
+        </div>
+
+        <h3>Kontenjan</h3>
+
+        <div class="progress">
+
+            <div
+                id="capacityBar"
+                class="progress-bar"
+                style="width:0%">
+            </div>
+
+        </div>
+
+        <p>
+
+            Kalan Kontenjan:
+
+            <strong id="remainingCapacityText">
+
+                ...
+
+            </strong>
+
+        </p>
+
+    </div>
+
+    <div class="info-card">
+
+        <div class="info-icon">
+            ℹ️
+        </div>
+
+        <h3>Bilgilendirme</h3>
+
+        <ul>
+
+            <li>Kayıt ücretsizdir.</li>
+
+            <li>Tüm alanlar eksiksiz doldurulmalıdır.</li>
+
+            <li>Yanlış bilgi girilmemelidir.</li>
+
+            <li>Kontenjan dolunca kayıt kapanacaktır.</li>
+
+        </ul>
+
+    </div>
+
+</section>
+
+<section class="contact-card">
+
+    <h2>İletişim</h2>
+
+    <p>
+
+        Sorularınız için bizimle iletişime geçebilirsiniz.
+
+    </p>
+
+    <div class="contact-grid">
+
+        <div>
+
+            <strong>Telefon</strong>
+
+            <p>0 (332) XXX XX XX</p>
+
+        </div>
+
+        <div>
+
+            <strong>E-posta</strong>
+
+            <p>info@example.com</p>
+
+        </div>
+
+        <div>
+
+            <strong>Adres</strong>
+
+            <p>Selçuklu / Konya</p>
+
+        </div>
+
+    </div>
+
+</section>
+<section class="faq-section">
+
+    <h2>Sık Sorulan Sorular</h2>
+
+    <div class="faq-list">
+
+        <details>
+
+            <summary>
+                Kayıt tamamen ücretsiz mi?
+            </summary>
+
+            <p>
+                Evet. TÜGVA Yaz Okulu kayıtları tamamen ücretsizdir.
+            </p>
+
+        </details>
+
+        <details>
+
+            <summary>
+                Kayıttan sonra tekrar düzenleme yapabilir miyim?
+            </summary>
+
+            <p>
+                Gerekli durumlarda yönetici ile iletişime geçebilirsiniz.
+            </p>
+
+        </details>
+
+        <details>
+
+            <summary>
+                Kontenjan dolunca ne olur?
+            </summary>
+
+            <p>
+                Kontenjan dolduğunda sistem otomatik olarak yeni kayıt almayı durdurur.
+            </p>
+
+        </details>
+
+        <details>
+
+            <summary>
+                PDF belgesini kaybedersem?
+            </summary>
+
+            <p>
+                Yönetici panelinden kayıt belgesi tekrar oluşturulabilir.
+            </p>
+
+        </details>
+
+    </div>
+
+</section>
+
+<section class="timeline-section">
+
+    <h2>Kayıt Süreci</h2>
+
+    <div class="timeline">
+
+        <div class="timeline-item">
+
+            <span class="timeline-number">
+                1
+            </span>
+
+            <h3>Formu Doldur</h3>
+
+            <p>
+                Tüm bilgileri eksiksiz giriniz.
+            </p>
+
+        </div>
+
+        <div class="timeline-item">
+
+            <span class="timeline-number">
+                2
+            </span>
+
+            <h3>Kaydı Tamamla</h3>
+
+            <p>
+                Sistem bilgilerinizi doğrulayacaktır.
+            </p>
+
+        </div>
+
+        <div class="timeline-item">
+
+            <span class="timeline-number">
+                3
+            </span>
+
+            <h3>PDF'yi İndir</h3>
+
+            <p>
+                Oluşturulan kayıt belgesini cihazınıza kaydedin.
+            </p>
+
+        </div>
+
+        <div class="timeline-item">
+
+            <span class="timeline-number">
+                4
+            </span>
+
+            <h3>Yaz Okuluna Katıl</h3>
+
+            <p>
+                İlk gün kayıt belgenizle birlikte geliniz.
+            </p>
+
+        </div>
+
+    </div>
+
+</section>
+
+<section class="agreement-section">
+
+    <label class="checkbox">
+
+        <input
+            type="checkbox"
+            id="privacyAgreement"
+            required>
+
+        <span>
+
+            Girdiğim bilgilerin doğru olduğunu ve
+            kayıt amacıyla işlenmesini kabul ediyorum.
+
+        </span>
+
+    </label>
+
+</section>
+<section class="institution-section">
+
+    <div class="institution-card">
+
+        <img
+            src="assets/logo.png"
+            alt="TÜGVA Logo"
+            class="institution-logo">
+
+        <div>
+
+            <h2>TÜGVA Yaz Okulu</h2>
+
+            <p>
+
+                Yaz okulumuz; Kur'an-ı Kerim, siyer,
+                değerler eğitimi, sportif faaliyetler,
+                sosyal etkinlikler ve çeşitli atölyelerle
+                öğrencilerin yaz tatilini verimli
+                geçirmesini amaçlamaktadır.
+
+            </p>
+
+        </div>
+
+    </div>
+
+</section>
+
+<section class="social-section">
+
+    <h2>Bizi Takip Edin</h2>
+
+    <div class="social-grid">
+
+        <a href="#" class="social-card">
+
+            📷
+
+            <span>Instagram</span>
+
+        </a>
+
+        <a href="#" class="social-card">
+
+            ▶️
+
+            <span>YouTube</span>
+
+        </a>
+
+        <a href="#" class="social-card">
+
+            📘
+
+            <span>Facebook</span>
+
+        </a>
+
+        <a href="#" class="social-card">
+
+            💬
+
+            <span>WhatsApp</span>
+
+        </a>
+
+    </div>
+
+</section>
+
+<section class="location-section">
+
+    <h2>Konum</h2>
+
+    <div class="map-placeholder">
+
+        <span>
+
+            📍 Harita Alanı
+
+        </span>
+
+        <p>
+
+            Buraya Google Maps iframe'i
+            eklenebilir.
+
+        </p>
+
+    </div>
+
+</section>
+
+<section class="bottom-info">
+
+    <div class="bottom-card">
+
+        <h3>📄 Kayıt Belgesi</h3>
+
+        <p>
+
+            Başvuru tamamlandıktan sonra
+            kayıt belgenizi PDF olarak
+            indirebilirsiniz.
+
+        </p>
+
+    </div>
+
+    <div class="bottom-card">
+
+        <h3>📱 Mobil Uyumlu</h3>
+
+        <p>
+
+            Sistem telefon, tablet ve
+            bilgisayarlarda sorunsuz
+            çalışacak şekilde tasarlanmıştır.
+
+        </p>
+
+    </div>
+
+    <div class="bottom-card">
+
+        <h3>🔒 Güvenli Kayıt</h3>
+
+        <p>
+
+            Bilgileriniz güvenli şekilde
+            Firebase altyapısında saklanır.
+
+        </p>
+
+    </div>
+
+</section>
+<noscript>
+
+<div class="noscript-warning">
+
+    Bu kayıt sistemini kullanabilmek için
+    tarayıcınızda JavaScript etkin olmalıdır.
+
+</div>
+
+</noscript>
+
+<div
+
+id="loadingOverlay"
+
+class="loading-overlay hidden">
+
+<div class="loading-box">
+
+<div class="spinner"></div>
+
+<h3>
+
+İşlem Yapılıyor...
+
+</h3>
+
+<p>
+
+Lütfen bekleyiniz.
+
+</p>
+
+</div>
+
+</div>
+
+<div
+
+id="toastContainer"
+
+class="toast-container">
+
+</div>
+
+<div
+
+id="offlineBanner"
+
+class="offline-banner hidden">
+
+⚠️
+
+İnternet bağlantınız kesildi.
+
+Bağlantı tekrar sağlanınca sistem çalışmaya devam edecektir.
+
+</div>
+
+<div
+
+id="onlineBanner"
+
+class="online-banner hidden">
+
+✅
+
+Bağlantı yeniden kuruldu.
+
+</div>
+
+<div
+
+id="pageTop"
+
+class="scroll-top">
+
+↑
+
+</div>
+
+<script>
+
+window.addEventListener("online", () => {
+
+    document
+        .getElementById("offlineBanner")
+        ?.classList.add("hidden");
+
+    document
+        .getElementById("onlineBanner")
+        ?.classList.remove("hidden");
+
+    setTimeout(() => {
+
+        document
+            .getElementById("onlineBanner")
+            ?.classList.add("hidden");
+
+    }, 3000);
+
+});
+
+window.addEventListener("offline", () => {
+
+    document
+        .getElementById("offlineBanner")
+        ?.classList.remove("hidden");
+
+});
+
+const topButton = document.getElementById("pageTop");
+
+window.addEventListener("scroll", () => {
+
+    if (window.scrollY > 300) {
+
+        topButton.classList.add("show");
+
+    } else {
+
+        topButton.classList.remove("show");
+
+    }
+
+});
+
+topButton.addEventListener("click", () => {
+
+    window.scrollTo({
+
+        top: 0,
+
+        behavior: "smooth"
+
+    });
+
+});
+
+</script>
+<!-- SEO -->
+
+<meta name="robots"
+      content="index,follow">
+
+<meta name="author"
+      content="TÜGVA">
+
+<meta name="keywords"
+      content="TÜGVA,Yaz Okulu,Kayıt,Online Kayıt,Konya">
+
+<meta name="application-name"
+      content="TÜGVA Yaz Okulu">
+
+<meta name="apple-mobile-web-app-capable"
+      content="yes">
+
+<meta name="apple-mobile-web-app-status-bar-style"
+      content="default">
+
+<meta name="format-detection"
+      content="telephone=no">
+
+<!-- Open Graph -->
+
+<meta property="og:type"
+      content="website">
+
+<meta property="og:title"
+      content="TÜGVA Yaz Okulu Kayıt Sistemi">
+
+<meta property="og:description"
+      content="TÜGVA Yaz Okulu Online Kayıt Başvuru Sistemi">
+
+<meta property="og:image"
+      content="assets/cover.jpg">
+
+<meta property="og:locale"
+      content="tr_TR">
+
+<!-- Twitter -->
+
+<meta name="twitter:card"
+      content="summary_large_image">
+
+<meta name="twitter:title"
+      content="TÜGVA Yaz Okulu">
+
+<meta name="twitter:description"
+      content="Online Kayıt Sistemi">
+
+<meta name="twitter:image"
+      content="assets/cover.jpg">
+
+<!-- Icons -->
+
+<link rel="icon"
+      href="assets/favicon.png"
+      type="image/png">
+
+<link rel="apple-touch-icon"
+      href="assets/apple-touch-icon.png">
+
+<!-- Performance -->
+
+<link rel="preload"
+      href="css/style.css"
+      as="style">
+
+<link rel="preload"
+      href="js/app.js"
+      as="script">
+
+<link rel="dns-prefetch"
+      href="//fonts.googleapis.com">
+
+<link rel="dns-prefetch"
+      href="//fonts.gstatic.com">
+
+<!-- Theme -->
+
+<meta name="color-scheme"
+      content="light">
+
+<meta name="theme-color"
+      content="#006633">
+    <!-- Erişilebilirlik -->
+
+<a
+    href="#registrationForm"
+    class="skip-link">
+
+    Kayıt formuna geç
+
+</a>
+
+<div
+    id="liveRegion"
+    class="sr-only"
+    aria-live="polite"
+    aria-atomic="true">
+
+</div>
+
+<!-- Sayfa Sonu -->
+
+</main>
+
+<footer class="footer">
+
+    <div class="container footer-grid">
+
+        <div>
+
+            <img
+                src="assets/logo.png"
+                alt="TÜGVA"
+                class="footer-logo">
+
+            <p>
+
+                TÜGVA Yaz Okulu Kayıt Sistemi
+
+            </p>
+
+        </div>
+
+        <div>
+
+            <h3>İletişim</h3>
+
+            <p>Telefon: (332) XXX XX XX</p>
+
+            <p>E-posta: info@example.com</p>
+
+        </div>
+
+        <div>
+
+            <h3>Bağlantılar</h3>
+
+            <a href="#">KVKK</a>
+
+            <a href="#">Aydınlatma Metni</a>
+
+            <a href="#">İletişim</a>
+
+        </div>
+
+    </div>
+
+    <div class="copyright">
+
+        © 2026 TÜGVA Yaz Okulu Kayıt Sistemi
+
+    </div>
+
+</footer>
+
+</body>
+
+</html>
