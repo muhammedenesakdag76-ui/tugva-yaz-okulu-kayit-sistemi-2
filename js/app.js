@@ -142,109 +142,38 @@ form.reset();
 
 async function register(){
 
-    console.log("1 - register başladı");
-
     if(await isFull()){
-
-        console.log("2 - isFull çalıştı");
-
         alert("Kontenjan dolmuştur.");
-
         return;
-
     }
 
     const data = getFormData();
 
-    console.log("3 - Veri:", data);
-
     const error = validateForm(data);
 
-    console.log("4 - Validation:", error);
-
     if(error){
-
         alert(error);
-
         return;
-
     }
 
     if(await registrationExists(data.tc)){
-
         alert("Bu TC Kimlik Numarası ile kayıt bulunmaktadır.");
-
         return;
-
     }
 
     if(await phoneExists(data.phone)){
-
         alert("Bu telefon numarası ile kayıt bulunmaktadır.");
-
         return;
-
     }
 
-    console.log("5 - addRegistration çağrılıyor");
+    data.registerNumber = await generateRegisterNumber();
 
     await addRegistration(data);
-
-    console.log("6 - addRegistration tamamlandı");
 
     currentParticipant = data;
 
     showSuccess();
-
 }
-if(await phoneExists(data.phone)){
-
-alert(
-
-"Bu telefon numarası ile kayıt bulunmaktadır."
-
-);
-
-return;
-
-}
-
-data.registerNumber =
-await generateRegisterNumber();
-
-try {
-
-    try {
-
-    await addRegistration(data);
-
-    console.log("Kayıt Firestore'a yazıldı.");
-
-    currentParticipant = data;
-
-    showSuccess();
-
-} catch (err) {
-
-    console.error(err);
-
-    alert("Firebase Hatası:\n" + err.message);
-
-    return;
-
-}
-
-} catch (err) {
-
-    console.error(err);
-
-    alert(err.message);
-
-}
-}
-// app.js
-// Düzeltme Paketi
-// Parça 4/8
 
 function showSuccess(){
 
