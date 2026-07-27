@@ -1,420 +1,1288 @@
-// ===============================
-// app.js
-// TÜGVA İstanbul Final Gezisi
-// Bölüm 1
-// ===============================
-
 import {
-    createParticipant,
-    uploadParticipantPhoto,
-    generateRegistrationCode
+
+    addRegistration,
+
+    getRemainingCapacity,
+
+    isCapacityFull
+
 } from "./firebase.js";
 
 import {
-    calculateAge,
-    isAdult,
-    validateForm,
-    capitalizeWords,
-    onlyNumber,
-    showToast,
-    showLoading,
-    hideLoading
+
+    validateAndNormalize
+
 } from "./validation.js";
 
 import {
+
     generateQRCode
+
 } from "./qr.js";
 
 import {
-    downloadParticipantPDF
+
+    downloadRegistrationPDF
+
 } from "./pdf.js";
 
-// ===============================
-// ELEMENTLER
-// ===============================
+const form =
+    document.getElementById("registrationForm");
 
-const form = document.getElementById("registerForm");
+const submitButton =
+    document.getElementById("submitButton");
 
-const successPage = document.getElementById("successPage");
+const resetButton =
+    document.getElementById("resetButton");
 
-const parentCard = document.getElementById("parentCard");
+const remainingCapacityElement =
+    document.getElementById("remainingCapacity");
 
-const birthDate = document.getElementById("birthDate");
+const remainingCapacityText =
+    document.getElementById("remainingCapacityText");
 
-const ageInput = document.getElementById("age");
+const capacityBar =
+    document.getElementById("capacityBar");
 
-const tcInput = document.getElementById("tc");
+const loadingOverlay =
+    document.getElementById("loadingOverlay");
 
-const phoneInput = document.getElementById("phone");
+const successModal =
+    document.getElementById("successModal");
 
-const parentPhoneInput = document.getElementById("parentPhone");
+const downloadPdfButton =
+    document.getElementById("downloadPdf");
 
-const firstNameInput = document.getElementById("firstName");
+const newRegistrationButton =
+    document.getElementById("newRegistration");
 
-const lastNameInput = document.getElementById("lastName");
+let currentRegistration = null;
 
-const parentNameInput = document.getElementById("parentName");
+function $(id) {
 
-const photoInput = document.getElementById("photo");
-
-const pdfButton = document.getElementById("downloadPdf");
-
-const newButton = document.getElementById("newRegister");
-
-let createdParticipant = null;
-
-// ===============================
-// SAYFA BAŞLANGICI
-// ===============================
-
-window.addEventListener("load", () => {
-
-    hideLoading();
-
-});
-
-// ===============================
-// SADECE RAKAM
-// ===============================
-
-tcInput.addEventListener("input", onlyNumber);
-
-phoneInput.addEventListener("input", onlyNumber);
-
-if(parentPhoneInput){
-
-    parentPhoneInput.addEventListener("input", onlyNumber);
+    return document.getElementById(id);
 
 }
 
-// ===============================
-// İSİMLERİ DÜZELT
-// ===============================
+function showLoading() {
 
-firstNameInput.addEventListener("blur", () => {
+    loadingOverlay.classList.remove("hidden");
 
-    firstNameInput.value = capitalizeWords(
+}
 
-        firstNameInput.value
+function hideLoading() {
 
-    );
+    loadingOverlay.classList.add("hidden");
 
-});
+}
+async function updateCapacity() {
 
-lastNameInput.addEventListener("blur", () => {
+    const remaining = await getRemainingCapacity();
 
-    lastNameInput.value = capitalizeWords(
+    remainingCapacityElement.textContent = remaining;
 
-        lastNameInput.value
+    if (remainingCapacityText) {
 
-    );
-
-});
-
-parentNameInput.addEventListener("blur", () => {
-
-    parentNameInput.value = capitalizeWords(
-
-        parentNameInput.value
-
-    );
-
-});
-
-// ===============================
-// YAŞ HESABI
-// ===============================
-
-birthDate.addEventListener("change", () => {
-
-    const age = calculateAge(
-
-        birthDate.value
-
-    );
-
-    ageInput.value = age;
-
-    if(isAdult(age)){
-
-        parentCard.classList.add("hidden");
-
-        parentNameInput.required = false;
-
-        parentPhoneInput.required = false;
+        remainingCapacityText.textContent = remaining;
 
     }
 
-    else{
+    const percentage =
+        ((500 - remaining) / 500) * 100;
 
-        parentCard.classList.remove("hidden");
+    if (capacityBar) {
 
-        parentNameInput.required = true;
-
-        parentPhoneInput.required = true;
+        capacityBar.style.width = `${percentage}%`;
 
     }
 
-});
+    if (submitButton) {
 
-// ===============================
-// FOTOĞRAF ÖNİZLEME
-// ===============================
+        submitButton.disabled = remaining <= 0;
 
-photoInput.addEventListener("change", () => {
+    }
 
-    const file = photoInput.files[0];
+}
 
-    if(!file) return;
+function getFormData() {
 
-    const reader = new FileReader();
+    return {
 
-    reader.onload = e => {
+        id: "",
 
-        let preview = document.getElementById("photoPreview");
+        registerNumber: "",
 
-        if(!preview){
+        name: $("name").value,
 
-            preview = document.createElement("img");
+        tc: $("tc").value,
 
-            preview.id = "photoPreview";
+        phone: $("phone").value,
 
-            preview.style.width = "180px";
+        email: $("email").value,
 
-            preview.style.marginTop = "20px";
+        birth: $("birth").value,
 
-            preview.style.borderRadius = "12px";
+        gender: $("gender").value,
 
-            photoInput.after(preview);
+        school: $("school").value,
 
-        }
+        class: $("class").value,
 
-        preview.src = e.target.result;
+        parent: $("parent").value,
 
-    };
+        parentPhone: $("parentPhone").value,
 
-    reader.readAsDataURL(file);
+        address: $("address").value,
 
-});
+        note: $("note").value,
 
-// ===============================
-// VERİYİ TOPLA
-// ===============================
+        seat: "",
 
-function collectData(){
+        checkedIn: false,
 
-    return{
-
-        registrationCode:generateRegistrationCode(),
-
-        firstName:firstNameInput.value.trim(),
-
-        lastName:lastNameInput.value.trim(),
-
-        tc:tcInput.value.trim(),
-
-        birthDate:birthDate.value,
-
-        age:Number(ageInput.value),
-
-        phone:phoneInput.value.trim(),
-
-        parentName:parentNameInput.value.trim(),
-
-        parentPhone:parentPhoneInput.value.trim(),
-
-        health:document.getElementById("health").value.trim(),
-
-        kvkk:document.getElementById("kvkk").checked,
-
-        tripApproval:document.getElementById("tripApproval").checked,
-
-        accuracy:document.getElementById("accuracy").checked
+        createdAt: null
 
     };
 
 }
-// ===============================
-// app.js
-// TÜGVA İstanbul Final Gezisi
-// Bölüm 2
-// ===============================
 
-// ===============================
-// FORM GÖNDER
-// ===============================
+function clearErrors() {
 
-form.addEventListener("submit", async (event) => {
+    document.querySelectorAll(".error-text")
 
-    event.preventDefault();
+        .forEach(element => {
 
-    showLoading();
-
-    try {
-
-        const participant = collectData();
-
-        const validation = validateForm(participant);
-
-        if (!validation.valid) {
-
-            hideLoading();
-
-            showToast(validation.errors[0], "error");
-
-            return;
-
-        }
-
-        // ---------------------------
-        // Firestore Kaydı
-        // ---------------------------
-
-        const documentRef = await createParticipant(participant);
-
-        participant.id = documentRef.id;
-
-        // ---------------------------
-        // Fotoğraf
-        // ---------------------------
-
-        if (photoInput.files.length > 0) {
-
-            const url = await uploadParticipantPhoto(
-
-                photoInput.files[0],
-
-                documentRef.id
-
-            );
-
-            participant.photo = url;
-
-        }
-
-        // ---------------------------
-        // QR
-        // ---------------------------
-
-        await generateQRCode(
-
-            documentRef.id,
-
-            "qrArea"
-
-        );
-
-        createdParticipant = participant;
-
-        // ---------------------------
-        // Form Gizle
-        // ---------------------------
-
-        form.classList.add("hidden");
-
-        successPage.classList.remove("hidden");
-
-        window.scrollTo({
-
-            top: 0,
-
-            behavior: "smooth"
+            element.textContent = "";
 
         });
 
-        showToast(
+}
 
-            "Başvurunuz başarıyla kaydedildi."
+function showErrors(errors) {
 
-        );
+    clearErrors();
+
+    Object.entries(errors)
+
+        .forEach(([field, message]) => {
+
+            const errorElement =
+                document.getElementById(`${field}Error`);
+
+            if (errorElement) {
+
+                errorElement.textContent = message;
+
+            }
+
+        });
+
+}
+async function register(event) {
+
+    event.preventDefault();
+
+    clearErrors();
+
+    const result = validateAndNormalize(
+
+        getFormData()
+
+    );
+
+    if (!result.valid) {
+
+        showErrors(result.errors);
+
+        return;
 
     }
 
-    catch (error) {
+    if (await isCapacityFull()) {
 
-        console.error(error);
+        alert("Kontenjan dolmuştur.");
 
-        showToast(
+        await updateCapacity();
 
-            "Kayıt sırasında hata oluştu.",
-
-            "error"
-
-        );
+        return;
 
     }
 
-    finally {
+    try {
+
+        showLoading();
+
+        const registration = await addRegistration(
+
+            result.data
+
+        );
+
+        currentRegistration = registration;
+
+        await generateQRCode(
+
+            registration
+
+        );
+
+        showSuccess(registration);
+
+        await updateCapacity();
+
+    } catch (error) {
+
+        alert(
+
+            error.message ||
+
+            "Kayıt sırasında hata oluştu."
+
+        );
+
+    } finally {
 
         hideLoading();
 
     }
 
+}
+
+function clearForm() {
+
+    form.reset();
+
+    clearErrors();
+
+}
+
+function showSuccess(registration) {
+
+    successModal.classList.add("show");
+
+    const number =
+
+        document.getElementById(
+
+            "successRegisterNumber"
+
+        );
+
+    if (number) {
+
+        number.textContent =
+
+            registration.registerNumber;
+
+    }
+
+}
+
+function hideSuccess() {
+
+    successModal.classList.remove("show");
+
+}
+function bindEvents() {
+
+    form.addEventListener(
+
+        "submit",
+
+        register
+
+    );
+
+    resetButton.addEventListener(
+
+        "click",
+
+        () => {
+
+            clearForm();
+
+        }
+
+    );
+
+    downloadPdfButton.addEventListener(
+
+        "click",
+
+        async () => {
+
+            if (!currentRegistration) {
+
+                return;
+
+            }
+
+            await downloadRegistrationPDF(
+
+                currentRegistration
+
+            );
+
+        }
+
+    );
+
+    newRegistrationButton.addEventListener(
+
+        "click",
+
+        () => {
+
+            hideSuccess();
+
+            clearForm();
+
+            currentRegistration = null;
+
+            $("name").focus();
+
+        }
+
+    );
+
+}
+
+function setupFormatting() {
+
+    $("tc").addEventListener(
+
+        "input",
+
+        event => {
+
+            event.target.value =
+
+                event.target.value
+
+                    .replace(/\D/g, "")
+
+                    .slice(0, 11);
+
+        }
+
+    );
+
+    $("phone").addEventListener(
+
+        "input",
+
+        event => {
+
+            event.target.value =
+
+                event.target.value
+
+                    .replace(/\D/g, "")
+
+                    .slice(0, 11);
+
+        }
+
+    );
+
+    $("parentPhone").addEventListener(
+
+        "input",
+
+        event => {
+
+            event.target.value =
+
+                event.target.value
+
+                    .replace(/\D/g, "")
+
+                    .slice(0, 11);
+
+        }
+
+    );
+
+}
+function setupRealtimeValidation() {
+
+    const validators = {
+
+        name: "nameError",
+
+        tc: "tcError",
+
+        phone: "phoneError",
+
+        email: "emailError",
+
+        birth: "birthError",
+
+        gender: "genderError",
+
+        school: "schoolError",
+
+        class: "classError",
+
+        parent: "parentError",
+
+        parentPhone: "parentPhoneError",
+
+        address: "addressError",
+
+        note: "noteError"
+
+    };
+
+    Object.keys(validators).forEach(field => {
+
+        const element = $(field);
+
+        if (!element) return;
+
+        element.addEventListener("blur", () => {
+
+            const result = validateAndNormalize(
+
+                getFormData()
+
+            );
+
+            const errorElement = $(validators[field]);
+
+            if (errorElement) {
+
+                errorElement.textContent =
+
+                    result.errors[field] || "";
+
+            }
+
+        });
+
+    });
+
+}
+
+async function init() {
+
+    await updateCapacity();
+
+    bindEvents();
+
+    setupFormatting();
+
+    setupRealtimeValidation();
+
+    $("name").focus();
+
+}
+
+document.addEventListener(
+
+    "DOMContentLoaded",
+
+    init
+
+);
+
+window.addEventListener(
+
+    "pageshow",
+
+    () => {
+
+        hideLoading();
+
+    }
+
+);
+function setupRealtimeValidation() {
+
+    const validators = {
+
+        name: "nameError",
+
+        tc: "tcError",
+
+        phone: "phoneError",
+
+        email: "emailError",
+
+        birth: "birthError",
+
+        gender: "genderError",
+
+        school: "schoolError",
+
+        class: "classError",
+
+        parent: "parentError",
+
+        parentPhone: "parentPhoneError",
+
+        address: "addressError",
+
+        note: "noteError"
+
+    };
+
+    Object.keys(validators).forEach(field => {
+
+        const input = $(field);
+
+        if (!input) return;
+
+        input.addEventListener("blur", () => {
+
+            const result = validateAndNormalize(
+
+                getFormData()
+
+            );
+
+            const errorElement =
+
+                document.getElementById(
+
+                    validators[field]
+
+                );
+
+            if (!errorElement) return;
+
+            errorElement.textContent =
+
+                result.errors[field] || "";
+
+        });
+
+    });
+
+}
+
+async function initialize() {
+
+    await updateCapacity();
+
+    bindEvents();
+
+    setupFormatting();
+
+    setupRealtimeValidation();
+
+    $("name").focus();
+
+}
+
+document.addEventListener(
+
+    "DOMContentLoaded",
+
+    initialize
+
+);
+
+export {
+
+    initialize,
+
+    register,
+
+    clearForm,
+
+    updateCapacity
+
+};
+function setupRealtimeValidation() {
+
+    const fields = [
+
+        "name",
+
+        "tc",
+
+        "phone",
+
+        "email",
+
+        "birth",
+
+        "gender",
+
+        "school",
+
+        "class",
+
+        "parent",
+
+        "parentPhone",
+
+        "address",
+
+        "note"
+
+    ];
+
+    fields.forEach(id => {
+
+        const input = $(id);
+
+        if (!input) {
+
+            return;
+
+        }
+
+        input.addEventListener(
+
+            "input",
+
+            () => {
+
+                const result = validateAndNormalize(
+
+                    getFormData()
+
+                );
+
+                const errorElement = document.getElementById(
+
+                    `${id}Error`
+
+                );
+
+                if (!errorElement) {
+
+                    return;
+
+                }
+
+                errorElement.textContent =
+
+                    result.errors[id] || "";
+
+            }
+
+        );
+
+    });
+
+}
+
+async function initialize() {
+
+    await updateCapacity();
+
+    bindEvents();
+
+    setupFormatting();
+
+    setupRealtimeValidation();
+
+    $("name").focus();
+
+}
+
+document.addEventListener(
+
+    "DOMContentLoaded",
+
+    () => {
+
+        initialize()
+
+            .catch(error => {
+
+                console.error(error);
+
+                alert(
+
+                    "Sistem başlatılamadı."
+
+                );
+
+            });
+
+    }
+
+);
+function showToast(message, type = "success") {
+
+    const container = document.getElementById("toastContainer");
+
+    if (!container) {
+
+        return;
+
+    }
+
+    const toast = document.createElement("div");
+
+    toast.className = `toast ${type}`;
+
+    toast.textContent = message;
+
+    container.appendChild(toast);
+
+    requestAnimationFrame(() => {
+
+        toast.classList.add("show");
+
+    });
+
+    setTimeout(() => {
+
+        toast.classList.remove("show");
+
+        setTimeout(() => {
+
+            toast.remove();
+
+        }, 300);
+
+    }, 3000);
+
+}
+
+function setButtonLoading(loading) {
+
+    submitButton.disabled = loading;
+
+    if (loading) {
+
+        submitButton.dataset.originalText = submitButton.textContent;
+
+        submitButton.textContent = "Kaydediliyor...";
+
+    } else {
+
+        submitButton.textContent =
+            submitButton.dataset.originalText ||
+            "Kaydı Tamamla";
+
+    }
+
+}
+
+window.addEventListener("online", () => {
+
+    showToast(
+
+        "İnternet bağlantısı yeniden kuruldu."
+
+    );
+
 });
 
-// ===============================
-// PDF İNDİR
-// ===============================
+window.addEventListener("offline", () => {
 
-pdfButton.addEventListener(
+    showToast(
+
+        "İnternet bağlantısı kesildi.",
+
+        "error"
+
+    );
+
+});
+
+document.addEventListener("keydown", event => {
+
+    if (
+
+        event.key === "Escape" &&
+
+        successModal.classList.contains("show")
+
+    ) {
+
+        hideSuccess();
+
+    }
+
+});
+function fillForm(data) {
+
+    $("name").value = data.name ?? "";
+
+    $("tc").value = data.tc ?? "";
+
+    $("phone").value = data.phone ?? "";
+
+    $("email").value = data.email ?? "";
+
+    $("birth").value = data.birth ?? "";
+
+    $("gender").value = data.gender ?? "";
+
+    $("school").value = data.school ?? "";
+
+    $("class").value = data.class ?? "";
+
+    $("parent").value = data.parent ?? "";
+
+    $("parentPhone").value = data.parentPhone ?? "";
+
+    $("address").value = data.address ?? "";
+
+    $("note").value = data.note ?? "";
+
+}
+
+function setFormEnabled(enabled) {
+
+    const elements = form.querySelectorAll(
+
+        "input, select, textarea, button"
+
+    );
+
+    elements.forEach(element => {
+
+        if (
+
+            element.id === "downloadPdf" ||
+
+            element.id === "newRegistration"
+
+        ) {
+
+            return;
+
+        }
+
+        element.disabled = !enabled;
+
+    });
+
+}
+
+function scrollToFirstError() {
+
+    const firstError = document.querySelector(
+
+        ".error-text:not(:empty)"
+
+    );
+
+    if (!firstError) {
+
+        return;
+
+    }
+
+    firstError.scrollIntoView({
+
+        behavior: "smooth",
+
+        block: "center"
+
+    });
+
+}
+
+function resetApplication() {
+
+    currentRegistration = null;
+
+    clearForm();
+
+    hideSuccess();
+
+    setFormEnabled(true);
+
+    $("name").focus();
+
+}
+function saveRegistration(registration) {
+
+    try {
+
+        localStorage.setItem(
+
+            "lastRegistration",
+
+            JSON.stringify(registration)
+
+        );
+
+    } catch {
+
+        console.warn(
+
+            "Kayıt yerel depolamaya kaydedilemedi."
+
+        );
+
+    }
+
+}
+
+function loadLastRegistration() {
+
+    try {
+
+        const data = localStorage.getItem(
+
+            "lastRegistration"
+
+        );
+
+        if (!data) {
+
+            return null;
+
+        }
+
+        return JSON.parse(data);
+
+    } catch {
+
+        return null;
+
+    }
+
+}
+
+function clearLastRegistration() {
+
+    localStorage.removeItem(
+
+        "lastRegistration"
+
+    );
+
+}
+
+function disableForm() {
+
+    setFormEnabled(false);
+
+}
+
+function enableForm() {
+
+    setFormEnabled(true);
+
+}
+
+async function afterSuccessfulRegistration(registration) {
+
+    currentRegistration = registration;
+
+    saveRegistration(registration);
+
+    await updateCapacity();
+
+    showSuccess(registration);
+
+    disableForm();
+
+    showToast(
+
+        "Kayıt başarıyla oluşturuldu."
+
+    );
+
+}
+function restoreLastRegistration() {
+
+    const registration = loadLastRegistration();
+
+    if (!registration) {
+
+        return;
+
+    }
+
+    currentRegistration = registration;
+
+}
+
+function setupAutoSave() {
+
+    const fields = form.querySelectorAll(
+
+        "input, select, textarea"
+
+    );
+
+    fields.forEach(field => {
+
+        field.addEventListener(
+
+            "change",
+
+            () => {
+
+                const data = getFormData();
+
+                localStorage.setItem(
+
+                    "registrationDraft",
+
+                    JSON.stringify(data)
+
+                );
+
+            }
+
+        );
+
+    });
+
+}
+
+function restoreDraft() {
+
+    const draft = localStorage.getItem(
+
+        "registrationDraft"
+
+    );
+
+    if (!draft) {
+
+        return;
+
+    }
+
+    try {
+
+        fillForm(
+
+            JSON.parse(draft)
+
+        );
+
+    } catch {
+
+        localStorage.removeItem(
+
+            "registrationDraft"
+
+        );
+
+    }
+
+}
+
+function clearDraft() {
+
+    localStorage.removeItem(
+
+        "registrationDraft"
+
+    );
+
+}
+
+async function initializeApplication() {
+
+    await updateCapacity();
+
+    bindEvents();
+
+    setupFormatting();
+
+    setupRealtimeValidation();
+
+    setupAutoSave();
+
+    restoreDraft();
+
+    restoreLastRegistration();
+
+    $("name").focus();
+
+}
+function setupCharacterCounters() {
+
+    const configs = [
+
+        {
+
+            field: "address",
+
+            counter: "addressCounter",
+
+            max: 300
+
+        },
+
+        {
+
+            field: "note",
+
+            counter: "noteCounter",
+
+            max: 500
+
+        }
+
+    ];
+
+    configs.forEach(item => {
+
+        const input = $(item.field);
+
+        const counter = $(item.counter);
+
+        if (!input || !counter) {
+
+            return;
+
+        }
+
+        const update = () => {
+
+            counter.textContent =
+
+                `${input.value.length}/${item.max}`;
+
+        };
+
+        input.addEventListener(
+
+            "input",
+
+            update
+
+        );
+
+        update();
+
+    });
+
+}
+
+function clearApplication() {
+
+    clearDraft();
+
+    clearLastRegistration();
+
+    currentRegistration = null;
+
+    clearForm();
+
+    hideSuccess();
+
+    enableForm();
+
+    $("name").focus();
+
+}
+
+newRegistrationButton.addEventListener(
+
+    "click",
+
+    () => {
+
+        clearApplication();
+
+    }
+
+);
+
+downloadPdfButton.addEventListener(
 
     "click",
 
     async () => {
 
-        if (!createdParticipant) return;
+        if (!currentRegistration) {
 
-        await downloadParticipantPDF(
+            return;
 
-            createdParticipant
+        }
+
+        await downloadRegistrationPDF(
+
+            currentRegistration
 
         );
 
     }
 
 );
+function initializeConnectionWatcher() {
 
-// ===============================
-// YENİ BAŞVURU
-// ===============================
+    const offlineBanner =
+        document.getElementById("offlineBanner");
 
-newButton.addEventListener(
+    const onlineBanner =
+        document.getElementById("onlineBanner");
 
-    "click",
+    window.addEventListener("offline", () => {
 
-    () => {
+        if (offlineBanner) {
 
-        form.reset();
-
-        form.classList.remove("hidden");
-
-        successPage.classList.add("hidden");
-
-        createdParticipant = null;
-
-        ageInput.value = "";
-
-        parentCard.classList.remove("hidden");
-
-        const preview = document.getElementById(
-
-            "photoPreview"
-
-        );
-
-        if (preview) {
-
-            preview.remove();
+            offlineBanner.classList.remove("hidden");
 
         }
 
-        const qrArea = document.getElementById(
+        if (onlineBanner) {
 
-            "qrArea"
+            onlineBanner.classList.add("hidden");
 
-        );
+        }
 
-        qrArea.innerHTML = "";
+    });
+
+    window.addEventListener("online", () => {
+
+        if (offlineBanner) {
+
+            offlineBanner.classList.add("hidden");
+
+        }
+
+        if (onlineBanner) {
+
+            onlineBanner.classList.remove("hidden");
+
+            setTimeout(() => {
+
+                onlineBanner.classList.add("hidden");
+
+            }, 3000);
+
+        }
+
+        updateCapacity();
+
+    });
+
+}
+
+function initializeScrollButton() {
+
+    const button = document.getElementById("pageTop");
+
+    if (!button) {
+
+        return;
+
+    }
+
+    window.addEventListener("scroll", () => {
+
+        if (window.scrollY > 300) {
+
+            button.classList.add("show");
+
+        } else {
+
+            button.classList.remove("show");
+
+        }
+
+    });
+
+    button.addEventListener("click", () => {
 
         window.scrollTo({
 
@@ -424,140 +1292,123 @@ newButton.addEventListener(
 
         });
 
-    }
-
-);
-
-// ===============================
-// T.C. UZUNLUK KONTROLÜ
-// ===============================
-
-tcInput.addEventListener(
-
-    "input",
-
-    () => {
-
-        if (tcInput.value.length > 11) {
-
-            tcInput.value = tcInput.value.substring(
-
-                0,
-
-                11
-
-            );
-
-        }
-
-    }
-
-);
-
-// ===============================
-// TELEFON UZUNLUK
-// ===============================
-
-phoneInput.addEventListener(
-
-    "input",
-
-    () => {
-
-        if (phoneInput.value.length > 11) {
-
-            phoneInput.value = phoneInput.value.substring(
-
-                0,
-
-                11
-
-            );
-
-        }
-
-    }
-
-);
-
-if (parentPhoneInput) {
-
-    parentPhoneInput.addEventListener(
-
-        "input",
-
-        () => {
-
-            if (parentPhoneInput.value.length > 11) {
-
-                parentPhoneInput.value = parentPhoneInput.value.substring(
-
-                    0,
-
-                    11
-
-                );
-
-            }
-
-        }
-
-    );
+    });
 
 }
 
-// ===============================
-// ENTER ENGELLE
-// ===============================
+async function startApplication() {
 
-document.addEventListener(
+    await initializeApplication();
 
-    "keydown",
+    setupCharacterCounters();
 
-    event => {
+    initializeConnectionWatcher();
 
-        if (
+    initializeScrollButton();
 
-            event.key === "Enter" &&
+}
 
-            event.target.tagName !== "TEXTAREA"
+document.addEventListener("DOMContentLoaded", () => {
 
-        ) {
+    startApplication().catch(error => {
 
-            event.preventDefault();
+        console.error(error);
 
-        }
+        alert("Sistem başlatılırken beklenmeyen bir hata oluştu.");
 
-    }
+    });
 
-);
+});
+function initializeKeyboardShortcuts() {
 
-// ===============================
-// SAYFA AYRILMADAN ÖNCE UYARI
-// ===============================
+    document.addEventListener("keydown", event => {
 
-window.addEventListener(
-
-    "beforeunload",
-
-    event => {
-
-        if (
-
-            !form.classList.contains("hidden")
-
-        ) {
+        if (event.ctrlKey && event.key.toLowerCase() === "s") {
 
             event.preventDefault();
 
-            event.returnValue = "";
+            form.requestSubmit();
 
         }
 
-    }
+        if (event.key === "Escape") {
 
-);
+            hideSuccess();
 
-// ===============================
-// BİTİŞ
-// ===============================
+        }
+
+    });
+
+}
+
+function initializeBeforeUnload() {
+
+    window.addEventListener("beforeunload", event => {
+
+        const data = getFormData();
+
+        const hasData = Object.values(data).some(value => {
+
+            return String(value).trim() !== "";
+
+        });
+
+        if (!hasData) {
+
+            return;
+
+        }
+
+        event.preventDefault();
+
+        event.returnValue = "";
+
+    });
+
+}
+
+function initializeVisibilityEvents() {
+
+    document.addEventListener("visibilitychange", () => {
+
+        if (document.hidden) {
+
+            return;
+
+        }
+
+        updateCapacity();
+
+    });
+
+}
+
+function initializeResizeEvents() {
+
+    window.addEventListener("resize", () => {
+
+        document.documentElement.style.setProperty(
+
+            "--window-height",
+
+            `${window.innerHeight}px`
+
+        );
+
+    });
+
+}
+
+async function boot() {
+
+    await startApplication();
+
+    initializeKeyboardShortcuts();
+
+    initializeBeforeUnload();
+
+    initializeVisibilityEvents();
+
+    initializeResizeEvents();
+
+}
