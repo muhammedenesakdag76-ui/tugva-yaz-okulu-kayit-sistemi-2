@@ -62,18 +62,11 @@ const firebaseConfig = {
   messagingSenderId: "497137562254",
   appId: "1:497137562254:web:0dae95a054ac7e21424fdf"
 };
+const app = initializeApp(firebaseConfig);
 
-const app=
+export const db = getFirestore(app);
 
-initializeApp(firebaseConfig);
-
-export const db=
-
-getFirestore(app);
-
-export const auth=
-
-getAuth(app);
+export const auth = getAuth(app);
 
 export const COLLECTION=
 
@@ -149,10 +142,9 @@ const snap=
 
 await getDocs(q);
 
-return snap.docs.map(doc=>({
-
-...doc.data()
-
+return snap.docs.map(d => ({
+  id: d.id,
+  ...d.data()
 }));
 
 }
