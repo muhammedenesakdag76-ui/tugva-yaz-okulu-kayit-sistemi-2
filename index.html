@@ -1,493 +1,87 @@
-<!-- =====================================================
-index.html
-BÖLÜM 1/10
-===================================================== -->
 <!DOCTYPE html>
 <html lang="tr">
-
 <head>
-
-<meta charset="UTF-8">
-
-<meta name="viewport"
-content="width=device-width, initial-scale=1.0">
-
-<title>TÜGVA Yaz Okulu Kayıt Sistemi</title>
-
-<link rel="stylesheet" href="css/style.css">
-
-<link rel="preconnect"
-href="https://fonts.googleapis.com">
-
-<link rel="preconnect"
-href="https://fonts.gstatic.com"
-crossorigin>
-
-<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
-rel="stylesheet">
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
-<script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
-
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TÜGVA Yaz Okulu Kayıt Sistemi</title>
+  <link rel="stylesheet" href="css/style.css">
 </head>
-
 <body>
 
-<div class="container">
-
-<header class="hero">
-
-
-<h1>TÜGVA Yaz Okulu</h1>
-
-<p>
-
-2026 Online Kayıt Sistemi
-
-</p>
-
-</header>
-
-<section class="capacity-card">
-
-<div class="capacity-title">
-
-Kalan Kontenjan
-
-</div>
-
-<div
-id="remainingCapacity"
-class="capacity-value">
-
-45
-
-</div>
-
-</section>
-
-<section
-id="formSection"
-class="card">
-
-<h2>
-
-Kayıt Formu
-
-</h2>
-
-<form
-id="registerForm">
-
-<div class="form-grid">
-<!-- =====================================================
-index.html
-BÖLÜM 2/10
-===================================================== -->
-
-<div class="form-group">
-
-<label for="adSoyad">
-
-Ad Soyad
-
-</label>
-
-<input
-type="text"
-id="adSoyad"
-name="adSoyad"
-placeholder="Ad Soyad"
-autocomplete="name"
-required>
-
-</div>
-
-<div class="form-group">
-
-<label for="tc">
-
-TC Kimlik Numarası
-
-</label>
-
-<input
-type="text"
-id="tc"
-name="tc"
-maxlength="11"
-inputmode="numeric"
-placeholder="11 haneli TC Kimlik No"
-required>
-
-</div>
-
-<div class="form-group">
-
-<label for="telefon">
-
-Telefon
-
-</label>
-
-<input
-type="tel"
-id="telefon"
-name="telefon"
-maxlength="11"
-inputmode="numeric"
-placeholder="05XXXXXXXXX"
-required>
-
-</div>
-
-<div class="form-group">
-
-<label for="email">
-
-E-Posta
-
-</label>
-
-<input
-type="email"
-id="email"
-name="email"
-placeholder="ornek@mail.com">
-
-</div>
-
-<div class="form-group">
-
-<label for="dogumTarihi">
-
-Doğum Tarihi
-
-</label>
-
-<input
-type="date"
-id="dogumTarihi"
-name="dogumTarihi"
-required>
-
-</div>
-
-<div class="form-group">
-
-<label for="cinsiyet">
-
-Cinsiyet
-
-</label>
-
-<select
-id="cinsiyet"
-name="cinsiyet"
-required>
-
-<option value="">
-
-Seçiniz
-
-</option>
-
-<option value="Erkek">
-
-Erkek
-
-</option>
-
-<option value="Kız">
-
-Kız
-
-</option>
-
-</select>
-
-</div>
-<!-- =====================================================
-index.html
-BÖLÜM 3/10
-===================================================== -->
-
-<div class="form-group">
-
-<label for="okul">
-
-Okul
-
-</label>
-
-<input
-type="text"
-id="okul"
-name="okul"
-placeholder="Okul Adı"
-required>
-
-</div>
-
-<div class="form-group">
-
-<label for="sinif">
-
-Sınıf
-
-</label>
-
-<select
-id="sinif"
-name="sinif"
-required>
-
-<option value="">
-
-Sınıf Seçiniz
-
-</option>
-
-<option>5. Sınıf</option>
-<option>6. Sınıf</option>
-<option>7. Sınıf</option>
-<option>8. Sınıf</option>
-<option>9. Sınıf</option>
-<option>10. Sınıf</option>
-<option>11. Sınıf</option>
-<option>12. Sınıf</option>
-
-</select>
-
-</div>
-
-<div class="form-group">
-
-<label for="veliAdi">
-
-Veli Adı Soyadı
-
-</label>
-
-<input
-type="text"
-id="veliAdi"
-name="veliAdi"
-placeholder="Veli Adı Soyadı"
-required>
-
-</div>
-
-<div class="form-group">
-
-<label for="veliTelefon">
-
-Veli Telefonu
-
-</label>
-
-<input
-type="tel"
-id="veliTelefon"
-name="veliTelefon"
-maxlength="11"
-inputmode="numeric"
-placeholder="05XXXXXXXXX"
-required>
-
-</div>
-<!-- =====================================================
-index.html
-BÖLÜM 4/10
-===================================================== -->
-
-<div class="form-group full">
-
-<label for="adres">
-
-Adres
-
-</label>
-
-<textarea
-id="adres"
-name="adres"
-rows="4"
-placeholder="Açık adresinizi yazınız..."
-required>
-
-</textarea>
-
-</div>
-
-<div class="form-group full">
-
-<label for="note">
-
-Ek Not
-
-</label>
-
-<textarea
-id="note"
-name="note"
-rows="3"
-placeholder="Varsa belirtmek istediğiniz bir not yazabilirsiniz.">
-
-</textarea>
-
-</div>
-
-<div class="checkbox-group full">
-
-<input
-type="checkbox"
-id="kvkk"
-required>
-
-<label for="kvkk">
-
-KVKK Aydınlatma Metnini okudum, kabul ediyorum.
-
-</label>
-
-</div>
-
-<div class="checkbox-group full">
-
-<input
-type="checkbox"
-id="parent"
-required>
-
-<label for="parent">
-
-Veli olarak öğrencimin kayıt işlemini onaylıyorum.
-
-</label>
-
-</div>
-
-<div class="form-group full">
-
-<button
-type="submit"
-class="btn">
-
-Kaydı Tamamla
-
-</button>
-
-</div>
-
-</div>
-
-</form>
-
-</section>
-<!-- =====================================================
-index.html
-BÖLÜM 5/10
-BAŞARI EKRANI
-===================================================== -->
-
-<section
-id="successCard"
-class="success-card">
-
-<h2>
-
-🎉 Kayıt Başarıyla Tamamlandı
-
-</h2>
-
-<p>
-
-Kayıt Numaranız
-
-</p>
-
-<div id="registerNumber">
-
-</div>
-
-<div id="qrcode">
-
-</div>
-
-<p>
-
-Lütfen QR kodunuzu ve kayıt numaranızı saklayınız.
-Yaz okuluna girişte bu QR kod kullanılacaktır.
-
-</p>
-
-<div class="button-group">
-
-<button
-id="downloadPdf"
-type="button">
-
-PDF İndir
-
-</button>
-
-<button
-id="newRegister"
-type="button">
-
-Yeni Kayıt
-
-</button>
-
-</div>
-
-</section>
-<!-- =====================================================
-<!-- =====================================================
-index.html
-BÖLÜM 7/10
-YÜKLENİYOR
-===================================================== -->
-
-
-<!-- =====================================================
-index.html
-BÖLÜM 8/10
-BİLDİRİM KUTUSU
-===================================================== -->
-
-<div
-id="toast"
-class="toast hidden">
-
-<span id="toastText">
-
-</span>
-
-</div>
-<!-- =====================================================
-index.html
-BÖLÜM 9/10
-JAVASCRIPT
-===================================================== -->
-
-<script
-type="module"
-src="js/app.js">
-
-</script>
-<!-- =====================================================
-index.html
-BÖLÜM 10/10
-KAPANIŞ
-===================================================== -->
-
-</div>
-
+  <div class="container">
+    <h2>TÜGVA Yaz Okulu Öğrenci Kayıt Formu</h2>
+    
+    <form id="registrationForm">
+      <div class="form-group">
+        <label for="tcNo">T.C. Kimlik No:</label>
+        <input type="text" id="tcNo" maxlength="11" required>
+      </div>
+
+      <div class="form-group">
+        <label for="adSoyad">Öğrenci Ad Soyad:</label>
+        <input type="text" id="adSoyad" required>
+      </div>
+
+      <div class="form-group">
+        <label for="dogumTarihi">Doğum Tarihi:</label>
+        <input type="date" id="dogumTarihi" required>
+      </div>
+
+      <div class="form-group">
+        <label for="okul">Okulu:</label>
+        <input type="text" id="okul" required>
+      </div>
+
+      <div class="form-group">
+        <label for="sinif">Sınıfı:</label>
+        <select id="sinif" required>
+          <option value="">Seçiniz</option>
+          <option value="4">4. Sınıf</option>
+          <option value="5">5. Sınıf</option>
+          <option value="6">6. Sınıf</option>
+          <option value="7">7. Sınıf</option>
+          <option value="8">8. Sınıf</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="veliAdSoyad">Veli Ad Soyad:</label>
+        <input type="text" id="veliAdSoyad" required>
+      </div>
+
+      <div class="form-group">
+        <label for="veliTelefon">Veli Telefon:</label>
+        <input type="tel" id="veliTelefon" placeholder="05XXXXXXXXX" required>
+      </div>
+
+      <div class="form-group">
+        <label for="kanGrubu">Kan Grubu:</label>
+        <select id="kanGrubu">
+          <option value="">Bilinmiyor / Seçiniz</option>
+          <option value="A+">A Rh(+)</option>
+          <option value="A-">A Rh(-)</option>
+          <option value="B+">B Rh(+)</option>
+          <option value="B-">B Rh(-)</option>
+          <option value="AB+">AB Rh(+)</option>
+          <option value="AB-">AB Rh(-)</option>
+          <option value="0+">0 Rh(+)</option>
+          <option value="0-">0 Rh(-)</option>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label for="adres">Adres:</label>
+        <textarea id="adres" rows="3"></textarea>
+      </div>
+
+      <button type="submit" id="submitBtn">Kayıt Ol</button>
+    </form>
+  </div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+  <script src="js/firebase.js"></script>
+  <script src="js/app.js"></script>
 </body>
-
 </html>
