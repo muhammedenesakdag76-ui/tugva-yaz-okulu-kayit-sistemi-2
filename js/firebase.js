@@ -1,67 +1,120 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+// ===============================
+// firebase.js
+// TÜGVA İstanbul Final Gezisi
+// Firebase v11 Modular
+// ===============================
 
-import {
-    getFirestore,
-    collection,
-    doc,
-    getDoc,
-    getDocs,
-    setDoc,
-    updateDoc,
-    deleteDoc,
-    query,
-    orderBy,
-    serverTimestamp,
-    onSnapshot,
-    writeBatch
-} from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.10.0/firebase-app.js";
 
 import {
     getAuth,
     signInWithEmailAndPassword,
     signOut,
     onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-auth.js";
+
+import {
+
+    getFirestore,
+
+    collection,
+
+    addDoc,
+
+    doc,
+
+    getDoc,
+
+    getDocs,
+
+    updateDoc,
+
+    deleteDoc,
+
+    onSnapshot,
+
+    query,
+
+    orderBy,
+
+    where,
+
+    serverTimestamp
+
+} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-firestore.js";
+
+import {
+
+    getStorage,
+
+    ref,
+
+    uploadBytes,
+
+    getDownloadURL,
+
+    deleteObject
+
+} from "https://www.gstatic.com/firebasejs/11.10.0/firebase-storage.js";
+
+
+
+// Firebase Config
 
 const firebaseConfig = {
 
-    apiKey: "AIzaSyA1PwF_MonQVMQ2zXnCJZbQWYkRgHpxxb8",
+    apiKey: "BURAYA_API_KEY",
 
-    authDomain: "tugva-kayit-sistemi.firebaseapp.com",
+    authDomain: "BURAYA_AUTH_DOMAIN",
 
-    projectId: "tugva-kayit-sistemi",
+    projectId: "BURAYA_PROJECT_ID",
 
-    storageBucket: "tugva-kayit-sistemi.firebasestorage.app",
+    storageBucket: "BURAYA_STORAGE_BUCKET",
 
-    messagingSenderId: "497137562254",
+    messagingSenderId: "BURAYA_SENDER_ID",
 
-    appId: "1:497137562254:web:0dae95a054ac7e21424fdf"
+    appId: "BURAYA_APP_ID"
 
 };
 
-const app = initializeApp(firebaseConfig);
 
-export const db = getFirestore(app);
+
+// App
+
+export const app = initializeApp(firebaseConfig);
+
+
+
+// Services
 
 export const auth = getAuth(app);
 
-export const COLLECTION = "kayitlar";
+export const db = getFirestore(app);
 
-export const LOG_COLLECTION = "loglar";
+export const storage = getStorage(app);
 
-export const MAX_CAPACITY = 45;
-export function authListener(callback) {
 
-    onAuthStateChanged(auth, callback);
 
-}
+// Collections
+
+export const participantsCollection = collection(db, "participants");
+
+
+
+// ==========================
+// Authentication
+// ==========================
 
 export async function login(email, password) {
 
     return await signInWithEmailAndPassword(
+
         auth,
+
         email,
+
         password
+
     );
 
 }
@@ -72,78 +125,77 @@ export async function logout() {
 
 }
 
-export function registrationCollection() {
+export function authListener(callback) {
 
-    return collection(db, COLLECTION);
+    return onAuthStateChanged(
 
-}
+        auth,
 
-export function logCollection() {
-
-    return collection(db, LOG_COLLECTION);
-
-}
-
-export async function getAllRegistrations() {
-
-    const q = query(
-
-        registrationCollection(),
-
-        orderBy(
-            "createdAt",
-            "desc"
-        )
+        callback
 
     );
 
-    const snapshot = await getDocs(q);
-
-    return snapshot.docs.map(doc => ({
-
-        id: doc.id,
-
-        ...doc.data()
-
-    }));
-
 }
 
-export function listenRegistrations(callback) {
 
-    const q = query(
 
-        registrationCollection(),
+// ==========================
+// Participant CRUD
+// ==========================
 
-        orderBy(
-            "createdAt",
-            "desc"
-        )
+export async function createParticipant(data) {
+
+    data.createdAt = serverTimestamp();
+
+    data.updatedAt = serverTimestamp();
+
+    data.busNumber = "";
+
+    data.seatNumber = "";
+
+    data.checkedIn = false;
+
+    return await addDoc(
+
+        participantsCollection,
+
+        data
 
     );
 
-    return onSnapshot(q, snapshot => {
+}
 
-        callback(
+export async function updateParticipant(id, data) {
 
-            snapshot.docs.map(doc => ({
+    data.updatedAt = serverTimestamp();
 
-                id: doc.id,
+    return await updateDoc(
 
-                ...doc.data()
+        doc(db, "participants", id),
 
-            }))
+        data
 
-        );
-
-    });
+    );
 
 }
-export async function getRegistration(id) {
 
-    const ref = doc(db, COLLECTION, id);
+export async function deleteParticipant(id) {
 
-    const snapshot = await getDoc(ref);
+    return await deleteDoc(
+
+        doc(db, "participants", id)
+
+    );
+
+}
+
+export async function getParticipant(id) {
+
+    const snapshot = await getDoc(
+
+        doc(db, "participants", id)
+
+    );
 
     if (!snapshot.exists()) {
 
@@ -161,1064 +213,1046 @@ export async function getRegistration(id) {
 
 }
 
-export async function registrationExists(tc) {
-
-    const registrations = await getAllRegistrations();
-
-    return registrations.some(item => item.tc === tc);
-
-}
-
-export async function phoneExists(phone) {
-
-    const registrations = await getAllRegistrations();
-
-    return registrations.some(item => item.phone === phone);
-
-}
-
-export async function getRemainingCapacity() {
-
-    const registrations = await getAllRegistrations();
-
-    return MAX_CAPACITY - registrations.length;
-
-}
-
-export async function isFull() {
-
-    const remaining = await getRemainingCapacity();
-
-    return remaining <= 0;
-
-}
-
-export async function getStatistics() {
-
-    const registrations = await getAllRegistrations();
-
-    const total = registrations.length;
-
-    const checked = registrations.filter(item => item.checkedIn).length;
-
-    const waiting = total - checked;
-
-    const remaining = MAX_CAPACITY - total;
-
-    return {
-
-        total,
-
-        checked,
-
-        waiting,
-
-        remaining
-
-    };
-
-}
-export async function generateRegisterNumber() {
-
-    const registrations = await getAllRegistrations();
-
-    const nextNumber = registrations.length + 1;
-
-    return `TYG26-${String(nextNumber).padStart(4, "0")}`;
-
-}
-
-export async function addRegistration(data) {
-
-    const ref = doc(registrationCollection());
-
-    await setDoc(ref, {
-
-        ...data,
-
-        checkedIn: false,
-
-        seat: data.seat || "",
-
-        createdAt: serverTimestamp()
-
-    });
-
-    await addLog(
-
-        "Yeni Kayıt",
-
-        ref.id
-
-    );
-
-    return ref.id;
-
-}
-
-export async function updateRegistration(id, data) {
-
-    await updateDoc(
-
-        doc(db, COLLECTION, id),
-
-        {
-
-            ...data
-
-        }
-
-    );
-
-    await addLog(
-
-        "Kayıt Güncellendi",
-
-        id
-
-    );
-
-}
-
-export async function deleteRegistration(id) {
-
-    await deleteDoc(
-
-        doc(db, COLLECTION, id)
-
-    );
-
-    await addLog(
-
-        "Kayıt Silindi",
-
-        id
-
-    );
-
-}
-
-export async function checkIn(id) {
-
-    await updateDoc(
-
-        doc(db, COLLECTION, id),
-
-        {
-
-            checkedIn: true,
-
-            checkInTime: serverTimestamp()
-
-        }
-
-    );
-
-    await addLog(
-
-        "Giriş Yapıldı",
-
-        id
-
-    );
-
-}
-
-export async function checkOut(id) {
-
-    await updateDoc(
-
-        doc(db, COLLECTION, id),
-
-        {
-
-            checkedIn: false,
-
-            checkOutTime: serverTimestamp()
-
-        }
-
-    );
-
-    await addLog(
-
-        "Çıkış Yapıldı",
-
-        id
-
-    );
-
-}
-export async function addLog(action, participantId = "") {
-
-    const ref = doc(logCollection());
-
-    await setDoc(ref, {
-
-        action,
-
-        participant: participantId,
-
-        createdAt: serverTimestamp()
-
-    });
-
-}
-
-export async function batchCheckIn(ids) {
-
-    const batch = writeBatch(db);
-
-    ids.forEach(id => {
-
-        batch.update(
-
-            doc(db, COLLECTION, id),
-
-            {
-
-                checkedIn: true,
-
-                checkInTime: serverTimestamp()
-
-            }
-
-        );
-
-    });
-
-    await batch.commit();
-
-    for (const id of ids) {
-
-        await addLog(
-
-            "Toplu Giriş",
-
-            id
-
-        );
-
-    }
-
-}
-
-export async function batchCheckOut(ids) {
-
-    const batch = writeBatch(db);
-
-    ids.forEach(id => {
-
-        batch.update(
-
-            doc(db, COLLECTION, id),
-
-            {
-
-                checkedIn: false,
-
-                checkOutTime: serverTimestamp()
-
-            }
-
-        );
-
-    });
-
-    await batch.commit();
-
-    for (const id of ids) {
-
-        await addLog(
-
-            "Toplu Çıkış",
-
-            id
-
-        );
-
-    }
-
-}
-
-export async function batchDelete(ids) {
-
-    const batch = writeBatch(db);
-
-    ids.forEach(id => {
-
-        batch.delete(
-
-            doc(db, COLLECTION, id)
-
-        );
-
-    });
-
-    await batch.commit();
-
-    for (const id of ids) {
-
-        await addLog(
-
-            "Toplu Silme",
-
-            id
-
-        );
-
-    }
-
-}
-export async function searchRegistrations(keyword) {
-
-    const registrations = await getAllRegistrations();
-
-    const text = keyword.trim().toLowerCase();
-
-    if (!text) {
-
-        return registrations;
-
-    }
-
-    return registrations.filter(item => {
-
-        return (
-
-            (item.registerNumber || "")
-                .toLowerCase()
-                .includes(text)
-
-            ||
-
-            (item.name || "")
-                .toLowerCase()
-                .includes(text)
-
-            ||
-
-            (item.tc || "")
-                .includes(text)
-
-            ||
-
-            (item.phone || "")
-                .includes(text)
-
-            ||
-
-            (item.school || "")
-                .toLowerCase()
-                .includes(text)
-
-            ||
-
-            (item.parent || "")
-                .toLowerCase()
-                .includes(text)
-
-        );
-
-    });
-
-}
-
-export async function filterRegistrations(filter = "all") {
-
-    const registrations = await getAllRegistrations();
-
-    switch (filter) {
-
-        case "checked":
-
-            return registrations.filter(item => item.checkedIn);
-
-        case "waiting":
-
-            return registrations.filter(item => !item.checkedIn);
-
-        default:
-
-            return registrations;
-
-    }
-
-}
-
-export async function getCheckedInList() {
-
-    return await filterRegistrations("checked");
-
-}
-
-export async function getWaitingList() {
-
-    return await filterRegistrations("waiting");
-
-}
-
-export async function getLogs() {
+export async function getAllParticipants() {
 
     const q = query(
 
-        logCollection(),
+        participantsCollection,
 
-        orderBy(
-            "createdAt",
-            "desc"
-        )
+        orderBy("createdAt", "desc")
 
     );
 
     const snapshot = await getDocs(q);
 
-    return snapshot.docs.map(doc => ({
+    return snapshot.docs.map(item => ({
 
-        id: doc.id,
+        id: item.id,
 
-        ...doc.data()
+        ...item.data()
 
     }));
 
 }
-export async function exportData() {
 
-    const registrations = await getAllRegistrations();
+export function realtimeParticipants(callback) {
 
-    return JSON.stringify(registrations, null, 2);
+    const q = query(
+
+        participantsCollection,
+
+        orderBy("createdAt", "desc")
+
+    );
+
+    return onSnapshot(
+
+        q,
+
+        snapshot => {
+
+            const list = snapshot.docs.map(item => ({
+
+                id: item.id,
+
+                ...item.data()
+
+            }));
+
+            callback(list);
+
+        }
+
+    );
 
 }
 
-export async function importData(data) {
 
-    if (!Array.isArray(data)) {
 
-        throw new Error("Geçersiz veri formatı.");
+// ==========================
+// Search
+// ==========================
+
+export async function searchByTC(tc) {
+
+    const q = query(
+
+        participantsCollection,
+
+        where("tc", "==", tc)
+
+    );
+
+    const snapshot = await getDocs(q);
+
+    return snapshot.docs.map(item => ({
+
+        id: item.id,
+
+        ...item.data()
+
+    }));
+
+}
+
+
+
+// ==========================
+// Photo Upload
+// ==========================
+
+export async function uploadParticipantPhoto(file, id) {
+
+    const fileRef = ref(
+
+        storage,
+
+        `participants/${id}.jpg`
+
+    );
+
+    await uploadBytes(
+
+        fileRef,
+
+        file
+
+    );
+
+    return await getDownloadURL(fileRef);
+
+}
+
+export async function removeParticipantPhoto(id) {
+
+    const fileRef = ref(
+
+        storage,
+
+        `participants/${id}.jpg`
+
+    );
+
+    return await deleteObject(fileRef);
+
+}
+
+
+
+// ==========================
+// Helpers
+// ==========================
+
+export function generateRegistrationCode() {
+
+    const random = Math.random()
+
+        .toString(36)
+
+        .substring(2, 8)
+
+        .toUpperCase();
+
+    return `IST-${Date.now()}-${random}`;
+
+}
+
+export function currentUser() {
+
+    return auth.currentUser;
+
+}
+
+export function isLoggedIn() {
+
+    return !!auth.currentUser;
+
+}
+// ===============================
+// validation.js
+// TÜGVA İstanbul Final Gezisi
+// ===============================
+
+// ---------- T.C. Kimlik ----------
+
+export function validateTC(tc) {
+
+    tc = tc.replace(/\D/g, "");
+
+    if (tc.length !== 11) return false;
+
+    if (tc[0] === "0") return false;
+
+    const numbers = tc.split("").map(Number);
+
+    let odd = 0;
+    let even = 0;
+
+    for (let i = 0; i < 9; i++) {
+
+        if (i % 2 === 0) {
+            odd += numbers[i];
+        } else {
+            even += numbers[i];
+        }
 
     }
 
-    const batch = writeBatch(db);
+    const digit10 = ((odd * 7) - even) % 10;
 
-    data.forEach(item => {
+    if (digit10 !== numbers[9]) {
 
-        const ref = doc(registrationCollection());
-
-        batch.set(ref, {
-
-            registerNumber: item.registerNumber || "",
-
-            name: item.name || "",
-
-            tc: item.tc || "",
-
-            phone: item.phone || "",
-
-            email: item.email || "",
-
-            birth: item.birth || "",
-
-            gender: item.gender || "",
-
-            school: item.school || "",
-
-            class: item.class || "",
-
-            parent: item.parent || "",
-
-            parentPhone: item.parentPhone || "",
-
-            address: item.address || "",
-
-            note: item.note || "",
-
-            seat: item.seat || "",
-
-            checkedIn: item.checkedIn || false,
-
-            createdAt: item.createdAt || serverTimestamp()
-
-        });
-
-    });
-
-    await batch.commit();
-
-    await addLog("Veri İçe Aktarıldı");
-
-}
-
-export async function clearDatabase() {
-
-    const registrations = await getAllRegistrations();
-
-    const batch = writeBatch(db);
-
-    registrations.forEach(item => {
-
-        batch.delete(
-
-            doc(db, COLLECTION, item.id)
-
-        );
-
-    });
-
-    await batch.commit();
-
-    await addLog("Veritabanı Temizlendi");
-
-}
-
-export function formatPhone(phone) {
-
-    return String(phone)
-        .replace(/\D/g, "");
-
-}
-
-export function normalizeText(text) {
-
-    return String(text)
-        .trim()
-        .replace(/\s+/g, " ");
-
-}
-
-export function createEmptyRegistration() {
-
-    return {
-
-        registerNumber: "",
-
-        name: "",
-
-        tc: "",
-
-        phone: "",
-
-        email: "",
-
-        birth: "",
-
-        gender: "",
-
-        school: "",
-
-        class: "",
-
-        parent: "",
-
-        parentPhone: "",
-
-        address: "",
-
-        note: "",
-
-        seat: "",
-
-        checkedIn: false
-
-    };
-
-}
-export function listenStatistics(callback) {
-
-    return onSnapshot(registrationCollection(), snapshot => {
-
-        const registrations = snapshot.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        }));
-
-        const total = registrations.length;
-
-        const checked = registrations.filter(item => item.checkedIn).length;
-
-        const waiting = total - checked;
-
-        const remaining = MAX_CAPACITY - total;
-
-        callback({
-
-            total,
-
-            checked,
-
-            waiting,
-
-            remaining
-
-        });
-
-    });
-
-}
-
-export function listenCapacity(callback) {
-
-    return listenStatistics(stats => {
-
-        callback(stats.remaining);
-
-    });
-
-}
-
-export async function countRegistrations() {
-
-    const registrations = await getAllRegistrations();
-
-    return registrations.length;
-
-}
-
-export async function countCheckedIn() {
-
-    const registrations = await getAllRegistrations();
-
-    return registrations.filter(item => item.checkedIn).length;
-
-}
-
-export async function countWaiting() {
-
-    const registrations = await getAllRegistrations();
-
-    return registrations.filter(item => !item.checkedIn).length;
-
-}
-
-export function sortByRegisterNumber(list) {
-
-    return [...list].sort((a, b) =>
-
-        (a.registerNumber || "").localeCompare(
-
-            b.registerNumber || "",
-
-            "tr"
-
-        )
-
-    );
-
-}
-
-export function sortByName(list) {
-
-    return [...list].sort((a, b) =>
-
-        (a.name || "").localeCompare(
-
-            b.name || "",
-
-            "tr"
-
-        )
-
-    );
-
-}
-export function sortByDate(list) {
-
-    return [...list].sort((a, b) => {
-
-        const dateA = a.createdAt?.seconds || 0;
-        const dateB = b.createdAt?.seconds || 0;
-
-        return dateB - dateA;
-
-    });
-
-}
-
-export function sortBySchool(list) {
-
-    return [...list].sort((a, b) =>
-
-        (a.school || "").localeCompare(
-
-            b.school || "",
-
-            "tr"
-
-        )
-
-    );
-
-}
-
-export function sortByClass(list) {
-
-    return [...list].sort((a, b) =>
-
-        (a.class || "").localeCompare(
-
-            b.class || "",
-
-            "tr"
-
-        )
-
-    );
-
-}
-
-export function sortByStatus(list) {
-
-    return [...list].sort((a, b) => {
-
-        if (a.checkedIn === b.checkedIn) return 0;
-
-        return a.checkedIn ? -1 : 1;
-
-    });
-
-}
-
-export function formatDate(timestamp) {
-
-    if (!timestamp) return "";
-
-    const date = timestamp.toDate();
-
-    return date.toLocaleString("tr-TR");
-
-}
-
-export function generateSeatNumber(index) {
-
-    return String(index + 1).padStart(2, "0");
-
-}
-
-export function sanitizeRegistration(data) {
-
-    return {
-
-        registerNumber: data.registerNumber || "",
-
-        name: normalizeText(data.name),
-
-        tc: String(data.tc || "").trim(),
-
-        phone: formatPhone(data.phone),
-
-        email: String(data.email || "").trim(),
-
-        birth: data.birth || "",
-
-        gender: data.gender || "",
-
-        school: normalizeText(data.school),
-
-        class: normalizeText(data.class),
-
-        parent: normalizeText(data.parent),
-
-        parentPhone: formatPhone(data.parentPhone),
-
-        address: normalizeText(data.address),
-
-        note: normalizeText(data.note),
-
-        seat: data.seat || "",
-
-        checkedIn: Boolean(data.checkedIn)
-
-    };
-
-}
-export async function downloadBackup() {
-
-    const json = await exportData();
-
-    const blob = new Blob(
-
-        [json],
-
-        {
-
-            type: "application/json"
-
-        }
-
-    );
-
-    const url = URL.createObjectURL(blob);
-
-    const link = document.createElement("a");
-
-    link.href = url;
-
-    link.download = `yedek-${new Date().toISOString().slice(0,10)}.json`;
-
-    link.click();
-
-    URL.revokeObjectURL(url);
-
-}
-
-export async function restoreBackup(file) {
-
-    const text = await file.text();
-
-    const data = JSON.parse(text);
-
-    await importData(data);
-
-}
-
-export async function resetSeats() {
-
-    const registrations = await getAllRegistrations();
-
-    const batch = writeBatch(db);
-
-    registrations.forEach(item => {
-
-        batch.update(
-
-            doc(db, COLLECTION, item.id),
-
-            {
-
-                seat: ""
-
-            }
-
-        );
-
-    });
-
-    await batch.commit();
-
-    await addLog("Oturma Düzeni Sıfırlandı");
-
-}
-
-export async function assignSeatsAutomatically() {
-
-    const registrations = sortByRegisterNumber(
-
-        await getAllRegistrations()
-
-    );
-
-    const batch = writeBatch(db);
-
-    registrations.forEach((item, index) => {
-
-        batch.update(
-
-            doc(db, COLLECTION, item.id),
-
-            {
-
-                seat: generateSeatNumber(index)
-
-            }
-
-        );
-
-    });
-
-    await batch.commit();
-
-    await addLog("Oturma Düzeni Otomatik Oluşturuldu");
-
-}
-export async function duplicateTc(tc, ignoreId = null) {
-
-    const registrations = await getAllRegistrations();
-
-    return registrations.some(item =>
-        item.tc === tc &&
-        item.id !== ignoreId
-    );
-
-}
-
-export async function duplicatePhone(phone, ignoreId = null) {
-
-    const registrations = await getAllRegistrations();
-
-    const normalized = formatPhone(phone);
-
-    return registrations.some(item =>
-        formatPhone(item.phone) === normalized &&
-        item.id !== ignoreId
-    );
-
-}
-
-export async function duplicateEmail(email, ignoreId = null) {
-
-    if (!email) return false;
-
-    const registrations = await getAllRegistrations();
-
-    const normalized = email.trim().toLowerCase();
-
-    return registrations.some(item =>
-        (item.email || "").trim().toLowerCase() === normalized &&
-        item.id !== ignoreId
-    );
-
-}
-
-export function validateImportData(data) {
-
-    if (!Array.isArray(data)) {
-
-        throw new Error("Yedek dosyası dizi (Array) formatında olmalıdır.");
+        return false;
 
     }
 
-    data.forEach((item, index) => {
+    const total = numbers
+        .slice(0, 10)
+        .reduce((a, b) => a + b, 0);
 
-        if (typeof item !== "object" || item === null) {
+    if ((total % 10) !== numbers[10]) {
 
-            throw new Error(
-                `${index + 1}. kayıt geçersiz.`
-            );
+        return false;
 
-        }
-
-        if (!item.name) {
-
-            throw new Error(
-                `${index + 1}. kayıtta Ad Soyad eksik.`
-            );
-
-        }
-
-        if (!item.tc) {
-
-            throw new Error(
-                `${index + 1}. kayıtta T.C. Kimlik No eksik.`
-            );
-
-        }
-
-    });
+    }
 
     return true;
 
 }
 
-export function todayString() {
 
-    return new Date().toLocaleDateString("tr-TR");
+
+// ---------- Telefon ----------
+
+export function validatePhone(phone) {
+
+    phone = phone.replace(/\D/g, "");
+
+    return /^05\d{9}$/.test(phone);
 
 }
 
-export function nowString() {
 
-    return new Date().toLocaleString("tr-TR");
+
+// ---------- E-Posta ----------
+
+export function validateEmail(email) {
+
+    if (!email) return true;
+
+    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 
 }
-export function isValidRegistration(data) {
 
-    return (
 
-        data &&
 
-        data.name &&
+// ---------- Yaş Hesaplama ----------
 
-        data.tc &&
+export function calculateAge(date) {
 
-        data.phone &&
+    if (!date) return 0;
 
-        data.birth &&
+    const birth = new Date(date);
 
-        data.gender &&
+    const today = new Date();
 
-        data.school &&
+    let age = today.getFullYear() - birth.getFullYear();
 
-        data.class &&
+    const month = today.getMonth() - birth.getMonth();
 
-        data.parent &&
+    if (
 
-        data.parentPhone
+        month < 0 ||
+
+        (month === 0 && today.getDate() < birth.getDate())
+
+    ) {
+
+        age--;
+
+    }
+
+    return age;
+
+}
+
+
+
+// ---------- Reşit Kontrolü ----------
+
+export function isAdult(age) {
+
+    return age >= 18;
+
+}
+
+
+
+// ---------- Ad Soyad ----------
+
+export function validateName(name) {
+
+    return /^[A-Za-zÇĞİÖŞÜçğıöşü\s]{2,60}$/.test(
+
+        name.trim()
 
     );
 
 }
 
-export function createRegistrationId() {
 
-    return crypto.randomUUID();
+
+// ---------- Sağlık Bilgisi ----------
+
+export function sanitizeText(text) {
+
+    return text
+
+        .replace(/</g, "&lt;")
+
+        .replace(/>/g, "&gt;")
+
+        .trim();
 
 }
 
-export function cloneRegistration(data) {
 
-    return structuredClone(data);
+
+// ---------- Büyük Harf ----------
+
+export function capitalizeWords(text) {
+
+    return text
+
+        .toLocaleLowerCase("tr")
+
+        .replace(/\b\w/g, letter =>
+
+            letter.toLocaleUpperCase("tr")
+
+        );
 
 }
 
-export function registrationSummary(data) {
+
+
+// ---------- Telefon Formatı ----------
+
+export function formatPhone(phone) {
+
+    phone = phone.replace(/\D/g, "");
+
+    if (phone.length !== 11) return phone;
+
+    return `${phone.substring(0,4)} ${phone.substring(4,7)} ${phone.substring(7,9)} ${phone.substring(9,11)}`;
+
+}
+
+
+
+// ---------- Input Temizleme ----------
+
+export function onlyNumber(event) {
+
+    event.target.value = event.target.value
+
+        .replace(/\D/g, "");
+
+}
+
+
+
+// ---------- Form Kontrolü ----------
+
+export function validateForm(data) {
+
+    const errors = [];
+
+    if (!validateName(data.firstName))
+
+        errors.push("Ad geçersiz.");
+
+    if (!validateName(data.lastName))
+
+        errors.push("Soyad geçersiz.");
+
+    if (!validateTC(data.tc))
+
+        errors.push("T.C. Kimlik No geçersiz.");
+
+    if (!validatePhone(data.phone))
+
+        errors.push("Telefon numarası geçersiz.");
+
+    if (data.email && !validateEmail(data.email))
+
+        errors.push("E-posta adresi geçersiz.");
+
+    if (data.age < 0)
+
+        errors.push("Doğum tarihi geçersiz.");
+
+    if (data.age < 18) {
+
+        if (!validateName(data.parentName))
+
+            errors.push("Veli adı geçersiz.");
+
+        if (!validatePhone(data.parentPhone))
+
+            errors.push("Veli telefonu geçersiz.");
+
+    }
+
+    if (!data.kvkk)
+
+        errors.push("KVKK onayı zorunludur.");
+
+    if (!data.tripApproval)
+
+        errors.push("Gezi onayı zorunludur.");
+
+    if (!data.accuracy)
+
+        errors.push("Bilgi doğruluğu onayı zorunludur.");
 
     return {
 
-        registerNumber: data.registerNumber,
+        valid: errors.length === 0,
 
-        name: data.name,
-
-        school: data.school,
-
-        class: data.class,
-
-        checkedIn: data.checkedIn
+        errors
 
     };
 
 }
 
-export const DEFAULT_REGISTRATION = Object.freeze({
 
-    registerNumber: "",
 
-    name: "",
+// ---------- Toast ----------
 
-    tc: "",
+export function showToast(message, type = "success") {
 
-    phone: "",
+    const container = document.getElementById("toastContainer");
 
-    email: "",
+    if (!container) return;
 
-    birth: "",
+    const toast = document.createElement("div");
 
-    gender: "",
+    toast.className = `toast ${type}`;
 
-    school: "",
+    toast.textContent = message;
 
-    class: "",
+    container.appendChild(toast);
 
-    parent: "",
+    setTimeout(() => {
 
-    parentPhone: "",
+        toast.remove();
 
-    address: "",
+    }, 3500);
 
-    note: "",
+}
 
-    seat: "",
 
-    checkedIn: false
 
-});
+// ---------- Loading ----------
 
-export function createRegistration(data = {}) {
+export function showLoading() {
+
+    const loading = document.getElementById("loading");
+
+    if (loading)
+
+        loading.style.display = "flex";
+
+}
+
+export function hideLoading() {
+
+    const loading = document.getElementById("loading");
+
+    if (loading)
+
+        loading.style.display = "none";
+
+}
+// ===============================
+// qr.js
+// TÜGVA İstanbul Final Gezisi
+// ===============================
+
+import { getParticipant } from "./firebase.js";
+
+let currentQRCode = null;
+
+/* ===========================
+   QR İçeriği
+=========================== */
+
+export function createQRPayload(documentId) {
+
+    return JSON.stringify({
+
+        id: documentId,
+        system: "TUGVA_ISTANBUL_FINAL",
+        version: 1
+
+    });
+
+}
+
+/* ===========================
+   QR Oluştur
+=========================== */
+
+export async function generateQRCode(documentId, elementId = "qrArea") {
+
+    const element = document.getElementById(elementId);
+
+    if (!element) return;
+
+    element.innerHTML = "";
+
+    const canvas = document.createElement("canvas");
+
+    element.appendChild(canvas);
+
+    currentQRCode = canvas;
+
+    await QRCode.toCanvas(
+
+        canvas,
+
+        createQRPayload(documentId),
+
+        {
+
+            width: 240,
+
+            margin: 2,
+
+            color: {
+
+                dark: "#0F4C81",
+
+                light: "#FFFFFF"
+
+            }
+
+        }
+
+    );
+
+}
+
+/* ===========================
+   QR Yenile
+=========================== */
+
+export async function refreshQRCode(documentId) {
+
+    await generateQRCode(documentId);
+
+}
+
+/* ===========================
+   QR İndir
+=========================== */
+
+export function downloadQRCode(fileName = "QR.png") {
+
+    if (!currentQRCode) return;
+
+    const link = document.createElement("a");
+
+    link.download = fileName;
+
+    link.href = currentQRCode.toDataURL("image/png");
+
+    link.click();
+
+}
+
+/* ===========================
+   QR Görseli
+=========================== */
+
+export function getQRCodeImage() {
+
+    if (!currentQRCode) return null;
+
+    return currentQRCode.toDataURL("image/png");
+
+}
+
+/* ===========================
+   QR Oku
+=========================== */
+
+export function parseQR(text) {
+
+    try {
+
+        return JSON.parse(text);
+
+    }
+
+    catch {
+
+        return null;
+
+    }
+
+}
+
+/* ===========================
+   QR Doğrula
+=========================== */
+
+export function isValidQR(data) {
+
+    if (!data) return false;
+
+    if (!data.id) return false;
+
+    if (data.system !== "TUGVA_ISTANBUL_FINAL") return false;
+
+    return true;
+
+}
+
+/* ===========================
+   QR'dan Kişiyi Getir
+=========================== */
+
+export async function getParticipantFromQR(qrText) {
+
+    const payload = parseQR(qrText);
+
+    if (!isValidQR(payload)) {
+
+        return null;
+
+    }
+
+    return await getParticipant(payload.id);
+
+}
+
+/* ===========================
+   QR Bilgisi
+=========================== */
+
+export async function getQRInformation(qrText) {
+
+    const participant = await getParticipantFromQR(qrText);
+
+    if (!participant) {
+
+        return null;
+
+    }
 
     return {
 
-        ...DEFAULT_REGISTRATION,
+        id: participant.id,
 
-        ...sanitizeRegistration(data)
+        registrationCode: participant.registrationCode,
+
+        firstName: participant.firstName,
+
+        lastName: participant.lastName,
+
+        tc: participant.tc,
+
+        phone: participant.phone,
+
+        busNumber: participant.busNumber || "",
+
+        seatNumber: participant.seatNumber || "",
+
+        checkedIn: participant.checkedIn || false
 
     };
+
+}
+
+/* ===========================
+   Giriş Kontrolü
+=========================== */
+
+export function canCheckIn(participant) {
+
+    if (!participant) return false;
+
+    return !participant.checkedIn;
+
+}
+
+/* ===========================
+   QR Yazdırma
+=========================== */
+
+export function printQRCode() {
+
+    if (!currentQRCode) return;
+
+    const image = currentQRCode.toDataURL();
+
+    const win = window.open("", "_blank");
+
+    win.document.write(`
+        <html>
+        <head>
+            <title>QR Kod</title>
+            <style>
+                body{
+                    display:flex;
+                    justify-content:center;
+                    align-items:center;
+                    height:100vh;
+                    margin:0;
+                }
+                img{
+                    width:300px;
+                }
+            </style>
+        </head>
+        <body>
+            <img src="${image}">
+        </body>
+        </html>
+    `);
+
+    win.document.close();
+
+    win.print();
+
+}
+// ===============================
+// pdf.js
+// TÜGVA İstanbul Final Gezisi
+// ===============================
+
+import { getQRCodeImage } from "./qr.js";
+
+const { jsPDF } = window.jspdf;
+
+/* ===========================
+   PDF Oluştur
+=========================== */
+
+export async function createParticipantPDF(participant) {
+
+    const pdf = new jsPDF({
+
+        orientation: "portrait",
+        unit: "mm",
+        format: "a4"
+
+    });
+
+    const qrImage = getQRCodeImage();
+
+    // ---------- Başlık ----------
+
+    pdf.setFillColor(15, 76, 129);
+
+    pdf.rect(0, 0, 210, 28, "F");
+
+    pdf.setTextColor(255);
+
+    pdf.setFont("helvetica", "bold");
+
+    pdf.setFontSize(20);
+
+    pdf.text("TÜGVA İSTANBUL FİNAL GEZİSİ", 105, 12, {
+
+        align: "center"
+
+    });
+
+    pdf.setFontSize(12);
+
+    pdf.text("Katılımcı Kayıt Belgesi", 105, 20, {
+
+        align: "center"
+
+    });
+
+    pdf.setTextColor(0);
+
+    // ---------- Bilgiler ----------
+
+    let y = 40;
+
+    write(pdf, "Kayıt Kodu", participant.registrationCode, y);
+    y += 10;
+
+    write(pdf, "Ad Soyad", `${participant.firstName} ${participant.lastName}`, y);
+    y += 10;
+
+    write(pdf, "T.C. Kimlik No", participant.tc, y);
+    y += 10;
+
+    write(pdf, "Telefon", participant.phone, y);
+    y += 10;
+
+    write(pdf, "Doğum Tarihi", participant.birthDate, y);
+    y += 10;
+
+    write(pdf, "Yaş", String(participant.age), y);
+    y += 10;
+
+    if (participant.age < 18) {
+
+        write(pdf, "Veli", participant.parentName, y);
+        y += 10;
+
+        write(pdf, "Veli Telefon", participant.parentPhone, y);
+        y += 10;
+
+    }
+
+    write(
+        pdf,
+        "Otobüs",
+        participant.busNumber || "Henüz Atanmadı",
+        y
+    );
+
+    y += 10;
+
+    write(
+        pdf,
+        "Koltuk",
+        participant.seatNumber || "Henüz Atanmadı",
+        y
+    );
+
+    y += 15;
+
+    // ---------- Sağlık ----------
+
+    pdf.setFont("helvetica", "bold");
+
+    pdf.text("Sağlık Bilgisi", 20, y);
+
+    y += 7;
+
+    pdf.setFont("helvetica", "normal");
+
+    const health = participant.health || "Belirtilmedi.";
+
+    const lines = pdf.splitTextToSize(
+
+        health,
+
+        120
+
+    );
+
+    pdf.text(lines, 20, y);
+
+    // ---------- QR ----------
+
+    if (qrImage) {
+
+        pdf.addImage(
+
+            qrImage,
+
+            "PNG",
+
+            145,
+
+            45,
+
+            45,
+
+            45
+
+        );
+
+    }
+
+    pdf.setDrawColor(220);
+
+    pdf.line(140, 95, 195, 95);
+
+    pdf.setFont("helvetica", "bold");
+
+    pdf.setFontSize(11);
+
+    pdf.text(
+
+        "QR Kod",
+
+        167,
+
+        102,
+
+        {
+
+            align: "center"
+
+        }
+
+    );
+
+    pdf.setFontSize(9);
+
+    pdf.setFont("helvetica", "normal");
+
+    pdf.text(
+
+        "Girişte görevliye gösteriniz.",
+
+        167,
+
+        108,
+
+        {
+
+            align: "center"
+
+        }
+
+    );
+
+    // ---------- Bilgilendirme ----------
+
+    pdf.setFillColor(245, 247, 250);
+
+    pdf.roundedRect(
+
+        15,
+
+        205,
+
+        180,
+
+        55,
+
+        3,
+
+        3,
+
+        "F"
+
+    );
+
+    pdf.setFontSize(11);
+
+    pdf.setFont("helvetica", "bold");
+
+    pdf.text(
+
+        "Bilgilendirme",
+
+        20,
+
+        215
+
+    );
+
+    pdf.setFont("helvetica", "normal");
+
+    pdf.setFontSize(10);
+
+    pdf.text(
+
+        pdf.splitTextToSize(
+
+            "Otobüs ve koltuk numarası yönetici tarafından daha sonra atanacaktır. QR kodunuz değişmez. Giriş sırasında aynı QR kod okutularak güncel bilgileriniz sistemden otomatik alınacaktır.",
+
+            165
+
+        ),
+
+        20,
+
+        223
+
+    );
+
+    return pdf;
+
+}
+
+/* ===========================
+   PDF İndir
+=========================== */
+
+export async function downloadParticipantPDF(participant) {
+
+    const pdf = await createParticipantPDF(
+
+        participant
+
+    );
+
+    pdf.save(
+
+        `${participant.registrationCode}.pdf`
+
+    );
+
+}
+
+/* ===========================
+   PDF Önizleme
+=========================== */
+
+export async function previewParticipantPDF(participant) {
+
+    const pdf = await createParticipantPDF(
+
+        participant
+
+    );
+
+    window.open(
+
+        pdf.output("bloburl"),
+
+        "_blank"
+
+    );
+
+}
+
+/* ===========================
+   Yazdır
+=========================== */
+
+export async function printParticipantPDF(participant) {
+
+    const pdf = await createParticipantPDF(
+
+        participant
+
+    );
+
+    window.open(
+
+        pdf.output("bloburl")
+
+    ).print();
+
+}
+
+/* ===========================
+   Ortak Satır
+=========================== */
+
+function write(pdf, title, value, y) {
+
+    pdf.setFont("helvetica", "bold");
+
+    pdf.text(`${title}:`, 20, y);
+
+    pdf.setFont("helvetica", "normal");
+
+    pdf.text(String(value), 65, y);
 
 }
