@@ -1,4 +1,5 @@
- import {
+import { downloadPDF } from "./pdf.js";
+import {
     addRegistration,
     getRemainingCapacity,
     isCapacityFull
