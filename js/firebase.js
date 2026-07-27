@@ -4,39 +4,31 @@ import {
     getFirestore,
     collection,
     doc,
+    getDoc,
+    getDocs,
     addDoc,
     updateDoc,
     deleteDoc,
-    getDoc,
-    getDocs,
     query,
     where,
     orderBy,
-    limit,
     serverTimestamp,
-    writeBatch
+    limit
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
-
-import {
-    getAuth,
-    signInWithEmailAndPassword,
-    signOut,
-    onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
 
 const firebaseConfig = {
 
-    apiKey: "API_KEY",
+    apiKey: "",
 
-    authDomain: "PROJECT_ID.firebaseapp.com",
+    authDomain: "",
 
-    projectId: "PROJECT_ID",
+    projectId: "",
 
-    storageBucket: "PROJECT_ID.appspot.com",
+    storageBucket: "",
 
-    messagingSenderId: "SENDER_ID",
+    messagingSenderId: "",
 
-    appId: "APP_ID"
+    appId: ""
 
 };
 
@@ -44,75 +36,98 @@ const app = initializeApp(firebaseConfig);
 
 export const db = getFirestore(app);
 
-export const auth = getAuth(app);
+export const registrationsRef = collection(
+    db,
+    "kayitlar"
+);
 
-export const registrationsRef = collection(db, "registrations");
+export const MAX_CAPACITY = 500;
 
-export const SYSTEM = {
+export const REGISTER_PREFIX = "TYO";
 
-    MAX_CAPACITY: 500,
+export const REGISTER_DIGITS = 5;
+function pad(number) {
 
-    REGISTER_PREFIX: "TYO",
+    return String(number).padStart(
 
-    REGISTER_DIGITS: 5
+        REGISTER_DIGITS,
 
-};
+        "0"
+
+    );
+
+}
+
 export async function generateRegisterNumber() {
 
     const q = query(
+
         registrationsRef,
+
         orderBy("registerNumber", "desc"),
+
         limit(1)
+
     );
 
     const snapshot = await getDocs(q);
 
     if (snapshot.empty) {
-        return `${SYSTEM.REGISTER_PREFIX}${String(1).padStart(SYSTEM.REGISTER_DIGITS, "0")}`;
+
+        return REGISTER_PREFIX + pad(1);
+
     }
 
-    const lastNumber = snapshot.docs[0].data().registerNumber || "";
+    const last = snapshot.docs[0].data();
 
-    const numeric = parseInt(
-        lastNumber.replace(SYSTEM.REGISTER_PREFIX, ""),
-        10
+    const current = Number(
+
+        last.registerNumber.replace(
+
+            REGISTER_PREFIX,
+
+            ""
+
+        )
+
     );
 
-    const nextNumber = (isNaN(numeric) ? 1 : numeric + 1);
+    return REGISTER_PREFIX +
 
-    return `${SYSTEM.REGISTER_PREFIX}${String(nextNumber).padStart(SYSTEM.REGISTER_DIGITS, "0")}`;
-
-}
-
-export async function getRegistrationCount() {
-
-    const snapshot = await getDocs(registrationsRef);
-
-    return snapshot.size;
+        pad(current + 1);
 
 }
-
 export async function getRemainingCapacity() {
 
-    const count = await getRegistrationCount();
+    const snapshot = await getDocs(
 
-    return Math.max(0, SYSTEM.MAX_CAPACITY - count);
+        registrationsRef
+
+    );
+
+    return MAX_CAPACITY -
+
+        snapshot.size;
 
 }
 
 export async function isCapacityFull() {
 
-    const remaining = await getRemainingCapacity();
+    const remaining =
+
+        await getRemainingCapacity();
 
     return remaining <= 0;
 
 }
-
 export async function registrationExists(tc) {
 
     const q = query(
+
         registrationsRef,
+
         where("tc", "==", tc)
+
     );
 
     const snapshot = await getDocs(q);
@@ -124,8 +139,11 @@ export async function registrationExists(tc) {
 export async function phoneExists(phone) {
 
     const q = query(
+
         registrationsRef,
+
         where("phone", "==", phone)
+
     );
 
     const snapshot = await getDocs(q);
@@ -135,47 +153,55 @@ export async function phoneExists(phone) {
 }
 export async function addRegistration(data) {
 
-    if (await isCapacityFull()) {
-        throw new Error("Kontenjan dolmuştur.");
-    }
-
     if (await registrationExists(data.tc)) {
-        throw new Error("Bu TC Kimlik Numarası ile kayıt bulunmaktadır.");
+
+        throw new Error("Bu T.C. Kimlik Numarası ile kayıt bulunmaktadır.");
+
     }
 
     if (await phoneExists(data.phone)) {
+
         throw new Error("Bu telefon numarası ile kayıt bulunmaktadır.");
+
     }
 
-    const registerNumber = await generateRegisterNumber();
+    if (await isCapacityFull()) {
+
+        throw new Error("Kontenjan dolmuştur.");
+
+    }
+
+    const registerNumber =
+
+        await generateRegisterNumber();
 
     const registration = {
 
         registerNumber,
 
-        name: data.name.trim(),
+        name: data.name,
 
-        tc: data.tc.trim(),
+        tc: data.tc,
 
-        phone: data.phone.trim(),
+        phone: data.phone,
 
-        email: data.email.trim(),
+        email: data.email,
 
         birth: data.birth,
 
         gender: data.gender,
 
-        school: data.school.trim(),
+        school: data.school,
 
-        class: data.class.trim(),
+        class: data.class,
 
-        parent: data.parent.trim(),
+        parent: data.parent,
 
-        parentPhone: data.parentPhone.trim(),
+        parentPhone: data.parentPhone,
 
-        address: data.address.trim(),
+        address: data.address,
 
-        note: data.note.trim(),
+        note: data.note,
 
         seat: "",
 
@@ -185,40 +211,34 @@ export async function addRegistration(data) {
 
     };
 
-    const docRef = await addDoc(
+    const ref = await addDoc(
+
         registrationsRef,
+
         registration
+
     );
-
-    await updateDoc(docRef, {
-
-        id: docRef.id
-
-    });
 
     return {
 
-        id: docRef.id,
+        id: ref.id,
 
         ...registration
 
     };
 
 }
-
 export async function getRegistration(id) {
 
-    const documentRef = doc(
-        db,
-        "registrations",
-        id
-    );
+    const snapshot = await getDoc(
 
-    const snapshot = await getDoc(documentRef);
+        doc(db, "kayitlar", id)
+
+    );
 
     if (!snapshot.exists()) {
 
-        throw new Error("Kayıt bulunamadı.");
+        return null;
 
     }
 
@@ -231,507 +251,259 @@ export async function getRegistration(id) {
     };
 
 }
+
 export async function getAllRegistrations() {
 
     const q = query(
+
         registrationsRef,
-        orderBy("registerNumber", "asc")
+
+        orderBy("registerNumber")
+
     );
 
     const snapshot = await getDocs(q);
 
-    return snapshot.docs.map(document => ({
+    return snapshot.docs.map(item => ({
 
-        id: document.id,
+        id: item.id,
 
-        ...document.data()
+        ...item.data()
 
     }));
 
 }
+export async function updateRegistration(
 
-export async function updateRegistration(id, data) {
+    id,
 
-    const documentRef = doc(
+    data
+
+) {
+
+    const ref = doc(
+
         db,
-        "registrations",
+
+        "kayitlar",
+
         id
+
     );
 
-    const payload = {
+    await updateDoc(
 
-        name: data.name.trim(),
+        ref,
 
-        tc: data.tc.trim(),
+        data
 
-        phone: data.phone.trim(),
-
-        email: data.email.trim(),
-
-        birth: data.birth,
-
-        gender: data.gender,
-
-        school: data.school.trim(),
-
-        class: data.class.trim(),
-
-        parent: data.parent.trim(),
-
-        parentPhone: data.parentPhone.trim(),
-
-        address: data.address.trim(),
-
-        note: data.note.trim(),
-
-        seat: data.seat ?? "",
-
-        checkedIn: Boolean(data.checkedIn)
-
-    };
-
-    await updateDoc(documentRef, payload);
-
-    return true;
-
-}
-
-export async function updateSeat(id, seat) {
-
-    const documentRef = doc(
-        db,
-        "registrations",
-        id
     );
-
-    await updateDoc(documentRef, {
-
-        seat: seat.trim()
-
-    });
-
-}
-
-export async function updateCheckIn(id, checkedIn) {
-
-    const documentRef = doc(
-        db,
-        "registrations",
-        id
-    );
-
-    await updateDoc(documentRef, {
-
-        checkedIn: Boolean(checkedIn)
-
-    });
 
 }
 
 export async function deleteRegistration(id) {
 
-    const documentRef = doc(
-        db,
-        "registrations",
-        id
+    await deleteDoc(
+
+        doc(
+
+            db,
+
+            "kayitlar",
+
+            id
+
+        )
+
     );
 
-    await deleteDoc(documentRef);
+}
+export async function updateSeat(
 
-    return true;
+    id,
+
+    seat
+
+) {
+
+    await updateDoc(
+
+        doc(db, "kayitlar", id),
+
+        {
+
+            seat
+
+        }
+
+    );
+
+}
+
+export async function updateCheckIn(
+
+    id,
+
+    checkedIn
+
+) {
+
+    await updateDoc(
+
+        doc(db, "kayitlar", id),
+
+        {
+
+            checkedIn
+
+        }
+
+    );
 
 }
 export async function searchRegistrations(searchText = "") {
 
-    const records = await getAllRegistrations();
+    const registrations =
 
-    const keyword = searchText
-        .trim()
-        .toLocaleLowerCase("tr-TR");
+        await getAllRegistrations();
 
-    if (!keyword) {
-        return records;
+    if (!searchText.trim()) {
+
+        return registrations;
+
     }
 
-    return records.filter(record => {
+    const text =
 
-        return (
+        searchText
+            .toLocaleLowerCase("tr");
 
-            (record.registerNumber ?? "")
-                .toLocaleLowerCase("tr-TR")
-                .includes(keyword)
+    return registrations.filter(item => {
 
-            ||
+        return [
 
-            (record.name ?? "")
-                .toLocaleLowerCase("tr-TR")
-                .includes(keyword)
+            item.registerNumber,
 
-            ||
+            item.name,
 
-            (record.tc ?? "")
-                .toLocaleLowerCase("tr-TR")
-                .includes(keyword)
+            item.tc,
 
-            ||
+            item.phone,
 
-            (record.phone ?? "")
-                .toLocaleLowerCase("tr-TR")
-                .includes(keyword)
+            item.parent,
 
-            ||
+            item.school,
 
-            (record.parent ?? "")
-                .toLocaleLowerCase("tr-TR")
-                .includes(keyword)
+            item.class,
 
-            ||
+            item.seat
 
-            (record.parentPhone ?? "")
-                .toLocaleLowerCase("tr-TR")
-                .includes(keyword)
+        ]
 
-            ||
+        .join(" ")
 
-            (record.school ?? "")
-                .toLocaleLowerCase("tr-TR")
-                .includes(keyword)
+        .toLocaleLowerCase("tr")
 
-            ||
-
-            (record.class ?? "")
-                .toLocaleLowerCase("tr-TR")
-                .includes(keyword)
-
-            ||
-
-            (record.seat ?? "")
-                .toLocaleLowerCase("tr-TR")
-                .includes(keyword);
+        .includes(text);
 
     });
 
 }
-
 export async function getStatistics() {
 
-    const registrations = await getAllRegistrations();
+    const registrations =
 
-    const total = registrations.length;
-
-    const checkedIn = registrations.filter(item =>
-        item.checkedIn === true
-    ).length;
-
-    const notCheckedIn = total - checkedIn;
-
-    const seated = registrations.filter(item =>
-        item.seat && item.seat.trim() !== ""
-    ).length;
-
-    const withoutSeat = total - seated;
-
-    const remaining = Math.max(
-        0,
-        SYSTEM.MAX_CAPACITY - total
-    );
+        await getAllRegistrations();
 
     return {
 
-        total,
+        total:
 
-        checkedIn,
+            registrations.length,
 
-        notCheckedIn,
+        remaining:
 
-        seated,
+            MAX_CAPACITY -
 
-        withoutSeat,
+            registrations.length,
 
-        remaining,
+        checkedIn:
 
-        capacity: SYSTEM.MAX_CAPACITY
+            registrations.filter(
+
+                x => x.checkedIn
+
+            ).length,
+
+        absent:
+
+            registrations.filter(
+
+                x => !x.checkedIn
+
+            ).length,
+
+        assignedSeat:
+
+            registrations.filter(
+
+                x => x.seat
+
+            ).length,
+
+        unassignedSeat:
+
+            registrations.filter(
+
+                x => !x.seat
+
+            ).length
 
     };
 
 }
-export async function assignSeat(id, seatNumber) {
+export async function updateManySeats(
 
-    const seat = String(seatNumber).trim();
+    updates
 
-    if (!seat) {
-        throw new Error("Koltuk numarası boş olamaz.");
-    }
+) {
 
-    const registrations = await getAllRegistrations();
+    for (const item of updates) {
 
-    const duplicate = registrations.find(item => {
+        await updateSeat(
 
-        return item.id !== id &&
-               (item.seat ?? "").trim() === seat;
+            item.id,
 
-    });
+            item.seat
 
-    if (duplicate) {
-        throw new Error("Bu koltuk numarası başka bir öğrenciye atanmış.");
-    }
-
-    const documentRef = doc(
-        db,
-        "registrations",
-        id
-    );
-
-    await updateDoc(documentRef, {
-
-        seat
-
-    });
-
-    return true;
-
-}
-
-export async function removeSeat(id) {
-
-    const documentRef = doc(
-        db,
-        "registrations",
-        id
-    );
-
-    await updateDoc(documentRef, {
-
-        seat: ""
-
-    });
-
-    return true;
-
-}
-
-export async function setCheckIn(id, value) {
-
-    const documentRef = doc(
-        db,
-        "registrations",
-        id
-    );
-
-    await updateDoc(documentRef, {
-
-        checkedIn: Boolean(value)
-
-    });
-
-    return true;
-
-}
-
-export async function toggleCheckIn(id) {
-
-    const registration = await getRegistration(id);
-
-    const newValue = !registration.checkedIn;
-
-    await setCheckIn(id, newValue);
-
-    return newValue;
-
-}
-export async function deleteMany(ids = []) {
-
-    if (!Array.isArray(ids) || ids.length === 0) {
-        return;
-    }
-
-    const batch = writeBatch(db);
-
-    ids.forEach(id => {
-
-        const documentRef = doc(
-            db,
-            "registrations",
-            id
         );
 
-        batch.delete(documentRef);
-
-    });
-
-    await batch.commit();
+    }
 
 }
 
-export async function updateManySeats(seatMap = []) {
+export async function updateManyCheckIn(
 
-    if (!Array.isArray(seatMap) || seatMap.length === 0) {
-        return;
-    }
+    updates
 
-    const registrations = await getAllRegistrations();
+) {
 
-    const usedSeats = new Set();
+    for (const item of updates) {
 
-    registrations.forEach(item => {
+        await updateCheckIn(
 
-        if (item.seat) {
+            item.id,
 
-            usedSeats.add(item.seat.trim());
+            item.checkedIn
 
-        }
-
-    });
-
-    for (const item of seatMap) {
-
-        const seat = String(item.seat).trim();
-
-        const current = registrations.find(r => r.id === item.id);
-
-        if (
-            usedSeats.has(seat) &&
-            current?.seat !== seat
-        ) {
-
-            throw new Error(`Koltuk ${seat} zaten kullanılıyor.`);
-
-        }
-
-        usedSeats.add(seat);
-
-    }
-
-    const batch = writeBatch(db);
-
-    seatMap.forEach(item => {
-
-        const documentRef = doc(
-            db,
-            "registrations",
-            item.id
         );
 
-        batch.update(documentRef, {
-
-            seat: String(item.seat).trim()
-
-        });
-
-    });
-
-    await batch.commit();
-
-}
-
-export async function setManyCheckIn(ids = [], value = true) {
-
-    if (!Array.isArray(ids) || ids.length === 0) {
-        return;
     }
-
-    const batch = writeBatch(db);
-
-    ids.forEach(id => {
-
-        const documentRef = doc(
-            db,
-            "registrations",
-            id
-        );
-
-        batch.update(documentRef, {
-
-            checkedIn: Boolean(value)
-
-        });
-
-    });
-
-    await batch.commit();
 
 }
 export async function exportRegistrations() {
 
-    const registrations = await getAllRegistrations();
-
-    return JSON.stringify(registrations, null, 2);
-
-}
-
-export async function importRegistrations(registrations = []) {
-
-    if (!Array.isArray(registrations)) {
-        throw new Error("Geçersiz veri.");
-    }
-
-    const batch = writeBatch(db);
-
-    for (const item of registrations) {
-
-        const documentRef = doc(registrationsRef);
-
-        batch.set(documentRef, {
-
-            registerNumber: item.registerNumber ?? "",
-
-            name: item.name ?? "",
-
-            tc: item.tc ?? "",
-
-            phone: item.phone ?? "",
-
-            email: item.email ?? "",
-
-            birth: item.birth ?? "",
-
-            gender: item.gender ?? "",
-
-            school: item.school ?? "",
-
-            class: item.class ?? "",
-
-            parent: item.parent ?? "",
-
-            parentPhone: item.parentPhone ?? "",
-
-            address: item.address ?? "",
-
-            note: item.note ?? "",
-
-            seat: item.seat ?? "",
-
-            checkedIn: Boolean(item.checkedIn),
-
-            createdAt: serverTimestamp()
-
-        });
-
-    }
-
-    await batch.commit();
-
-}
-
-export async function login(email, password) {
-
-    return await signInWithEmailAndPassword(
-        auth,
-        email,
-        password
-    );
-
-}
-
-export async function logout() {
-
-    await signOut(auth);
-
-}
-
-export function authListener(callback) {
-
-    return onAuthStateChanged(auth, callback);
+    return await getAllRegistrations();
 
 }
 
@@ -776,108 +548,15 @@ export function createEmptyRegistration() {
     };
 
 }
-export function formatRegistration(record = {}) {
-
-    return {
-
-        id: record.id ?? "",
-
-        registerNumber: record.registerNumber ?? "",
-
-        name: record.name ?? "",
-
-        tc: record.tc ?? "",
-
-        phone: record.phone ?? "",
-
-        email: record.email ?? "",
-
-        birth: record.birth ?? "",
-
-        gender: record.gender ?? "",
-
-        school: record.school ?? "",
-
-        class: record.class ?? "",
-
-        parent: record.parent ?? "",
-
-        parentPhone: record.parentPhone ?? "",
-
-        address: record.address ?? "",
-
-        note: record.note ?? "",
-
-        seat: record.seat ?? "",
-
-        checkedIn: Boolean(record.checkedIn),
-
-        createdAt: record.createdAt ?? null
-
-    };
-
-}
-
-export function sortByRegisterNumber(records = []) {
-
-    return [...records].sort((a, b) => {
-
-        const first = Number(
-            String(a.registerNumber)
-                .replace(SYSTEM.REGISTER_PREFIX, "")
-        );
-
-        const second = Number(
-            String(b.registerNumber)
-                .replace(SYSTEM.REGISTER_PREFIX, "")
-        );
-
-        return first - second;
-
-    });
-
-}
-
-export function sortBySeat(records = []) {
-
-    return [...records].sort((a, b) => {
-
-        const first = Number(a.seat || 99999);
-
-        const second = Number(b.seat || 99999);
-
-        return first - second;
-
-    });
-
-}
-
-export function sortByName(records = []) {
-
-    return [...records].sort((a, b) =>
-
-        a.name.localeCompare(
-            b.name,
-            "tr"
-        )
-
-    );
-
-}
-
 export default {
 
     db,
 
-    auth,
-
     registrationsRef,
 
-    SYSTEM,
+    MAX_CAPACITY,
 
     generateRegisterNumber,
-
-    getRegistrationCount,
 
     getRemainingCapacity,
 
@@ -895,48 +574,22 @@ export default {
 
     updateRegistration,
 
+    deleteRegistration,
+
     updateSeat,
 
     updateCheckIn,
-
-    deleteRegistration,
 
     searchRegistrations,
 
     getStatistics,
 
-    assignSeat,
-
-    removeSeat,
-
-    setCheckIn,
-
-    toggleCheckIn,
-
-    deleteMany,
-
     updateManySeats,
 
-    setManyCheckIn,
+    updateManyCheckIn,
 
     exportRegistrations,
 
-    importRegistrations,
-
-    login,
-
-    logout,
-
-    authListener,
-
-    createEmptyRegistration,
-
-    formatRegistration,
-
-    sortByRegisterNumber,
-
-    sortBySeat,
-
-    sortByName
+    createEmptyRegistration
 
 };
