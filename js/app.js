@@ -1,4 +1,4 @@
-alert("app.js yüklendi");
+
 import { downloadPDF } from "./pdf.js";
 import {
     addRegistration,
