@@ -1,69 +1,151 @@
-export function generateQR(kayitNo) {
+// ===============================
+// QR Code Module
+// ===============================
 
-    console.log("generateQR çalıştı", kayitNo);
+let qrInstance = null;
 
-    const alan = document.getElementById("qrcode");
 
-    if (!alan) return;
+// ===============================
+// Generate QR
+// ===============================
 
-    alan.innerHTML = "";
+export function generateQR(text, elementId = "qrcode") {
 
-    new QRCode(alan, {
+    const container =
+        document.getElementById(elementId);
 
-        text: kayitNo,
+    if (!container)
+        return;
+
+    container.innerHTML = "";
+
+    qrInstance = new QRCode(container, {
+
+        text,
+
         width: 220,
+
         height: 220,
-        colorDark: "#000000",
+
+        colorDark: "#111827",
+
         colorLight: "#ffffff",
+
         correctLevel: QRCode.CorrectLevel.H
 
     });
 
 }
 
-export function qrResmiAl() {
 
-    const canvas = document.querySelector("#qrcode canvas");
+// ===============================
+// Clear QR
+// ===============================
 
-    if (canvas) {
+export function clearQR(elementId = "qrcode") {
 
-        return canvas.toDataURL("image/png");
+    const container =
+        document.getElementById(elementId);
 
-    }
+    if (!container)
+        return;
 
-    const img = document.querySelector("#qrcode img");
+    container.innerHTML = "";
 
-    if (img) {
-
-        return img.src;
-
-    }
-
-    return null;
+    qrInstance = null;
 
 }
 
-export function qrIndir(kayitNo) {
 
-    const veri = qrResmiAl();
+// ===============================
+// Download QR
+// ===============================
 
-    if (!veri) {
+export function downloadQR(fileName = "qr-code") {
 
-        alert("QR kod oluşturulamadı.");
+    const canvas =
+        document.querySelector("#qrcode canvas");
 
+    if (!canvas)
         return;
 
-    }
+    const link =
+        document.createElement("a");
 
-    const link = document.createElement("a");
+    link.download =
+        `${fileName}.png`;
 
-    link.href = veri;
-
-    link.download = `${kayitNo}-QR.png`;
+    link.href =
+        canvas.toDataURL("image/png");
 
     link.click();
 
 }
+// ===============================
+// Get QR Image
+// ===============================
 
-window.generateQR = generateQR;
-window.qrIndir = qrIndir;
+export function getQRImage() {
+
+    const canvas =
+        document.querySelector("#qrcode canvas");
+
+    if (!canvas)
+        return null;
+
+    return canvas.toDataURL("image/png");
+
+}
+
+
+// ===============================
+// Print QR
+// ===============================
+
+export function printQR() {
+
+    const image =
+        getQRImage();
+
+    if (!image)
+        return;
+
+    const win =
+        window.open("", "_blank");
+
+    win.document.write(`
+
+        <html>
+
+        <head>
+
+        <title>QR Kod</title>
+
+        </head>
+
+        <body style="display:flex;justify-content:center;align-items:center;height:100vh;">
+
+        <img src="${image}" style="width:300px;">
+
+        </body>
+
+        </html>
+
+    `);
+
+    win.document.close();
+
+    win.print();
+
+}
+
+
+// ===============================
+// QR Exists
+// ===============================
+
+export function hasQR() {
+
+    return document.querySelector("#qrcode canvas") !== null;
+
+}
