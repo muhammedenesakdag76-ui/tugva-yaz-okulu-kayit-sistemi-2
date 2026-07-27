@@ -346,3 +346,64 @@ export async function searchRegistrations(searchText) {
     });
 
 }
+export async function getStatistics() {
+
+    const registrations = await getRegistrations();
+
+    const total = registrations.length;
+
+    const checkedIn = registrations.filter(
+
+        item => item.checkedIn
+
+    ).length;
+
+    const seated = registrations.filter(
+
+        item => item.seat !== null &&
+                item.seat !== ""
+
+    ).length;
+
+    const remaining = Math.max(
+
+        0,
+
+        MAX_CAPACITY - total
+
+    );
+
+    return {
+
+        total,
+
+        checkedIn,
+
+        seated,
+
+        remaining
+
+    };
+
+}
+export async function updateRegistration(id, data) {
+
+    const ref = doc(
+
+        db,
+
+        "registrations",
+
+        id
+
+    );
+
+    await updateDoc(
+
+        ref,
+
+        data
+
+    );
+
+}
