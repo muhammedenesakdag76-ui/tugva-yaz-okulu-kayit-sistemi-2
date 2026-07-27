@@ -457,3 +457,106 @@ font-weight:600;
 text-align:center;
 
 }
+/* style.css */
+/* Check-in Bölümü */
+/* Parça 1/5 */
+
+#reader{
+
+width:100%;
+
+max-width:550px;
+
+margin:auto;
+
+}
+
+.check-result{
+
+font-size:22px;
+
+font-weight:700;
+
+text-align:center;
+
+padding:35px;
+
+border-radius:15px;
+
+background:#f8fafc;
+
+}
+/* style.css */
+/* Parça 2/5 */
+
+#manualCode{
+
+flex:1;
+
+min-width:260px;
+
+}
+
+#manualButton{
+
+min-width:180px;
+
+}
+/* style.css */
+/* Parça 3/5 */
+
+.success-result{
+
+background:#dcfce7;
+
+color:#166534;
+
+}
+
+.error-result{
+
+background:#fee2e2;
+
+color:#991b1b;
+
+}
+
+.warning-result{
+
+background:#fef3c7;
+
+color:#92400e;
+
+}
+/* style.css */
+/* Parça 4/5 */
+
+#reader video{
+
+border-radius:15px;
+
+}
+
+#reader img{
+
+border-radius:15px;
+
+}
+/* style.css */
+/* Parça 5/5 (Son) */
+
+@media(max-width:700px){
+
+#reader{
+
+max-width:100%;
+
+}
+
+#manualButton{
+
+width:100%;
+
+}
+
+}
