@@ -1,88 +1,284 @@
+// admin.js
+// Profesyonel Sürüm
+// Parça 1/12
+
 import {
     authListener,
     logout,
-    getAllRegistrations,
+    listenRegistrations,
     getStatistics,
     updateSeat,
     deleteRegistration,
     checkIn,
-    checkOut,
-    searchParticipants
+    checkOut
 } from "./firebase.js";
 
 const table =
-    document.getElementById("participantTable");
+document.getElementById("participantTable");
+
+const search =
+document.getElementById("search");
+
+const statusFilter =
+document.getElementById("statusFilter");
+
+const sortSelect =
+document.getElementById("sortSelect");
 
 const totalCount =
-    document.getElementById("totalCount");
+document.getElementById("totalCount");
 
 const checkedCount =
-    document.getElementById("checkedCount");
+document.getElementById("checkedCount");
+
+const waitingCount =
+document.getElementById("waitingCount");
 
 const remainingCount =
-    document.getElementById("remainingCount");
+document.getElementById("remainingCount");
 
-const searchInput =
-    document.getElementById("search");
+const loading =
+document.getElementById("loadingOverlay");
+
+const emptyState =
+document.getElementById("emptyState");
 
 const logoutBtn =
-    document.getElementById("logoutBtn");
+document.getElementById("logoutBtn");
 
 let participants = [];
 
-authListener(user => {
+let filtered = [];
 
-    if (!user) {
+let selectedParticipant = null;
 
-        location.href = "login.html";
+authListener(user=>{
 
-    }
+if(!user){
 
-});
-
-logoutBtn.addEventListener("click", async () => {
-
-    await logout();
-
-    location.href = "login.html";
-
-});
-async function loadStatistics() {
-
-    const stats =
-        await getStatistics();
-
-    totalCount.textContent =
-        stats.total;
-
-    checkedCount.textContent =
-        stats.checkedIn;
-
-    remainingCount.textContent =
-        stats.remaining;
+location.href="login.html";
 
 }
 
-async function loadParticipants() {
+});
 
-    participants =
-        await getAllRegistrations();
+logoutBtn.addEventListener(
 
-    renderTable(participants);
+"click",
 
-    loadStatistics();
+async()=>{
+
+await logout();
+
+location.href="login.html";
 
 }
-function renderTable(list) {
 
-    table.innerHTML = "";
+);
+// admin.js
+// Parça 2/12
 
-    list.forEach(item => {
+function showLoading(show=true){
 
-        const row =
-            document.createElement("tr");
+loading.classList.toggle(
+"hidden",
+!show
+);
 
-        row.innerHTML = `
+}
+
+async function loadStatistics(){
+
+const stats=
+await getStatistics();
+
+totalCount.textContent=
+stats.total;
+
+checkedCount.textContent=
+stats.checkedIn;
+
+waitingCount.textContent=
+stats.waiting;
+
+remainingCount.textContent=
+stats.remaining;
+
+}
+
+function updateEmptyState(){
+
+emptyState.classList.toggle(
+
+"hidden",
+
+filtered.length!==0
+
+);
+
+}
+
+function applyFilters(){
+
+const keyword=
+search.value
+.trim()
+.toLowerCase();
+
+const status=
+statusFilter.value;
+
+filtered=
+participants.filter(item=>{
+
+const matchSearch=
+
+item.adSoyad
+.toLowerCase()
+.includes(keyword)
+
+||
+
+item.kayitNo
+.toLowerCase()
+.includes(keyword)
+
+||
+
+item.tc
+.includes(keyword)
+
+||
+
+item.telefon
+.includes(keyword);
+
+let matchStatus=true;
+
+if(status==="checked"){
+
+matchStatus=
+item.checkedIn;
+
+}
+
+if(status==="waiting"){
+
+matchStatus=
+!item.checkedIn;
+
+}
+
+return(
+matchSearch&&
+matchStatus
+);
+
+});
+
+sortParticipants();
+
+renderTable();
+
+updateEmptyState();
+
+}
+// admin.js
+// Parça 3/12
+
+function sortParticipants(){
+
+switch(sortSelect.value){
+
+case "name":
+
+filtered.sort(
+
+(a,b)=>
+
+a.adSoyad.localeCompare(
+
+b.adSoyad,
+
+"tr"
+
+)
+
+);
+
+break;
+
+case "oldest":
+
+filtered.sort(
+
+(a,b)=>
+
+a.createdAt?.seconds-
+
+b.createdAt?.seconds
+
+);
+
+break;
+
+case "seat":
+
+filtered.sort(
+
+(a,b)=>
+
+(a.seat||"")
+
+.localeCompare(
+
+b.seat||"",
+
+"tr"
+
+)
+
+);
+
+break;
+
+default:
+
+filtered.sort(
+
+(a,b)=>
+
+b.createdAt?.seconds-
+
+a.createdAt?.seconds
+
+);
+
+}
+
+}
+// admin.js
+// Parça 4/12
+
+function renderTable(){
+
+table.innerHTML="";
+
+filtered.forEach(item=>{
+
+const tr=
+document.createElement("tr");
+
+tr.innerHTML=`
+
+<td>
+
+<input
+type="checkbox"
+class="row-checkbox"
+data-id="${item.kayitNo}">
+
+</td>
 
 <td>${item.kayitNo}</td>
 
@@ -90,38 +286,58 @@ function renderTable(list) {
 
 <td>${item.telefon}</td>
 
+<td>${item.okul}</td>
+
 <td>
 
 <input
+
 class="seat-input"
+
 data-id="${item.kayitNo}"
-value="${item.seat || ""}"
-placeholder="A1">
+
+value="${item.seat||""}"
+
+maxlength="5">
 
 </td>
 
 <td>
 
-${item.checkedIn
-? "✅ Giriş"
-: "❌ Bekliyor"}
+<span class="status ${item.checkedIn?"checked":"waiting"}">
+
+${item.checkedIn?"Giriş":"Bekliyor"}
+
+</span>
 
 </td>
 
 <td>
 
 <button
-class="check-btn"
+
+class="view-btn"
+
 data-id="${item.kayitNo}">
 
-${item.checkedIn
-? "Çıkış"
-: "Giriş"}
+Detay
 
 </button>
 
 <button
+
+class="check-btn"
+
+data-id="${item.kayitNo}">
+
+${item.checkedIn?"Çıkış":"Giriş"}
+
+</button>
+
+<button
+
 class="delete-btn"
+
 data-id="${item.kayitNo}">
 
 Sil
@@ -132,20 +348,29 @@ Sil
 
 `;
 
-        table.appendChild(row);
+table.appendChild(tr);
 
-    });
+});
 
-    bindEvents();
+bindRowEvents();
 
 }
-function bindEvents() {
+// admin.js
+// Parça 5/12
 
-document.querySelectorAll(".seat-input")
+function bindRowEvents(){
+
+document
+
+.querySelectorAll(".seat-input")
 
 .forEach(input=>{
 
-input.addEventListener("change",async()=>{
+input.addEventListener(
+
+"change",
+
+async()=>{
 
 await updateSeat(
 
@@ -155,41 +380,165 @@ input.value.trim()
 
 );
 
-});
+}
+
+);
 
 });
 
-document.querySelectorAll(".delete-btn")
+document
+
+.querySelectorAll(".view-btn")
 
 .forEach(btn=>{
 
-btn.addEventListener("click",async()=>{
+btn.onclick=()=>{
 
-if(!confirm("Bu kayıt silinsin mi?"))
-
-return;
-
-await deleteRegistration(
+openParticipant(
 
 btn.dataset.id
 
 );
 
-loadParticipants();
+};
 
 });
 
-});
+document
 
-document.querySelectorAll(".check-btn")
+.querySelectorAll(".delete-btn")
 
 .forEach(btn=>{
 
-btn.addEventListener("click",async()=>{
+btn.onclick=()=>{
 
-const id=
+confirmDelete(
 
-btn.dataset.id;
+btn.dataset.id
+
+);
+
+};
+
+});
+
+document
+
+.querySelectorAll(".check-btn")
+
+.forEach(btn=>{
+
+btn.onclick=()=>{
+
+toggleCheck(
+
+btn.dataset.id
+
+);
+
+};
+
+});
+
+}
+// admin.js
+// Parça 6/12
+
+function openParticipant(id){
+
+selectedParticipant=
+
+participants.find(
+
+x=>x.kayitNo===id
+
+);
+
+if(!selectedParticipant){
+
+return;
+
+}
+
+participantDialog.showModal();
+
+detailRegisterNo.textContent=
+selectedParticipant.kayitNo;
+
+detailName.textContent=
+selectedParticipant.adSoyad;
+
+detailTC.textContent=
+selectedParticipant.tc;
+
+detailPhone.textContent=
+selectedParticipant.telefon;
+
+detailParent.textContent=
+selectedParticipant.veliAdi;
+
+detailParentPhone.textContent=
+selectedParticipant.veliTelefon;
+
+detailSchool.textContent=
+selectedParticipant.okul;
+
+detailClass.textContent=
+selectedParticipant.sinif;
+
+detailStatus.textContent=
+
+selectedParticipant.checkedIn
+
+?
+
+"Giriş Yaptı"
+
+:
+
+"Bekliyor";
+
+detailSeat.value=
+
+selectedParticipant.seat||"";
+
+}
+// admin.js
+// Parça 7/12
+
+saveParticipantBtn.onclick=
+
+async()=>{
+
+if(!selectedParticipant){
+
+return;
+
+}
+
+await updateSeat(
+
+selectedParticipant.kayitNo,
+
+detailSeat.value.trim()
+
+);
+
+participantDialog.close();
+
+};
+
+closeParticipantBtn.onclick=
+
+()=>participantDialog.close();
+
+participantDialogClose.onclick=
+
+()=>participantDialog.close();
+// admin.js
+// Parça 8/12
+
+async function toggleCheck(id){
 
 const participant=
 
@@ -198,6 +547,12 @@ participants.find(
 x=>x.kayitNo===id
 
 );
+
+if(!participant){
+
+return;
+
+}
 
 if(participant.checkedIn){
 
@@ -209,39 +564,97 @@ await checkIn(id);
 
 }
 
-loadParticipants();
+}
 
-});
+function confirmDelete(id){
 
-});
+selectedParticipant=id;
+
+confirmDialog.showModal();
 
 }
-searchInput.addEventListener(
+// admin.js
+// Parça 9/12
 
-"input",
+confirmYes.onclick=
 
 async()=>{
 
-const text=
+await deleteRegistration(
 
-searchInput.value.trim();
+selectedParticipant
 
-if(text===""){
+);
 
-renderTable(participants);
+confirmDialog.close();
 
-return;
+};
 
-}
+confirmNo.onclick=
 
-const result=
+()=>{
 
-await searchParticipants(text);
+confirmDialog.close();
 
-renderTable(result);
+};
+// admin.js
+// Parça 10/12
+
+search.addEventListener(
+
+"input",
+
+applyFilters
+
+);
+
+statusFilter.addEventListener(
+
+"change",
+
+applyFilters
+
+);
+
+sortSelect.addEventListener(
+
+"change",
+
+applyFilters
+
+);
+// admin.js
+// Parça 11/12
+
+listenRegistrations(
+
+list=>{
+
+participants=list;
+
+applyFilters();
+
+loadStatistics();
+
+showLoading(false);
 
 }
 
 );
 
-loadParticipants();
+showLoading(true);
+// admin.js
+// Parça 12/12 (Son)
+
+window.addEventListener(
+
+"DOMContentLoaded",
+
+()=>{
+
+applyFilters();
+
+loadStatistics();
+
+}
+);
