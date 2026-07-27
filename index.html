@@ -1,6 +1,7 @@
-<!-- index.html -->
-<!-- Parça 1/8 -->
-
+<!-- =====================================================
+index.html
+BÖLÜM 1/10
+===================================================== -->
 <!DOCTYPE html>
 <html lang="tr">
 
@@ -8,58 +9,47 @@
 
 <meta charset="UTF-8">
 
-<meta
-name="viewport"
+<meta name="viewport"
 content="width=device-width, initial-scale=1.0">
 
-<title>TÜGVA Yaz Okulu Kayıt</title>
+<title>TÜGVA Yaz Okulu Kayıt Sistemi</title>
 
 <link rel="stylesheet" href="css/style.css">
 
-<link
-rel="preconnect"
+<link rel="preconnect"
 href="https://fonts.googleapis.com">
 
-<link
-rel="preconnect"
+<link rel="preconnect"
 href="https://fonts.gstatic.com"
 crossorigin>
 
-<link
-href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap"
 rel="stylesheet">
 
-<script
-src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js">
-</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
-<script
-src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js">
-</script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
-<script
-src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js">
-</script>
+<script src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js"></script>
 
 </head>
 
 <body>
 
-<div class="background"></div>
-
 <div class="container">
 
 <header class="hero">
 
-<h1>
+<img
+src="images/logo.png"
+alt="TÜGVA Logo"
+class="hero-logo">
 
-TÜGVA Yaz Okulu
-
-</h1>
+<h1>TÜGVA Yaz Okulu</h1>
 
 <p>
 
-Online Kayıt Sistemi
+2026 Online Kayıt Sistemi
 
 </p>
 
@@ -67,11 +57,11 @@ Online Kayıt Sistemi
 
 <section class="capacity-card">
 
-<h2>
+<div class="capacity-title">
 
 Kalan Kontenjan
 
-</h2>
+</div>
 
 <div
 id="remainingCapacity"
@@ -96,105 +86,103 @@ Kayıt Formu
 <form
 id="registerForm">
 
-<div class="grid">
-<!-- index.html -->
-<!-- Parça 2/8 -->
+<div class="form-grid">
+<!-- =====================================================
+index.html
+BÖLÜM 2/10
+===================================================== -->
 
 <div class="form-group">
 
-<label>
+<label for="adSoyad">
 
 Ad Soyad
 
 </label>
 
 <input
-
 type="text"
-
 id="adSoyad"
-
+name="adSoyad"
+placeholder="Ad Soyad"
+autocomplete="name"
 required>
 
 </div>
 
 <div class="form-group">
 
-<label>
+<label for="tc">
 
-TC Kimlik No
+TC Kimlik Numarası
 
 </label>
 
 <input
-
 type="text"
-
 id="tc"
-
+name="tc"
 maxlength="11"
-
+inputmode="numeric"
+placeholder="11 haneli TC Kimlik No"
 required>
 
 </div>
 
 <div class="form-group">
 
-<label>
+<label for="telefon">
 
 Telefon
 
 </label>
 
 <input
-
-type="text"
-
+type="tel"
 id="telefon"
-
+name="telefon"
 maxlength="11"
-
+inputmode="numeric"
+placeholder="05XXXXXXXXX"
 required>
 
 </div>
 
 <div class="form-group">
 
-<label>
+<label for="email">
 
 E-Posta
 
 </label>
 
 <input
-
 type="email"
-
-id="email">
+id="email"
+name="email"
+placeholder="ornek@mail.com">
 
 </div>
 
 <div class="form-group">
 
-<label>
+<label for="dogumTarihi">
 
 Doğum Tarihi
 
 </label>
 
 <input
-
 type="date"
-
 id="dogumTarihi"
-
+name="dogumTarihi"
 required>
 
 </div>
 
 <div class="form-group">
 
-<label>
+<label for="cinsiyet">
 
 Cinsiyet
 
@@ -202,6 +190,7 @@ Cinsiyet
 
 <select
 id="cinsiyet"
+name="cinsiyet"
 required>
 
 <option value="">
@@ -210,13 +199,13 @@ Seçiniz
 
 </option>
 
-<option>
+<option value="Erkek">
 
 Erkek
 
 </option>
 
-<option>
+<option value="Kız">
 
 Kız
 
@@ -225,99 +214,113 @@ Kız
 </select>
 
 </div>
-<!-- index.html -->
-<!-- Parça 3/8 -->
+<!-- =====================================================
+index.html
+BÖLÜM 3/10
+===================================================== -->
 
 <div class="form-group">
 
-<label>
+<label for="okul">
 
 Okul
 
 </label>
 
 <input
-
 type="text"
-
 id="okul"
-
+name="okul"
+placeholder="Okul Adı"
 required>
 
 </div>
 
 <div class="form-group">
 
-<label>
+<label for="sinif">
 
 Sınıf
 
 </label>
 
-<input
-
-type="text"
-
+<select
 id="sinif"
-
+name="sinif"
 required>
+
+<option value="">
+
+Sınıf Seçiniz
+
+</option>
+
+<option>5. Sınıf</option>
+<option>6. Sınıf</option>
+<option>7. Sınıf</option>
+<option>8. Sınıf</option>
+<option>9. Sınıf</option>
+<option>10. Sınıf</option>
+<option>11. Sınıf</option>
+<option>12. Sınıf</option>
+
+</select>
 
 </div>
 
 <div class="form-group">
 
-<label>
+<label for="veliAdi">
 
-Veli Adı
+Veli Adı Soyadı
 
 </label>
 
 <input
-
 type="text"
-
 id="veliAdi"
-
+name="veliAdi"
+placeholder="Veli Adı Soyadı"
 required>
 
 </div>
 
 <div class="form-group">
 
-<label>
+<label for="veliTelefon">
 
-Veli Telefon
+Veli Telefonu
 
 </label>
 
 <input
-
-type="text"
-
+type="tel"
 id="veliTelefon"
-
+name="veliTelefon"
 maxlength="11"
-
+inputmode="numeric"
+placeholder="05XXXXXXXXX"
 required>
 
 </div>
-<!-- index.html -->
-<!-- Parça 4/8 -->
+<!-- =====================================================
+index.html
+BÖLÜM 4/10
+===================================================== -->
 
 <div class="form-group full">
 
-<label>
+<label for="adres">
 
 Adres
 
 </label>
 
 <textarea
-
 id="adres"
-
+name="adres"
 rows="4"
-
+placeholder="Açık adresinizi yazınız..."
 required>
 
 </textarea>
@@ -326,37 +329,32 @@ required>
 
 <div class="form-group full">
 
-<label>
+<label for="note">
 
-Not
+Ek Not
 
 </label>
 
 <textarea
-
 id="note"
-
-rows="3">
+name="note"
+rows="3"
+placeholder="Varsa belirtmek istediğiniz bir not yazabilirsiniz.">
 
 </textarea>
 
 </div>
-<!-- index.html -->
-<!-- Parça 5/8 -->
 
 <div class="checkbox-group full">
 
-<label>
-
 <input
-
 type="checkbox"
-
 id="kvkk"
-
 required>
 
-KVKK Aydınlatma Metnini Okudum.
+<label for="kvkk">
+
+KVKK Aydınlatma Metnini okudum, kabul ediyorum.
 
 </label>
 
@@ -364,17 +362,14 @@ KVKK Aydınlatma Metnini Okudum.
 
 <div class="checkbox-group full">
 
-<label>
-
 <input
-
 type="checkbox"
-
 id="parent"
-
 required>
 
-Veli Olarak Onaylıyorum.
+<label for="parent">
+
+Veli olarak öğrencimin kayıt işlemini onaylıyorum.
 
 </label>
 
@@ -383,10 +378,8 @@ Veli Olarak Onaylıyorum.
 <div class="form-group full">
 
 <button
-
 type="submit"
-
-class="btn btn-primary">
+class="btn">
 
 Kaydı Tamamla
 
@@ -399,20 +392,19 @@ Kaydı Tamamla
 </form>
 
 </section>
-<!-- index.html -->
-<!-- Parça 6/8 -->
+<!-- =====================================================
+index.html
+BÖLÜM 5/10
+BAŞARI EKRANI
+===================================================== -->
 
 <section
-
 id="successCard"
-
-class="card"
-
-style="display:none;">
+class="success-card">
 
 <h2>
 
-Kayıt Başarılı
+🎉 Kayıt Başarıyla Tamamlandı
 
 </h2>
 
@@ -422,24 +414,25 @@ Kayıt Numaranız
 
 </p>
 
-<h1 id="registerNumber">
+<div id="registerNumber">
 
-</h1>
+</div>
 
 <div id="qrcode">
 
 </div>
-<!-- index.html -->
-<!-- Parça 7/8 -->
+
+<p>
+
+Lütfen QR kodunuzu ve kayıt numaranızı saklayınız.
+Yaz okuluna girişte bu QR kod kullanılacaktır.
+
+</p>
 
 <div class="button-group">
 
 <button
-
 id="downloadPdf"
-
-class="btn btn-success"
-
 type="button">
 
 PDF İndir
@@ -447,11 +440,7 @@ PDF İndir
 </button>
 
 <button
-
 id="newRegister"
-
-class="btn btn-secondary"
-
 type="button">
 
 Yeni Kayıt
@@ -461,23 +450,99 @@ Yeni Kayıt
 </div>
 
 </section>
+<!-- =====================================================
+index.html
+BÖLÜM 6/10
+FOOTER
+===================================================== -->
 
-<footer>
+<footer class="footer">
+
+<div class="footer-content">
+
+<h3>
+
+TÜGVA Selçuk Yaz Okulu
+
+</h3>
 
 <p>
 
-© 2026 TÜGVA Yaz Okulu
+Bu sistem TÜGVA Selçuk Yaz Okulu öğrencilerinin
+çevrim içi kayıt işlemleri için hazırlanmıştır.
 
 </p>
 
+<div class="footer-info">
+
+<span>
+
+📍 Selçuk / Konya
+
+</span>
+
+<span>
+
+📞 İletişim:
+0 (332) XXX XX XX
+
+</span>
+
+</div>
+
+</div>
+
 </footer>
-<!-- index.html -->
-<!-- Parça 8/8 (Son) -->
+<!-- =====================================================
+index.html
+BÖLÜM 7/10
+YÜKLENİYOR
+===================================================== -->
+
+<div
+id="loadingOverlay"
+class="loading-overlay hidden">
+
+<div class="spinner"></div>
+
+<p>
+
+İşleminiz gerçekleştiriliyor...
+
+</p>
+
+</div>
+<!-- =====================================================
+index.html
+BÖLÜM 8/10
+BİLDİRİM KUTUSU
+===================================================== -->
+
+<div
+id="toast"
+class="toast hidden">
+
+<span id="toastText">
+
+</span>
+
+</div>
+<!-- =====================================================
+index.html
+BÖLÜM 9/10
+JAVASCRIPT
+===================================================== -->
 
 <script
 type="module"
 src="js/app.js">
+
 </script>
+<!-- =====================================================
+index.html
+BÖLÜM 10/10
+KAPANIŞ
+===================================================== -->
 
 </div>
 
