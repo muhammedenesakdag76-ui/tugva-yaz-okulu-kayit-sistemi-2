@@ -330,9 +330,13 @@ async function init() {
 
     setupSearch();
 
-    setupRefreshButton();
+setupRefreshButton();
 
-    await loadRegistrations();
+setupQrButtons();
+
+autoRefresh();
+
+await loadRegistrations();
 
 }
 
@@ -343,3 +347,236 @@ document.addEventListener(
     init
 
 );
+let qrScanner = null;
+
+async function onQrSuccess(decodedText) {
+
+    if (qrScanner) {
+
+        await qrScanner.stop();
+
+    }
+
+    try {
+
+        const data = JSON.parse(decodedText);
+
+        if (!data.id) {
+
+            alert("Geçersiz QR kod.");
+
+            return;
+
+        }
+
+        await updateCheckIn(data.id, true);
+
+        alert("Giriş başarıyla kaydedildi.");
+
+        await loadRegistrations();
+
+    }
+
+    catch (error) {
+
+        console.error(error);
+
+        alert("QR kod okunamadı.");
+
+    }
+
+}
+
+function startQrScanner() {
+
+    const reader = document.getElementById("qr-reader");
+
+    if (!reader) return;
+
+    qrScanner = new Html5Qrcode("qr-reader");
+
+    qrScanner.start(
+
+        { facingMode: "environment" },
+
+        {
+
+            fps: 10,
+
+            qrbox: 250
+
+        },
+
+        onQrSuccess,
+
+        () => {}
+
+    );
+
+}
+
+async function stopQrScanner() {
+
+    if (!qrScanner) return;
+
+    try {
+
+        await qrScanner.stop();
+
+        await qrScanner.clear();
+
+    }
+
+    catch (e) {
+
+        console.error(e);
+
+    }
+
+    qrScanner = null;
+
+}
+function setupQrButtons() {
+
+    const openButton = document.getElementById("startQrButton");
+
+    const closeButton = document.getElementById("stopQrButton");
+
+    if (openButton) {
+
+        openButton.addEventListener(
+
+            "click",
+
+            startQrScanner
+
+        );
+
+    }
+
+    if (closeButton) {
+
+        closeButton.addEventListener(
+
+            "click",
+
+            stopQrScanner
+
+        );
+
+    }
+
+}
+function showToast(message, type = "success") {
+
+    const toast = document.getElementById("adminToast");
+
+    if (!toast) {
+
+        alert(message);
+
+        return;
+
+    }
+
+    toast.className =
+        `toast align-items-center text-bg-${type}`;
+
+    toast.querySelector(".toast-body").textContent =
+        message;
+
+    const bsToast =
+        bootstrap.Toast.getOrCreateInstance(toast);
+
+    bsToast.show();
+
+}
+function exportCSV() {
+
+    const rows = [
+
+        [
+            "Kayıt No",
+            "Ad Soyad",
+            "Telefon",
+            "TC",
+            "Koltuk",
+            "Durum"
+        ]
+
+    ];
+
+    ADMIN.registrations.forEach(item => {
+
+        rows.push([
+
+            item.registerNumber,
+
+            item.name,
+
+            item.phone,
+
+            item.tc,
+
+            item.seat ?? "",
+
+            item.checkedIn
+                ? "Giriş Yaptı"
+                : "Bekliyor"
+
+        ]);
+
+    });
+
+    const csv = rows
+        .map(r => r.join(";"))
+        .join("\n");
+
+    const blob = new Blob(
+
+        [csv],
+
+        {
+
+            type: "text/csv;charset=utf-8;"
+
+        }
+
+    );
+
+    const url =
+        URL.createObjectURL(blob);
+
+    const a =
+        document.createElement("a");
+
+    a.href = url;
+
+    a.download =
+        "kayitlar.csv";
+
+    a.click();
+
+    URL.revokeObjectURL(url);
+
+}
+function printTable() {
+
+    window.print();
+
+}
+function autoRefresh() {
+
+    setInterval(
+
+        async () => {
+
+            await loadRegistrations();
+
+        },
+
+        30000
+
+    );
+
+}
