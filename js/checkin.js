@@ -1,286 +1,43 @@
-// checkin.js Düzeltme Paketi
-// Parça 1/8
+import { db } from "./firebase.js";
+import { doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-import{
-authListener,
-getRegistration,
-checkIn,
-getStatistics
-}from"./firebase.js";
+const resultContainer = document.getElementById("scanResult");
 
-const reader=document.getElementById("reader");
-
-const result=document.getElementById("result");
-
-const todayCount=document.getElementById("todayCount");
-
-const remainingCount=document.getElementById("remainingCount");
-
-const manualCode=document.getElementById("manualCode");
-
-const manualButton=document.getElementById("manualButton");
-
-let scanner=null;
-
-let lastCode="";
-// checkin.js Düzeltme Paketi
-// Parça 2/8
-
-authListener(user=>{
-
-if(!user){
-
-location.href="login.html";
-
-return;
-
+function onScanSuccess(decodedText, decodedResult) {
+    // Tarama başarılı olduğunda QR içindeki ID ile Firestore'dan çek
+    fetchParticipantInfo(decodedText);
 }
 
-});
+async function fetchParticipantInfo(docId) {
+    try {
+        const docRef = doc(db, "registrations", docId);
+        const docSnap = await getDoc(docRef);
 
-async function updateStats(){
-
-const stats=
-
-await getStatistics();
-
-todayCount.textContent=
-
-stats.checked;
-
-remainingCount.textContent=
-
-stats.remaining;
-
-}
-// checkin.js Düzeltme Paketi
-// Parça 3/8
-
-function showResult(type,text){
-
-result.className="";
-
-result.classList.add(type);
-
-result.innerHTML=text;
-
-}
-// checkin.js Düzeltme Paketi
-// Parça 4/8
-
-async function processQR(code){
-
-if(code===lastCode){
-
-return;
-
+        if (docSnap.exists()) {
+            const data = docSnap.data();
+            resultContainer.innerHTML = `
+                <div class="status-card success">
+                    <h3>✅ Kayıt Doğrulandı</h3>
+                    <p><strong>Ad Soyad:</strong> ${data.fullname}</p>
+                    <p><strong>T.C. No:</strong> ${data.tcNo}</p>
+                    <p><strong>Telefon:</strong> ${data.phone}</p>
+                    <div class="seat-badge">
+                        🚌 <strong>Otobüs Koltuk No:</strong> ${data.seatNumber || 'Atanmadı'}
+                    </div>
+                </div>
+            `;
+        } else {
+            resultContainer.innerHTML = `<div class="status-card error">❌ Geçersiz QR Kod! Kayıt Bulunamadı.</div>`;
+        }
+    } catch (error) {
+        resultContainer.innerHTML = `<div class="status-card error">Hata: ${error.message}</div>`;
+    }
 }
 
-lastCode=code;
-
-setTimeout(()=>{
-
-lastCode="";
-
-},2000);
-
-const participant=
-
-await getRegistration(code);
-
-if(!participant){
-
-showResult(
-
-"error",
-
-"Kayıt bulunamadı."
-
+// html5-qrcode kütüphanesi başlatma
+const html5QrcodeScanner = new Html5QrcodeScanner(
+    "reader", 
+    { fps: 10, qrbox: { width: 250, height: 250 } },
+    /* verbose= */ false
 );
-
-return;
-
-}
-
-if(participant.checkedIn){
-
-showResult(
-
-"warning",
-
-`${participant.adSoyad}<br>Daha önce giriş yapmış.`
-
-);
-
-return;
-
-}
-
-await checkIn(participant.id);
-
-showResult(
-
-"success",
-
-`${participant.adSoyad}<br>Giriş yapıldı.`
-
-);
-
-updateStats();
-
-}
-// checkin.js Düzeltme Paketi
-// Parça 5/8
-
-function startScanner(){
-
-scanner=new Html5Qrcode("reader");
-
-scanner.start(
-
-{
-
-facingMode:{
-
-exact:"environment"
-
-}
-
-},
-
-{
-
-fps:10,
-
-qrbox:250
-
-},
-
-decodedText=>{
-
-processQR(decodedText);
-
-},
-
-()=>{}
-
-).catch(()=>{
-
-showResult(
-
-"error",
-
-"Arka kamera açılamadı."
-
-);
-
-});
-
-}
-// checkin.js Düzeltme Paketi
-// Parça 6/8
-
-manualButton.addEventListener(
-
-"click",
-
-async()=>{
-
-const code=
-
-manualCode.value
-
-.trim()
-
-.toUpperCase();
-
-if(!code){
-
-manualCode.focus();
-
-return;
-
-}
-
-await processQR(code);
-
-manualCode.value="";
-
-manualCode.focus();
-
-}
-
-);
-
-manualCode.addEventListener(
-
-"keydown",
-
-e=>{
-
-if(e.key==="Enter"){
-
-manualButton.click();
-
-}
-
-}
-);
-// checkin.js Düzeltme Paketi
-// Parça 7/8
-
-window.addEventListener(
-
-"DOMContentLoaded",
-
-()=>{
-
-updateStats();
-
-startScanner();
-
-manualCode.focus();
-
-}
-
-);
-
-window.addEventListener(
-
-"beforeunload",
-
-async()=>{
-
-if(scanner){
-
-try{
-
-await scanner.stop();
-
-await scanner.clear();
-
-}catch(e){}
-
-}
-
-}
-);
-// checkin.js Düzeltme Paketi
-// Parça 8/8 (Son)
-
-document.addEventListener(
-
-"visibilitychange",
-
-()=>{
-
-if(document.hidden){
-
-return;
-
-}
-
-updateStats();
-
-}
-);
+html5QrcodeScanner.render(onScanSuccess);
