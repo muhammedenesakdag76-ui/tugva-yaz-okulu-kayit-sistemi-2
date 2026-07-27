@@ -331,3 +331,150 @@ setInterval(async()=>{
     await refreshCards();
 
 },5000);
+import { Html5QrcodeScanner } from "https://unpkg.com/html5-qrcode";
+
+let scanner;
+
+export function startQRScanner(){
+
+    scanner = new Html5QrcodeScanner(
+        "qr-reader",
+        {
+            fps:10,
+            qrbox:250
+        }
+    );
+
+    scanner.render(onScanSuccess);
+
+}
+
+async function onScanSuccess(text){
+
+    try{
+
+        const qr = JSON.parse(text);
+
+        await toggleCheckIn(qr.id);
+
+        showToast(
+            qr.name + " yoklaması alındı."
+        );
+
+        scanner.clear();
+
+    }
+
+    catch(e){
+
+        showToast(
+            "Geçersiz QR",
+            false
+        );
+
+    }
+
+}
+document
+.getElementById("exportExcel")
+.addEventListener("click",exportExcel);
+
+function exportExcel(){
+
+    const rows=[];
+
+    registrations.forEach(r=>{
+
+        rows.push({
+
+            "Kayıt No":r.registerNumber,
+
+            "Ad Soyad":r.name,
+
+            "Telefon":r.phone,
+
+            "Veli":r.parent,
+
+            "Veli Telefon":r.parentPhone,
+
+            "Koltuk":r.seat,
+
+            "Durum":r.checkedIn?"Geldi":"Gelmedi"
+
+        });
+
+    });
+
+    const worksheet=XLSX.utils.json_to_sheet(rows);
+
+    const workbook=XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(
+        workbook,
+        worksheet,
+        "Öğrenciler"
+    );
+
+    XLSX.writeFile(
+        workbook,
+        "TUGVA-Yaz-Okulu.xlsx"
+    );
+
+}
+document
+.getElementById("printList")
+.addEventListener("click",()=>{
+
+    window.print();
+
+});
+import { signOut } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
+
+import { auth } from "./config.js";
+
+document
+.getElementById("logout")
+.addEventListener("click",async()=>{
+
+    await signOut(auth);
+
+    location.href="login.html";
+
+});
+async function updateCapacityWarning(){
+
+    const stats=await getStatistics();
+
+    const card=document.getElementById("capacityCard");
+
+    card.classList.remove(
+        "bg-success",
+        "bg-warning",
+        "bg-danger"
+    );
+
+    if(stats.percent<70){
+
+        card.classList.add("bg-success");
+
+    }
+
+    else if(stats.percent<100){
+
+        card.classList.add("bg-warning");
+
+    }
+
+    else{
+
+        card.classList.add("bg-danger");
+
+    }
+
+}
+setInterval(()=>{
+
+    document.getElementById("clock").textContent=
+        new Date().toLocaleString("tr-TR");
+
+},1000);
