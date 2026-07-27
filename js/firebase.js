@@ -43,55 +43,33 @@ const registrationsRef = collection(
 );
 
 export const MAX_CAPACITY = 500;
-async function getLastRegisterNumber() {
-
-    const q = query(
-
-        registrationsRef,
-
-        orderBy("registerNumber", "desc"),
-
-        limit(1)
-
-    );
-
-    const snapshot = await getDocs(q);
-
-    if (snapshot.empty) {
-
-        return 0;
-
-    }
-
-    const last = snapshot.docs[0].data();
-
-    if (!last.registerNumber) {
-
-        return 0;
-
-    }
-
-    const number = parseInt(
-
-        last.registerNumber.replace("TYO-", ""),
-
-        10
-
-    );
-
-    return isNaN(number) ? 0 : number;
-
-}
+const counterRef = doc(db, "system", "counter");
 
 async function generateRegisterNumber() {
 
-    const lastNumber =
+    return await runTransaction(db, async (transaction) => {
 
-        await getLastRegisterNumber();
+        const counterDoc = await transaction.get(counterRef);
 
-    const nextNumber = lastNumber + 1;
+        let lastNumber = 0;
 
-    return `TYO-${String(nextNumber).padStart(6, "0")}`;
+        if (counterDoc.exists()) {
+
+            lastNumber = counterDoc.data().lastNumber || 0;
+
+        }
+
+        const nextNumber = lastNumber + 1;
+
+        transaction.set(
+            counterRef,
+            { lastNumber: nextNumber },
+            { merge: true }
+        );
+
+        return `TYO-${String(nextNumber).padStart(6, "0")}`;
+
+    });
 
 }
 
