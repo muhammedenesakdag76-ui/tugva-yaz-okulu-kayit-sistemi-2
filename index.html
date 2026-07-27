@@ -1,87 +1,33 @@
-<!DOCTYPE html>
-<html lang="tr">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>TÜGVA Yaz Okulu Kayıt Sistemi</title>
-  <link rel="stylesheet" href="css/style.css">
-</head>
-<body>
-
-  <div class="container">
-    <h2>TÜGVA Yaz Okulu Öğrenci Kayıt Formu</h2>
+<!-- index.html içindeki formun hemen altına gelecek alan -->
+<div id="successCard" class="card-result" style="display: none;">
     
-    <form id="registrationForm">
-      <div class="form-group">
-        <label for="tcNo">T.C. Kimlik No:</label>
-        <input type="text" id="tcNo" maxlength="11" required>
-      </div>
+    <!-- İndirmesi gerektiğini söyleyen uyarı kutusu -->
+    <div class="alert-box warning">
+        ⚠️ <strong>DİKKAT:</strong> Kaydınız başarıyla alındı! Lütfen aşağıdaki QR Kodunuzu içeren **PDF Belgenizi indirmeyi unutmayınız**. Girişlerde bu belgedeki QR Kod kontrol edilecektir.
+    </div>
 
-      <div class="form-group">
-        <label for="adSoyad">Öğrenci Ad Soyad:</label>
-        <input type="text" id="adSoyad" required>
-      </div>
+    <!-- PDF'e Dönüştürülecek Şık Alan -->
+    <div id="pdfExportArea" class="pdf-card">
+        <div class="pdf-header">
+            <img src="assets/logo.png" alt="TÜGVA Logo" class="pdf-logo">
+            <h2>TÜGVA İSTANBUL YAZ OKULU & GEZİSİ</h2>
+            <p>Kayıt Onay Belgesi</p>
+        </div>
+        
+        <div class="pdf-body">
+            <div class="info-group">
+                <p><strong>Kayıt ID:</strong> <span id="pdfDocId"></span></p>
+                <p><strong>Ad Soyad:</strong> <span id="pdfName"></span></p>
+                <p><strong>Telefon:</strong> <span id="pdfPhone"></span></p>
+                <p><strong>T.C. No:</strong> <span id="pdfTc"></span></p>
+            </div>
+            
+            <div class="qr-group">
+                <div id="qrcodeCanvas"></div>
+                <small>Giriş Kontrol QR Kodu</small>
+            </div>
+        </div>
+    </div>
 
-      <div class="form-group">
-        <label for="dogumTarihi">Doğum Tarihi:</label>
-        <input type="date" id="dogumTarihi" required>
-      </div>
-
-      <div class="form-group">
-        <label for="okul">Okulu:</label>
-        <input type="text" id="okul" required>
-      </div>
-
-      <div class="form-group">
-        <label for="sinif">Sınıfı:</label>
-        <select id="sinif" required>
-          <option value="">Seçiniz</option>
-          <option value="4">4. Sınıf</option>
-          <option value="5">5. Sınıf</option>
-          <option value="6">6. Sınıf</option>
-          <option value="7">7. Sınıf</option>
-          <option value="8">8. Sınıf</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label for="veliAdSoyad">Veli Ad Soyad:</label>
-        <input type="text" id="veliAdSoyad" required>
-      </div>
-
-      <div class="form-group">
-        <label for="veliTelefon">Veli Telefon:</label>
-        <input type="tel" id="veliTelefon" placeholder="05XXXXXXXXX" required>
-      </div>
-
-      <div class="form-group">
-        <label for="kanGrubu">Kan Grubu:</label>
-        <select id="kanGrubu">
-          <option value="">Bilinmiyor / Seçiniz</option>
-          <option value="A+">A Rh(+)</option>
-          <option value="A-">A Rh(-)</option>
-          <option value="B+">B Rh(+)</option>
-          <option value="B-">B Rh(-)</option>
-          <option value="AB+">AB Rh(+)</option>
-          <option value="AB-">AB Rh(-)</option>
-          <option value="0+">0 Rh(+)</option>
-          <option value="0-">0 Rh(-)</option>
-        </select>
-      </div>
-
-      <div class="form-group">
-        <label for="adres">Adres:</label>
-        <textarea id="adres" rows="3"></textarea>
-      </div>
-
-      <button type="submit" id="submitBtn">Kayıt Ol</button>
-    </form>
-  </div>
-
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
-
-  <script src="js/firebase.js"></script>
-  <script src="js/app.js"></script>
-</body>
-</html>
+    <button id="downloadPdfBtn" class="btn-primary-lg">📄 PDF Olarak İndir</button>
+</div>
