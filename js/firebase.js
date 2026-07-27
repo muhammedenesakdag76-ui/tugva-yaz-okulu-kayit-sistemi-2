@@ -1,67 +1,55 @@
-document.addEventListener('DOMContentLoaded', () => {
-  const form = document.getElementById('registrationForm');
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
 
-  if (!form) {
-    console.error("Hata: 'registrationForm' bulunamadı.");
-    return;
-  }
+import {
+    getFirestore,
+    collection,
+    doc,
+    getDoc,
+    getDocs,
+    setDoc,
+    updateDoc,
+    deleteDoc,
+    query,
+    orderBy,
+    serverTimestamp,
+    onSnapshot,
+    writeBatch
+} from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
+import {
+    getAuth,
+    signInWithEmailAndPassword,
+    signOut,
+    onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
 
-    const submitBtn = document.getElementById('submitBtn');
+const firebaseConfig = {
 
-    // Form Değerlerini Alma
-    const studentData = {
-      tcNo: document.getElementById('tcNo').value.trim(),
-      adSoyad: document.getElementById('adSoyad').value.trim(),
-      dogumTarihi: document.getElementById('dogumTarihi').value,
-      okul: document.getElementById('okul').value.trim(),
-      sinif: document.getElementById('sinif').value,
-      veliAdSoyad: document.getElementById('veliAdSoyad').value.trim(),
-      veliTelefon: document.getElementById('veliTelefon').value.trim(),
-      kanGrubu: document.getElementById('kanGrubu').value,
-      adres: document.getElementById('adres').value.trim(),
-      status: 'Aktif'
-    };
+    apiKey: "AIzaSyA1PwF_MonQVMQ2zXnCJZbQWYkRgHpxxb8",
 
-    // Temel Doğrulama
-    if (studentData.tcNo.length !== 11) {
-      alert('T.C. Kimlik Numarası 11 haneli olmalıdır.');
-      return;
-    }
+    authDomain: "tugva-kayit-sistemi.firebaseapp.com",
 
-    // Butonu Kilitle
-    if (submitBtn) {
-      submitBtn.disabled = true;
-      submitBtn.innerText = 'Kayıt Yapılıyor...';
-    }
+    projectId: "tugva-kayit-sistemi",
 
-    try {
-      // Firebase Kontrolü ve Kayıt
-      if (typeof db === 'undefined') {
-        throw new Error("Firebase bağlantısı kurulamadı. firebase.js dosyanızı kontrol edin.");
-      }
+    storageBucket: "tugva-kayit-sistemi.firebasestorage.app",
 
-      await db.collection('students').add({
-        ...studentData,
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
-      });
+    messagingSenderId: "497137562254",
 
-      alert('Öğrenci kaydı başarıyla oluşturuldu!');
-      form.reset();
+    appId: "1:497137562254:web:0dae95a054ac7e21424fdf"
 
-    } catch (error) {
-      console.error('Kayıt Hatası:', error);
-      alert('Kayıt sırasında bir hata oluştu: ' + error.message);
-    } finally {
-      if (submitBtn) {
-        submitBtn.disabled = false;
-        submitBtn.innerText = 'Kayıt Ol';
-      }
-    }
-  });
-});
+};
+
+const app = initializeApp(firebaseConfig);
+
+export const db = getFirestore(app);
+
+export const auth = getAuth(app);
+
+export const COLLECTION = "kayitlar";
+
+export const LOG_COLLECTION = "loglar";
+
+export const MAX_CAPACITY = 45;
 export function authListener(callback) {
 
     onAuthStateChanged(auth, callback);
@@ -592,6 +580,8 @@ export async function getLogs() {
         ...doc.data()
 
     }));
+
+}
 export async function exportData() {
 
     const registrations = await getAllRegistrations();
