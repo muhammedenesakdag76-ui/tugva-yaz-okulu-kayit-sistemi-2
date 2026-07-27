@@ -4,53 +4,46 @@ import {
     getFirestore,
     collection,
     doc,
+    addDoc,
     getDoc,
     getDocs,
-    addDoc,
+    setDoc,
     updateDoc,
     deleteDoc,
     query,
     where,
     orderBy,
+    limit,
     serverTimestamp,
-    limit
+    runTransaction
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
-
 const firebaseConfig = {
-  apiKey: "AIzaSyA1PwF_MonQVMQ2zXnCJZbQWYkRgHpxxb8",
-  authDomain: "tugva-kayit-sistemi.firebaseapp.com",
-  projectId: "tugva-kayit-sistemi",
-  storageBucket: "tugva-kayit-sistemi.firebasestorage.app",
-  messagingSenderId: "497137562254",
-  appId: "1:497137562254:web:0dae95a054ac7e21424fdf"
+
+    apiKey: "BURAYA_API_KEY",
+
+    authDomain: "BURAYA_AUTH_DOMAIN",
+
+    projectId: "BURAYA_PROJECT_ID",
+
+    storageBucket: "BURAYA_STORAGE_BUCKET",
+
+    messagingSenderId: "BURAYA_MESSAGING_SENDER_ID",
+
+    appId: "BURAYA_APP_ID"
+
 };
+
 const app = initializeApp(firebaseConfig);
 
-export const db = getFirestore(app);
+const db = getFirestore(app);
 
-export const registrationsRef = collection(
+const registrationsRef = collection(
     db,
-    "kayitlar"
+    "registrations"
 );
 
 export const MAX_CAPACITY = 500;
-
-export const REGISTER_PREFIX = "TYO";
-
-export const REGISTER_DIGITS = 5;
-function pad(number) {
-
-    return String(number).padStart(
-
-        REGISTER_DIGITS,
-
-        "0"
-
-    );
-
-}
-
-export async function generateRegisterNumber() {
+async function getLastRegisterNumber() {
 
     const q = query(
 
@@ -66,59 +59,51 @@ export async function generateRegisterNumber() {
 
     if (snapshot.empty) {
 
-        return REGISTER_PREFIX + pad(1);
+        return 0;
 
     }
 
     const last = snapshot.docs[0].data();
 
-    const current = Number(
+    if (!last.registerNumber) {
 
-        last.registerNumber.replace(
+        return 0;
 
-            REGISTER_PREFIX,
+    }
 
-            ""
+    const number = parseInt(
 
-        )
+        last.registerNumber.replace("TYO-", ""),
 
-    );
-
-    return REGISTER_PREFIX +
-
-        pad(current + 1);
-
-}
-export async function getRemainingCapacity() {
-
-    const snapshot = await getDocs(
-
-        registrationsRef
+        10
 
     );
 
-    return MAX_CAPACITY -
-
-        snapshot.size;
+    return isNaN(number) ? 0 : number;
 
 }
 
-export async function isCapacityFull() {
+async function generateRegisterNumber() {
 
-    const remaining =
+    const lastNumber =
 
-        await getRemainingCapacity();
+        await getLastRegisterNumber();
 
-    return remaining <= 0;
+    const nextNumber = lastNumber + 1;
+
+    return `TYO-${String(nextNumber).padStart(6, "0")}`;
 
 }
-export async function registrationExists(tc) {
+
+async function existsByTC(tc) {
 
     const q = query(
 
         registrationsRef,
 
-        where("tc", "==", tc)
+        where("tc", "==", tc),
+
+        limit(1)
 
     );
 
@@ -128,40 +113,50 @@ export async function registrationExists(tc) {
 
 }
 
-export async function phoneExists(phone) {
+async function existsByPhone(phone) {
 
     const q = query(
 
         registrationsRef,
 
-        where("phone", "==", phone)
+        where("phone", "==", phone),
+
+        limit(1)
 
     );
 
     const snapshot = await getDocs(q);
 
     return !snapshot.empty;
+
+}
+
+async function checkDuplicate(data) {
+
+    if (await existsByTC(data.tc)) {
+
+        throw new Error(
+
+            "Bu T.C. Kimlik Numarası ile daha önce kayıt yapılmış."
+
+        );
+
+    }
+
+    if (await existsByPhone(data.phone)) {
+
+        throw new Error(
+
+            "Bu telefon numarası ile daha önce kayıt yapılmış."
+
+        );
+
+    }
 
 }
 export async function addRegistration(data) {
 
-    if (await registrationExists(data.tc)) {
-
-        throw new Error("Bu T.C. Kimlik Numarası ile kayıt bulunmaktadır.");
-
-    }
-
-    if (await phoneExists(data.phone)) {
-
-        throw new Error("Bu telefon numarası ile kayıt bulunmaktadır.");
-
-    }
-
-    if (await isCapacityFull()) {
-
-        throw new Error("Kontenjan dolmuştur.");
-
-    }
+    await checkDuplicate(data);
 
     const registerNumber =
 
@@ -195,7 +190,7 @@ export async function addRegistration(data) {
 
         note: data.note,
 
-        seat: "",
+        seat: null,
 
         checkedIn: false,
 
@@ -203,7 +198,7 @@ export async function addRegistration(data) {
 
     };
 
-    const ref = await addDoc(
+    const docRef = await addDoc(
 
         registrationsRef,
 
@@ -213,408 +208,45 @@ export async function addRegistration(data) {
 
     return {
 
-        id: ref.id,
+        id: docRef.id,
 
         ...registration
 
     };
 
 }
-export async function getRegistration(id) {
+export async function getRegistrationCount() {
 
-    const snapshot = await getDoc(
+    const snapshot = await getDocs(
 
-        doc(db, "kayitlar", id)
+        registrationsRef
 
     );
 
-    if (!snapshot.exists()) {
-
-        return null;
-
-    }
-
-    return {
-
-        id: snapshot.id,
-
-        ...snapshot.data()
-
-    };
+    return snapshot.size;
 
 }
+export async function getRemainingCapacity() {
 
-export async function getAllRegistrations() {
+    const count =
 
-    const q = query(
+        await getRegistrationCount();
 
-        registrationsRef,
+    return Math.max(
 
-        orderBy("registerNumber")
+        0,
 
-    );
-
-    const snapshot = await getDocs(q);
-
-    return snapshot.docs.map(item => ({
-
-        id: item.id,
-
-        ...item.data()
-
-    }));
-
-}
-export async function updateRegistration(
-
-    id,
-
-    data
-
-) {
-
-    const ref = doc(
-
-        db,
-
-        "kayitlar",
-
-        id
-
-    );
-
-    await updateDoc(
-
-        ref,
-
-        data
+        MAX_CAPACITY - count
 
     );
 
 }
+export async function isCapacityFull() {
 
-export async function deleteRegistration(id) {
+    const remaining =
 
-    await deleteDoc(
+        await getRemainingCapacity();
 
-        doc(
-
-            db,
-
-            "kayitlar",
-
-            id
-
-        )
-
-    );
-
-}
-export async function updateSeat(
-
-    id,
-
-    seat
-
-) {
-
-    await updateDoc(
-
-        doc(db, "kayitlar", id),
-
-        {
-
-            seat
-
-        }
-
-    );
-
-}
-
-export async function updateCheckIn(
-
-    id,
-
-    checkedIn
-
-) {
-
-    await updateDoc(
-
-        doc(db, "kayitlar", id),
-
-        {
-
-            checkedIn
-
-        }
-
-    );
-
-}
-export async function searchRegistrations(searchText = "") {
-
-    const registrations =
-
-        await getAllRegistrations();
-
-    if (!searchText.trim()) {
-
-        return registrations;
-
-    }
-
-    const text =
-
-        searchText
-            .toLocaleLowerCase("tr");
-
-    return registrations.filter(item => {
-
-        return [
-
-            item.registerNumber,
-
-            item.name,
-
-            item.tc,
-
-            item.phone,
-
-            item.parent,
-
-            item.school,
-
-            item.class,
-
-            item.seat
-
-        ]
-
-        .join(" ")
-
-        .toLocaleLowerCase("tr")
-
-        .includes(text);
-
-    });
-
-}
-export async function getStatistics() {
-
-    const registrations =
-
-        await getAllRegistrations();
-
-    return {
-
-        total:
-
-            registrations.length,
-
-        remaining:
-
-            MAX_CAPACITY -
-
-            registrations.length,
-
-        checkedIn:
-
-            registrations.filter(
-
-                x => x.checkedIn
-
-            ).length,
-
-        absent:
-
-            registrations.filter(
-
-                x => !x.checkedIn
-
-            ).length,
-
-        assignedSeat:
-
-            registrations.filter(
-
-                x => x.seat
-
-            ).length,
-
-        unassignedSeat:
-
-            registrations.filter(
-
-                x => !x.seat
-
-            ).length
-
-    };
-
-}
-export async function updateManySeats(
-
-    updates
-
-) {
-
-    for (const item of updates) {
-
-        await updateSeat(
-
-            item.id,
-
-            item.seat
-
-        );
-
-    }
-
-}
-
-export async function updateManyCheckIn(
-
-    updates
-
-) {
-
-    for (const item of updates) {
-
-        await updateCheckIn(
-
-            item.id,
-
-            item.checkedIn
-
-        );
-
-    }
-
-}
-export async function exportRegistrations() {
-
-    return await getAllRegistrations();
-
-}
-
-export function createEmptyRegistration() {
-
-    return {
-
-        id: "",
-
-        registerNumber: "",
-
-        name: "",
-
-        tc: "",
-
-        phone: "",
-
-        email: "",
-
-        birth: "",
-
-        gender: "",
-
-        school: "",
-
-        class: "",
-
-        parent: "",
-
-        parentPhone: "",
-
-        address: "",
-
-        note: "",
-
-        seat: "",
-
-        checkedIn: false,
-
-        createdAt: null
-
-    };
-
-}
-export default {
-
-    db,
-
-    registrationsRef,
-
-    MAX_CAPACITY,
-
-    generateRegisterNumber,
-
-    getRemainingCapacity,
-
-    isCapacityFull,
-
-    registrationExists,
-
-    phoneExists,
-
-    addRegistration,
-
-    getRegistration,
-
-    getAllRegistrations,
-
-    updateRegistration,
-
-    deleteRegistration,
-
-    updateSeat,
-
-    updateCheckIn,
-
-    searchRegistrations,
-
-    getStatistics,
-
-    updateManySeats,
-
-    updateManyCheckIn,
-
-    exportRegistrations,
-
-    createEmptyRegistration
-
-};
-import {
-    onSnapshot
-} from "firebase/firestore";
-
-export function subscribeRegistrations(callback) {
-
-    return onSnapshot(
-
-        registrationsRef,
-
-        snapshot => {
-
-            const data = [];
-
-            snapshot.forEach(doc => {
-
-                data.push({
-
-                    id: doc.id,
-
-                    ...doc.data()
-
-                });
-
-            });
-
-            callback(data);
-
-        }
-
-    );
+    return remaining <= 0;
 
 }
