@@ -11,159 +11,33 @@
 
 <link rel="stylesheet" href="css/style.css">
 
-<style>
-
-body{
-    background:#f4f6f9;
-    font-family:Arial,Helvetica,sans-serif;
-}
-
-.header{
-    background:#0b8d42;
-    color:#fff;
-    text-align:center;
-    padding:20px;
-}
-
-.container{
-    width:95%;
-    max-width:700px;
-    margin:25px auto;
-}
-
-.card{
-    background:#fff;
-    border-radius:15px;
-    padding:25px;
-    box-shadow:0 8px 20px rgba(0,0,0,.08);
-    margin-bottom:20px;
-}
-
-#reader{
-    width:100%;
-    overflow:hidden;
-    border-radius:12px;
-}
-
-.result{
-    display:none;
-}
-
-.result h2{
-    color:#0b8d42;
-    margin-bottom:15px;
-}
-
-.result p{
-    margin:10px 0;
-    font-size:17px;
-}
-
-.actions{
-    display:flex;
-    gap:10px;
-    flex-wrap:wrap;
-    margin-top:20px;
-}
-
-.actions button{
-    flex:1;
-    padding:14px;
-    border:none;
-    border-radius:10px;
-    color:#fff;
-    font-weight:bold;
-    cursor:pointer;
-}
-
-#checkBtn{
-    background:#198754;
-}
-
-#cancelBtn{
-    background:#ffc107;
-    color:#000;
-}
-
-#backBtn{
-    background:#0d6efd;
-}
-<button id="switchCamera">
-📷 Kamera Değiştir
-</button>
-.status{
-    margin-top:12px;
-    font-weight:bold;
-    font-size:18px;
-}
-
-@media(max-width:768px){
-
-.actions{
-    flex-direction:column;
-}
-
-}
-
-</style>
+<script src="https://unpkg.com/html5-qrcode"></script>
 
 </head>
 
 <body>
 
-<header class="header">
-
-<h1>QR Check-in Sistemi</h1>
-
-</header>
+<div class="background"></div>
 
 <div class="container">
 
-<div class="card">
+<header class="hero">
+
+<h1>QR Check-in</h1>
+
+<p>TÜGVA Yaz Okulu Giriş Sistemi</p>
+
+</header>
+
+<section class="card">
 
 <div id="reader"></div>
 
-</div>
+<div id="result" style="margin-top:25px;"></div>
 
-<div class="card result" id="resultCard">
-
-<h2 id="name">-</h2>
-
-<p><strong>Kayıt No:</strong> <span id="registerNo"></span></p>
-
-<p><strong>Telefon:</strong> <span id="phone"></span></p>
-
-<p><strong>Durum:</strong> <span id="status" class="status"></span></p>
-
-<div class="actions">
-
-<button id="checkBtn">
-
-Check-in Yap
-
-</button>
-
-<button id="cancelBtn">
-
-Check-in İptal
-
-</button>
-
-<button id="backBtn">
-<button id="switchCamera">
-📷 Kamera Değiştir
-</button>
-Yönetim Paneli
-
-</button>
+</section>
 
 </div>
-
-</div>
-
-</div>
-
-<script src="https://unpkg.com/html5-qrcode"></script>
 
 <script type="module" src="js/checkin.js"></script>
 
