@@ -1,383 +1,231 @@
-// pdf.js
-// Profesyonel Sürüm
-// Parça 1/8
+import { jsPDF } from "https://cdn.jsdelivr.net/npm/jspdf@2.5.1/+esm";
+import { createRegistrationQR } from "./qr.js";
 
-import {
+const LOGO = "assets/logo.png";
 
-getQRImage
+function formatDate(date) {
+    if (!date) return "-";
+    return new Date(date).toLocaleDateString("tr-TR");
+}
+
+function addTitle(pdf) {
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(20);
+    pdf.text("TÜGVA Yaz Okulu Kayıt Belgesi", 105, 18, {
+        align: "center"
+    });
+}
+
+function addLine(pdf) {
+    pdf.setLineWidth(0.5);
+    pdf.line(15, 23, 195, 23);
+}
+
+function addField(pdf, label, value, y) {
+
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(11);
+    pdf.text(`${label}:`, 18, y);
+
+    pdf.setFont("helvetica", "normal");
+    pdf.text(String(value || "-"), 60, y);
 
 }
 
-from "./qr.js";
+async function addQR(pdf, registration) {
 
-const {
+    const canvas = document.createElement("canvas");
 
-jsPDF
+    const qr = await createRegistrationQR(
+        registration,
+        canvas
+    );
 
-}=window;
-
-export function createPDF(
-
-participant
-
-){
-
-const pdf=
-
-new jsPDF({
-
-orientation:"portrait",
-
-unit:"mm",
-
-format:"a4"
-
-});
-
-drawHeader(
-
-pdf
-
-);
-
-drawParticipant(
-
-pdf,
-
-participant
-
-);
-
-drawQR(
-
-pdf
-
-);
-
-drawFooter(
-
-pdf
-
-);
-
-return pdf;
-
-}
-// pdf.js
-// Parça 2/8
-
-function drawHeader(pdf){
-
-pdf.setFont(
-
-"helvetica",
-
-"bold"
-
-);
-
-pdf.setFontSize(22);
-
-pdf.text(
-
-"TÜGVA Yaz Okulu",
-
-105,
-
-20,
-
-{
-
-align:"center"
+    pdf.addImage(
+        qr.image,
+        "PNG",
+        145,
+        35,
+        45,
+        45
+    );
 
 }
 
-);
+function addFooter(pdf) {
 
-pdf.setFontSize(14);
+    pdf.setDrawColor(180);
 
-pdf.setFont(
+    pdf.line(15, 275, 195, 275);
 
-"helvetica",
+    pdf.setFontSize(9);
 
-"normal"
+    pdf.setFont("helvetica", "italic");
 
-);
-
-pdf.text(
-
-"Kayıt Belgesi",
-
-105,
-
-29,
-
-{
-
-align:"center"
+    pdf.text(
+        "Bu belge TÜGVA Yaz Okulu Kayıt Sistemi tarafından oluşturulmuştur.",
+        105,
+        282,
+        {
+            align: "center"
+        }
+    );
 
 }
 
-);
+export async function createRegistrationPDF(registration) {
 
-pdf.line(
+    const pdf = new jsPDF({
 
-15,
+        orientation: "portrait",
 
-35,
+        unit: "mm",
 
-195,
+        format: "a4"
 
-35
+    });
 
-);
+    addTitle(pdf);
 
-}
-// pdf.js
-// Parça 3/8
+    addLine(pdf);
 
-function drawParticipant(
+    let y = 38;
 
-pdf,
+    addField(
+        pdf,
+        "Kayıt No",
+        registration.registerNumber,
+        y
+    );
 
-p
+    y += 10;
 
-){
+    addField(
+        pdf,
+        "Ad Soyad",
+        registration.name,
+        y
+    );
 
-let y=48;
+    y += 10;
 
-const rows=[
+    addField(
+        pdf,
+        "T.C. Kimlik",
+        registration.tc,
+        y
+    );
 
-["Kayıt No",p.kayitNo],
+    y += 10;
 
-["Ad Soyad",p.adSoyad],
+    addField(
+        pdf,
+        "Telefon",
+        registration.phone,
+        y
+    );
 
-["TC Kimlik",p.tc],
+    y += 10;
 
-["Telefon",p.telefon],
+    addField(
+        pdf,
+        "Doğum Tarihi",
+        formatDate(registration.birth),
+        y
+    );
 
-["Okul",p.okul],
+    y += 10;
 
-["Sınıf",p.sinif],
+    addField(
+        pdf,
+        "Cinsiyet",
+        registration.gender,
+        y
+    );
 
-["Veli",p.veliAdi],
+    y += 10;
 
-["Veli Telefon",p.veliTelefon],
+    addField(
+        pdf,
+        "Okul",
+        registration.school,
+        y
+    );
 
-["Adres",p.adres]
+    y += 10;
 
-];
+    addField(
+        pdf,
+        "Sınıf",
+        registration.class,
+        y
+    );
 
-rows.forEach(r=>{
+    y += 10;
 
-pdf.setFont(
+    addField(
+        pdf,
+        "Veli",
+        registration.parent,
+        y
+    );
 
-"helvetica",
+    y += 10;
 
-"bold"
-
-);
-
-pdf.text(
-
-r[0]+":",
-
-20,
-
-y
-
-);
-
-pdf.setFont(
-
-"helvetica",
-
-"normal"
-
-);
-
-pdf.text(
-
-String(r[1]||""),
-
-70,
-
-y
-
-);
-
-y+=10;
-
-});
-
-}
-// pdf.js
-// Parça 4/8
-
-function drawQR(pdf){
-
-const img=
-
-getQRImage();
-
-if(!img){
-
-return;
-
-}
-
-pdf.addImage(
-
-img,
-
-"PNG",
-
-145,
-
-45,
-
-45,
-
-45
-
-);
-
-}
-// pdf.js
-// Parça 5/8
-
-function drawFooter(pdf){
-
-pdf.setDrawColor(
-
-180
-
-);
-
-pdf.line(
-
-15,
-
-275,
-
-195,
-
-275
-
-);
-
-pdf.setFontSize(
-
-10
-
-);
-
-pdf.text(
-
-"TÜGVA Yaz Okulu Kayıt Sistemi",
-
-105,
-
-283,
-
-{
-
-align:"center"
+    addField(
+        pdf,
+        "Veli Telefonu",
+        registration.parentPhone,
+        y
+    );
+
+    y += 10;
+
+    addField(
+        pdf,
+        "Adres",
+        registration.address,
+        y
+    );
+
+    y += 10;
+
+    addField(
+        pdf,
+        "Not",
+        registration.note || "-",
+        y
+    );
+
+    await addQR(
+        pdf,
+        registration
+    );
+
+    addFooter(pdf);
+
+    return pdf;
 
 }
 
-);
+export async function downloadRegistrationPDF(registration) {
+
+    const pdf = await createRegistrationPDF(
+        registration
+    );
+
+    pdf.save(
+
+        `${registration.registerNumber || "kayit"}.pdf`
+
+    );
 
 }
-// pdf.js
-// Parça 6/8
 
-export function downloadPDF(
+export default {
 
-participant
+    createRegistrationPDF,
 
-){
+    downloadRegistrationPDF
 
-const pdf=
-
-createPDF(
-
-participant
-
-);
-
-pdf.save(
-
-`${participant.kayitNo}.pdf`
-
-);
-
-}
-// pdf.js
-// Parça 7/8
-
-export function previewPDF(
-
-participant
-
-){
-
-const pdf=
-
-createPDF(
-
-participant
-
-);
-
-window.open(
-
-pdf.output(
-
-"bloburl"
-
-),
-
-"_blank"
-
-);
-
-}
-// pdf.js
-// Parça 8/8 (Son)
-
-export function printPDF(
-
-participant
-
-){
-
-const pdf=
-
-createPDF(
-
-participant
-
-);
-
-const url=
-
-pdf.output(
-
-"bloburl"
-
-);
-
-const win=
-
-window.open(
-
-url
-
-);
-
-win.onload=
-
-()=>win.print();
-
-}
+};
