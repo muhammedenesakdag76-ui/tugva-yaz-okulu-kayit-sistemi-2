@@ -1,157 +1,226 @@
-export function sadeceRakam(deger) {
+// ===============================
+// Empty Check
+// ===============================
 
-    return deger.replace(/\D/g, "");
+export function isEmpty(value) {
+
+    return value === undefined ||
+           value === null ||
+           value.toString().trim() === "";
 
 }
 
-export function tcGecerli(tc) {
 
-    tc = sadeceRakam(tc);
+// ===============================
+// Name Validation
+// ===============================
 
-    if (tc.length !== 11) return false;
+export function validateName(name) {
 
-    if (tc[0] === "0") return false;
+    if (isEmpty(name))
+        return "Ad Soyad boş bırakılamaz.";
 
-    let tek = 0;
-    let cift = 0;
+    if (name.trim().length < 3)
+        return "Ad Soyad en az 3 karakter olmalıdır.";
+
+    return "";
+
+}
+
+
+// ===============================
+// TC Validation
+// ===============================
+
+export function validateTC(tc) {
+
+    if (!/^[0-9]{11}$/.test(tc))
+        return "TC Kimlik Numarası 11 haneli olmalıdır.";
+
+    if (tc[0] === "0")
+        return "TC Kimlik Numarası 0 ile başlayamaz.";
+
+    let odd = 0;
+    let even = 0;
 
     for (let i = 0; i < 9; i++) {
 
-        if (i % 2 === 0) {
+        if (i % 2 === 0)
+            odd += Number(tc[i]);
+        else
+            even += Number(tc[i]);
 
-            tek += Number(tc[i]);
+    }
 
-        } else {
+    const digit10 =
+        ((odd * 7) - even) % 10;
 
-            cift += Number(tc[i]);
+    if (digit10 !== Number(tc[9]))
+        return "Geçersiz TC Kimlik Numarası.";
+
+    let total = 0;
+
+    for (let i = 0; i < 10; i++)
+        total += Number(tc[i]);
+
+    if ((total % 10) !== Number(tc[10]))
+        return "Geçersiz TC Kimlik Numarası.";
+
+    return "";
+
+}
+
+
+// ===============================
+// Phone Validation
+// ===============================
+
+export function validatePhone(phone) {
+
+    if (!/^0[0-9]{10}$/.test(phone))
+        return "Telefon numarası hatalı.";
+
+    return "";
+
+}
+
+
+// ===============================
+// Email Validation
+// ===============================
+
+export function validateEmail(email) {
+
+    if (email.trim() === "")
+        return "";
+
+    const regex =
+        /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+    if (!regex.test(email))
+        return "Geçersiz e-posta adresi.";
+
+    return "";
+
+}
+// ===============================
+// Birth Date Validation
+// ===============================
+
+export function validateBirth(date) {
+
+    if (!date)
+        return "Doğum tarihi seçiniz.";
+
+    const birth =
+        new Date(date);
+
+    const today =
+        new Date();
+
+    let age =
+        today.getFullYear() -
+        birth.getFullYear();
+
+    const month =
+        today.getMonth() -
+        birth.getMonth();
+
+    if (
+        month < 0 ||
+        (month === 0 &&
+            today.getDate() < birth.getDate())
+    ) {
+
+        age--;
+
+    }
+
+    if (age < 6)
+        return "Katılımcı çok küçük.";
+
+    if (age > 18)
+        return "Yaş sınırı aşıldı.";
+
+    return "";
+
+}
+
+
+// ===============================
+// Required Validation
+// ===============================
+
+export function validateRequired(data) {
+
+    const fields = [
+
+        "adSoyad",
+
+        "tc",
+
+        "telefon",
+
+        "dogumTarihi",
+
+        "cinsiyet",
+
+        "okul",
+
+        "sinif",
+
+        "veliAdi",
+
+        "veliTelefon",
+
+        "adres"
+
+    ];
+
+    for (const field of fields) {
+
+        if (isEmpty(data[field])) {
+
+            return "Lütfen tüm zorunlu alanları doldurunuz.";
 
         }
 
     }
 
-    const onuncu = ((tek * 7) - cift) % 10;
-
-    if (onuncu !== Number(tc[9])) {
-
-        return false;
-
-    }
-
-    let toplam = 0;
-
-    for (let i = 0; i < 10; i++) {
-
-        toplam += Number(tc[i]);
-
-    }
-
-    return toplam % 10 === Number(tc[10]);
+    return "";
 
 }
 
-export function telefonGecerli(tel) {
 
-    tel = sadeceRakam(tel);
+// ===============================
+// Form Validation
+// ===============================
 
-    return tel.length === 10 || tel.length === 11;
+export function validateForm(data) {
 
-}
+    let error;
 
-export function emailGecerli(email) {
+    error = validateRequired(data);
+    if (error) return error;
 
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    error = validateName(data.adSoyad);
+    if (error) return error;
 
-}
+    error = validateTC(data.tc);
+    if (error) return error;
 
-export function zorunluAlan(deger) {
+    error = validatePhone(data.telefon);
+    if (error) return error;
 
-    return deger.trim().length > 0;
+    error = validatePhone(data.veliTelefon);
+    if (error) return error;
 
-}
+    error = validateEmail(data.email || "");
+    if (error) return error;
 
-export function bugundenSonraDegil(tarih) {
+    error = validateBirth(data.dogumTarihi);
+    if (error) return error;
 
-    if (!tarih) return false;
-
-    const secilen = new Date(tarih);
-
-    const bugun = new Date();
-
-    bugun.setHours(0, 0, 0, 0);
-
-    return secilen <= bugun;
-
-}
-
-export function formKontrol(veri) {
-
-    if (!zorunluAlan(veri.name)) {
-
-        return {
-            basarili: false,
-            mesaj: "Ad Soyad zorunludur."
-        };
-
-    }
-
-    if (!tcGecerli(veri.tc)) {
-
-        return {
-            basarili: false,
-            mesaj: "Geçerli bir T.C. Kimlik Numarası giriniz."
-        };
-
-    }
-
-    if (!telefonGecerli(veri.phone)) {
-
-        return {
-            basarili: false,
-            mesaj: "Telefon numarası hatalı."
-        };
-
-    }
-
-    if (veri.email && !emailGecerli(veri.email)) {
-
-        return {
-            basarili: false,
-            mesaj: "E-posta adresi geçersiz."
-        };
-
-    }
-
-    if (!bugundenSonraDegil(veri.birth)) {
-
-        return {
-            basarili: false,
-            mesaj: "Doğum tarihi hatalı."
-        };
-
-    }
-
-    if (!zorunluAlan(veri.emergencyName)) {
-
-        return {
-            basarili: false,
-            mesaj: "Acil durumda aranacak kişi zorunludur."
-        };
-
-    }
-
-    if (!telefonGecerli(veri.emergencyPhone)) {
-
-        return {
-            basarili: false,
-            mesaj: "Acil durum telefonu hatalı."
-        };
-
-    }
-
-    return {
-
-        basarili: true
-
-    };
+    return "";
 
 }
