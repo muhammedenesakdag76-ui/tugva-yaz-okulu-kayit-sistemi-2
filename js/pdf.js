@@ -1,34 +1,32 @@
-import { jsPDF } from "https://cdn.jsdelivr.net/npm/jspdf@2.5.1/+esm";
+import { jsPDF } from "https://cdn.jsdelivr.net/npm/jspdf@2.5.2/+esm";
 
 import {
-
-    generateQRCode
-
+    createQRCodeDataURL
 } from "./qr.js";
 
 const PAGE = {
 
-    WIDTH: 210,
+    width: 210,
 
-    HEIGHT: 297,
+    height: 297,
 
-    MARGIN: 15
+    margin: 20
 
 };
 
-function center(doc, text, y, size = 18) {
+function center(pdf, text, y, size = 16) {
 
-    doc.setFont("helvetica", "bold");
+    pdf.setFont("helvetica", "bold");
 
-    doc.setFontSize(size);
+    pdf.setFontSize(size);
 
-    const width = doc.getTextWidth(text);
+    const width = pdf.getTextWidth(text);
 
-    doc.text(
+    pdf.text(
 
         text,
 
-        (PAGE.WIDTH - width) / 2,
+        (PAGE.width - width) / 2,
 
         y
 
@@ -36,286 +34,133 @@ function center(doc, text, y, size = 18) {
 
 }
 
-function field(doc, label, value, y) {
+function field(pdf, label, value, y) {
 
-    doc.setFont("helvetica", "bold");
+    pdf.setFontSize(11);
 
-    doc.setFontSize(11);
+    pdf.setFont("helvetica", "bold");
 
-    doc.text(`${label}:`, PAGE.MARGIN, y);
+    pdf.text(label, PAGE.margin, y);
 
-    doc.setFont("helvetica", "normal");
+    pdf.setFont("helvetica", "normal");
 
-    doc.text(
+    pdf.text(
 
-        String(value ?? ""),
+        String(value ?? "-"),
 
-        60,
-
-        y
-
-    );
-
-}
-
-function line(doc, y) {
-
-    doc.line(
-
-        PAGE.MARGIN,
-
-        y,
-
-        PAGE.WIDTH - PAGE.MARGIN,
+        PAGE.margin + 45,
 
         y
-
-    );
-
-}
-
-function footer(doc) {
-
-    doc.setFontSize(9);
-
-    doc.setFont("helvetica", "italic");
-
-    doc.text(
-
-        "TÜGVA Yaz Okulu Kayıt Sistemi",
-
-        PAGE.MARGIN,
-
-        288
 
     );
 
 }
 export async function createRegistrationPDF(registration) {
 
-    const doc = new jsPDF({
-
-        orientation: "portrait",
-
-        unit: "mm",
-
-        format: "a4"
-
-    });
+    const pdf = new jsPDF();
 
     center(
 
-        doc,
+        pdf,
 
-        "TÜGVA YAZ OKULU",
-
-        20,
+        "TÜGVA Yaz Okulu Kayıt Belgesi",
 
         20
 
     );
 
-    center(
+    pdf.setDrawColor(180);
 
-        doc,
+    pdf.line(
 
-        "KAYIT BELGESİ",
+        PAGE.margin,
 
-        30,
+        25,
 
-        15
+        PAGE.width - PAGE.margin,
+
+        25
 
     );
 
-    line(doc, 36);
+    let y = 40;
 
     field(
 
-        doc,
+        pdf,
 
         "Kayıt No",
 
         registration.registerNumber,
 
-        48
+        y
 
     );
 
-    field(
+    y += 10;
 
-        doc,
+    field(pdf, "Ad Soyad", registration.name, y);
 
-        "Ad Soyad",
+    y += 10;
 
-        registration.name,
+    field(pdf, "T.C.", registration.tc, y);
 
-        58
+    y += 10;
 
-    );
+    field(pdf, "Telefon", registration.phone, y);
 
-    field(
+    y += 10;
 
-        doc,
+    field(pdf, "Okul", registration.school, y);
 
-        "TC Kimlik",
+    y += 10;
 
-        registration.tc,
+    field(pdf, "Sınıf", registration.class, y);
 
-        68
+    y += 10;
 
-    );
+    field(pdf, "Veli", registration.parent, y);
 
-    field(
+    y += 10;
 
-        doc,
-
-        "Telefon",
-
-        registration.phone,
-
-        78
-
-    );
-
-    field(
-
-        doc,
-
-        "E-Posta",
-
-        registration.email,
-
-        88
-
-    );
-
-    field(
-
-        doc,
-
-        "Doğum Tarihi",
-
-        registration.birth,
-
-        98
-
-    );
-
-    field(
-
-        doc,
-
-        "Cinsiyet",
-
-        registration.gender,
-
-        108
-
-    );
-
-    field(
-
-        doc,
-
-        "Okul",
-
-        registration.school,
-
-        118
-
-    );
-
-    field(
-
-        doc,
-
-        "Sınıf",
-
-        registration.class,
-
-        128
-
-    );
-
-    field(
-
-        doc,
-
-        "Veli",
-
-        registration.parent,
-
-        138
-
-    );
-
-    field(
-
-        doc,
-
-        "Veli Telefon",
+    field(pdf, "Veli Telefon",
 
         registration.parentPhone,
 
-        148
+        y
 
     );
 
+    y += 10;
+
     field(
 
-        doc,
+        pdf,
 
         "Koltuk",
 
         registration.seat || "-",
 
-        158
+        y
 
     );
+        const qr =
 
-    field(
+        await createQRCodeDataURL(
 
-        doc,
-
-        "Adres",
-
-        registration.address,
-
-        170
-
-    );
-
-    if (registration.note) {
-
-        field(
-
-            doc,
-
-            "Not",
-
-            registration.note,
-
-            182
+            registration
 
         );
 
-    }
+    pdf.addImage(
 
-    const qrImage = await generateQRCode(
-
-        registration
-
-    );
-
-    doc.addImage(
-
-        qrImage,
+        qr,
 
         "PNG",
 
         145,
 
-        45,
+        40,
 
         45,
 
@@ -323,112 +168,84 @@ export async function createRegistrationPDF(registration) {
 
     );
 
-    footer(doc);
+    pdf.setFontSize(10);
 
-    return doc;
+    pdf.setTextColor(90);
+
+    pdf.text(
+
+        "QR kodu etkinlik girişinde görevlilere gösteriniz.",
+
+        PAGE.margin,
+
+        170
+
+    );
+
+    pdf.text(
+
+        "Bu belge sistem tarafından oluşturulmuştur.",
+
+        PAGE.margin,
+
+        178
+
+    );
+
+    return pdf;
 
 }
-export async function downloadRegistrationPDF(registration) {
+export async function downloadRegistrationPDF(
 
-    const pdf = await createRegistrationPDF(
-        registration
-    );
+    registration
+
+) {
+
+    const pdf =
+
+        await createRegistrationPDF(
+
+            registration
+
+        );
 
     pdf.save(
+
         `${registration.registerNumber}.pdf`
+
     );
 
 }
 
-export async function getPDFBlob(registration) {
+export async function openRegistrationPDF(
 
-    const pdf = await createRegistrationPDF(
-        registration
-    );
+    registration
 
-    return pdf.output("blob");
+) {
 
-}
+    const pdf =
 
-export async function getPDFArrayBuffer(registration) {
+        await createRegistrationPDF(
 
-    const pdf = await createRegistrationPDF(
-        registration
-    );
+            registration
 
-    return pdf.output("arraybuffer");
+        );
 
-}
+    window.open(
 
-export async function getPDFDataUri(registration) {
+        pdf.output("bloburl"),
 
-    const pdf = await createRegistrationPDF(
-        registration
-    );
+        "_blank"
 
-    return pdf.output("datauristring");
-
-}
-
-export async function openPDF(registration) {
-
-    const pdf = await createRegistrationPDF(
-        registration
-    );
-
-    const blob = pdf.output("blob");
-
-    const url = URL.createObjectURL(blob);
-
-    window.open(url, "_blank");
-
-    setTimeout(() => {
-
-        URL.revokeObjectURL(url);
-
-    }, 5000);
-
-}
-export function createPDFFileName(registration) {
-
-    return `${registration.registerNumber}.pdf`;
-
-}
-
-export async function downloadPDF(registration) {
-
-    await downloadRegistrationPDF(
-        registration
     );
 
 }
-
-export async function previewPDF(registration) {
-
-    await openPDF(
-        registration
-    );
-
-}
-
 export default {
 
     createRegistrationPDF,
 
     downloadRegistrationPDF,
 
-    downloadPDF,
-
-    previewPDF,
-
-    getPDFBlob,
-
-    getPDFArrayBuffer,
-
-    getPDFDataUri,
-
-    createPDFFileName,
-
-    openPDF
+    openRegistrationPDF
 
 };
