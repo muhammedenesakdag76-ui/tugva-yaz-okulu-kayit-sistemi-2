@@ -1,62 +1,101 @@
-// admin.js
-// Profesyonel Sürüm
+// admin.js Düzeltme Paketi
 // Parça 1/12
 
-import {
-    authListener,
-    logout,
-    listenRegistrations,
-    getStatistics,
-    updateSeat,
-    deleteRegistration,
-    checkIn,
-    checkOut
-} from "./firebase.js";
+import{
+authListener,
+logout,
+listenRegistrations,
+getStatistics,
+updateSeat,
+deleteRegistration,
+checkIn,
+checkOut
+}from"./firebase.js";
 
-const table =
-document.getElementById("participantTable");
+import{
+exportCurrentData,
+importExcel,
+downloadTemplate
+}from"./excel.js";
 
-const search =
-document.getElementById("search");
+/* ===========================
+   DOM
+=========================== */
 
-const statusFilter =
-document.getElementById("statusFilter");
+const totalCount=document.getElementById("totalCount");
+const checkedCount=document.getElementById("checkedCount");
+const waitingCount=document.getElementById("waitingCount");
+const remainingCount=document.getElementById("remainingCount");
 
-const sortSelect =
-document.getElementById("sortSelect");
+const participantTable=document.getElementById("participantTable");
 
-const totalCount =
-document.getElementById("totalCount");
+const search=document.getElementById("search");
 
-const checkedCount =
-document.getElementById("checkedCount");
+const statusFilter=document.getElementById("statusFilter");
 
-const waitingCount =
-document.getElementById("waitingCount");
+const sortSelect=document.getElementById("sortSelect");
 
-const remainingCount =
-document.getElementById("remainingCount");
+const exportExcel=document.getElementById("exportExcel");
 
-const loading =
-document.getElementById("loadingOverlay");
+const importExcelBtn=document.getElementById("importExcel");
 
-const emptyState =
-document.getElementById("emptyState");
+const excelFile=document.getElementById("excelFile");
 
-const logoutBtn =
-document.getElementById("logoutBtn");
+const refreshBtn=document.getElementById("refreshBtn");
 
-let participants = [];
+const checkAllBtn=document.getElementById("checkAllBtn");
 
-let filtered = [];
+const uncheckAllBtn=document.getElementById("uncheckAllBtn");
 
-let selectedParticipant = null;
+const deleteSelectedBtn=document.getElementById("deleteSelectedBtn");
+
+const logoutBtn=document.getElementById("logoutBtn");
+// admin.js Düzeltme Paketi
+// Parça 2/12
+
+/* ===========================
+   MODAL
+=========================== */
+
+const participantDialog=document.getElementById("participantDialog");
+
+const participantDialogClose=document.getElementById("participantDialogClose");
+
+const saveParticipantBtn=document.getElementById("saveParticipantBtn");
+
+const detailRegisterNo=document.getElementById("detailRegisterNo");
+
+const detailName=document.getElementById("detailName");
+
+const detailTC=document.getElementById("detailTC");
+
+const detailPhone=document.getElementById("detailPhone");
+
+const detailParent=document.getElementById("detailParent");
+
+const detailParentPhone=document.getElementById("detailParentPhone");
+
+const detailSchool=document.getElementById("detailSchool");
+
+const detailClass=document.getElementById("detailClass");
+
+const detailStatus=document.getElementById("detailStatus");
+
+const detailSeat=document.getElementById("detailSeat");
+
+let participants=[];
+
+let currentParticipant=null;
+ // admin.js Düzeltme Paketi
+// Parça 3/12
 
 authListener(user=>{
 
 if(!user){
 
 location.href="login.html";
+
+return;
 
 }
 
@@ -75,148 +114,116 @@ location.href="login.html";
 }
 
 );
-// admin.js
-// Parça 2/12
 
-function showLoading(show=true){
-
-loading.classList.toggle(
-"hidden",
-!show
-);
-
-}
-
-async function loadStatistics(){
+async function refreshStatistics(){
 
 const stats=
+
 await getStatistics();
 
 totalCount.textContent=
+
 stats.total;
 
 checkedCount.textContent=
-stats.checkedIn;
+
+stats.checked;
 
 waitingCount.textContent=
+
 stats.waiting;
 
 remainingCount.textContent=
+
 stats.remaining;
 
 }
+// admin.js Düzeltme Paketi
+// Parça 4/12
 
-function updateEmptyState(){
+listenRegistrations(data=>{
 
-emptyState.classList.toggle(
-
-"hidden",
-
-filtered.length!==0
-
-);
-
-}
-
-function applyFilters(){
-
-const keyword=
-search.value
-.trim()
-.toLowerCase();
-
-const status=
-statusFilter.value;
-
-filtered=
-participants.filter(item=>{
-
-const matchSearch=
-
-item.adSoyad
-.toLowerCase()
-.includes(keyword)
-
-||
-
-item.kayitNo
-.toLowerCase()
-.includes(keyword)
-
-||
-
-item.tc
-.includes(keyword)
-
-||
-
-item.telefon
-.includes(keyword);
-
-let matchStatus=true;
-
-if(status==="checked"){
-
-matchStatus=
-item.checkedIn;
-
-}
-
-if(status==="waiting"){
-
-matchStatus=
-!item.checkedIn;
-
-}
-
-return(
-matchSearch&&
-matchStatus
-);
-
-});
-
-sortParticipants();
+participants=data;
 
 renderTable();
 
-updateEmptyState();
+refreshStatistics();
+
+});
+// admin.js Düzeltme Paketi
+// Parça 5/12
+
+function filteredParticipants(){
+
+let list=[...participants];
+
+const keyword=
+
+search.value
+
+.toLowerCase()
+
+.trim();
+
+if(keyword){
+
+list=list.filter(p=>
+
+p.adSoyad
+
+.toLowerCase()
+
+.includes(keyword)
+
+||
+
+p.tc.includes(keyword)
+
+||
+
+p.telefon.includes(keyword)
+
+||
+
+p.kayitNo
+
+.toLowerCase()
+
+.includes(keyword)
+
+);
 
 }
-// admin.js
-// Parça 3/12
 
-function sortParticipants(){
+if(statusFilter.value==="checked"){
+
+list=list.filter(p=>p.checkedIn);
+
+}
+
+if(statusFilter.value==="waiting"){
+
+list=list.filter(p=>!p.checkedIn);
+
+}
 
 switch(sortSelect.value){
 
 case "name":
 
-filtered.sort(
+list.sort((a,b)=>
 
-(a,b)=>
-
-a.adSoyad.localeCompare(
-
-b.adSoyad,
-
-"tr"
-
-)
+a.adSoyad.localeCompare(b.adSoyad)
 
 );
 
 break;
 
-case "oldest":
+case "register":
 
-filtered.sort(
+list.sort((a,b)=>
 
-(a,b)=>
-
-a.createdAt?.seconds-
-
-b.createdAt?.seconds
+a.kayitNo.localeCompare(b.kayitNo)
 
 );
 
@@ -224,61 +231,59 @@ break;
 
 case "seat":
 
-filtered.sort(
+list.sort((a,b)=>
 
-(a,b)=>
+(a.seat||999)
 
-(a.seat||"")
+-
 
-.localeCompare(
-
-b.seat||"",
-
-"tr"
-
-)
+(b.seat||999)
 
 );
 
 break;
 
-default:
-
-filtered.sort(
-
-(a,b)=>
-
-b.createdAt?.seconds-
-
-a.createdAt?.seconds
-
-);
-
 }
 
+return list;
+
 }
-// admin.js
-// Parça 4/12
+// admin.js Düzeltme Paketi
+// Parça 6/12
 
 function renderTable(){
 
-table.innerHTML="";
+const list=
 
-filtered.forEach(item=>{
+filteredParticipants();
 
-const tr=
-document.createElement("tr");
+participantTable.innerHTML="";
 
-tr.innerHTML=`
+if(list.length===0){
 
-<td>
+participantTable.innerHTML=`
 
-<input
-type="checkbox"
-class="row-checkbox"
-data-id="${item.kayitNo}">
+<tr>
+
+<td colspan="8">
+
+Kayıt bulunamadı.
 
 </td>
+
+</tr>
+
+`;
+
+return;
+
+}
+
+list.forEach(item=>{
+
+const tr=document.createElement("tr");
+
+tr.innerHTML=`
 
 <td>${item.kayitNo}</td>
 
@@ -286,61 +291,23 @@ data-id="${item.kayitNo}">
 
 <td>${item.telefon}</td>
 
-<td>${item.okul}</td>
+<td>${item.seat||"-"}</td>
 
 <td>
 
-<input
+${item.checkedIn
 
-class="seat-input"
+?'<span class="status success">Geldi</span>'
 
-data-id="${item.kayitNo}"
-
-value="${item.seat||""}"
-
-maxlength="5">
+:'<span class="status waiting">Bekliyor</span>'}
 
 </td>
 
 <td>
 
-<span class="status ${item.checkedIn?"checked":"waiting"}">
-
-${item.checkedIn?"Giriş":"Bekliyor"}
-
-</span>
-
-</td>
-
-<td>
-
-<button
-
-class="view-btn"
-
-data-id="${item.kayitNo}">
+<button class="detailBtn">
 
 Detay
-
-</button>
-
-<button
-
-class="check-btn"
-
-data-id="${item.kayitNo}">
-
-${item.checkedIn?"Çıkış":"Giriş"}
-
-</button>
-
-<button
-
-class="delete-btn"
-
-data-id="${item.kayitNo}">
-
-Sil
 
 </button>
 
@@ -348,169 +315,96 @@ Sil
 
 `;
 
-table.appendChild(tr);
+participantTable.appendChild(tr);
 
 });
-
-bindRowEvents();
-
 }
-// admin.js
-// Parça 5/12
+// admin.js Düzeltme Paketi
+// Parça 7/12
 
-function bindRowEvents(){
+participantTable.addEventListener("click",e=>{
 
-document
+const button=e.target.closest(".detailBtn");
 
-.querySelectorAll(".seat-input")
+if(!button){
 
-.forEach(input=>{
-
-input.addEventListener(
-
-"change",
-
-async()=>{
-
-await updateSeat(
-
-input.dataset.id,
-
-input.value.trim()
-
-);
+return;
 
 }
 
-);
+const row=button.closest("tr");
 
-});
+const registerNo=row.cells[0].textContent;
 
-document
-
-.querySelectorAll(".view-btn")
-
-.forEach(btn=>{
-
-btn.onclick=()=>{
-
-openParticipant(
-
-btn.dataset.id
-
-);
-
-};
-
-});
-
-document
-
-.querySelectorAll(".delete-btn")
-
-.forEach(btn=>{
-
-btn.onclick=()=>{
-
-confirmDelete(
-
-btn.dataset.id
-
-);
-
-};
-
-});
-
-document
-
-.querySelectorAll(".check-btn")
-
-.forEach(btn=>{
-
-btn.onclick=()=>{
-
-toggleCheck(
-
-btn.dataset.id
-
-);
-
-};
-
-});
-
-}
-// admin.js
-// Parça 6/12
-
-function openParticipant(id){
-
-selectedParticipant=
+currentParticipant=
 
 participants.find(
 
-x=>x.kayitNo===id
+p=>p.kayitNo===registerNo
 
 );
 
-if(!selectedParticipant){
+if(!currentParticipant){
 
 return;
 
 }
 
-participantDialog.showModal();
+detailRegisterNo.textContent=currentParticipant.kayitNo;
 
-detailRegisterNo.textContent=
-selectedParticipant.kayitNo;
+detailName.value=currentParticipant.adSoyad;
 
-detailName.textContent=
-selectedParticipant.adSoyad;
+detailTC.value=currentParticipant.tc;
 
-detailTC.textContent=
-selectedParticipant.tc;
+detailPhone.value=currentParticipant.telefon;
 
-detailPhone.textContent=
-selectedParticipant.telefon;
+detailParent.value=currentParticipant.veliAdi;
 
-detailParent.textContent=
-selectedParticipant.veliAdi;
+detailParentPhone.value=currentParticipant.veliTelefon;
 
-detailParentPhone.textContent=
-selectedParticipant.veliTelefon;
+detailSchool.value=currentParticipant.okul;
 
-detailSchool.textContent=
-selectedParticipant.okul;
-
-detailClass.textContent=
-selectedParticipant.sinif;
+detailClass.value=currentParticipant.sinif;
 
 detailStatus.textContent=
 
-selectedParticipant.checkedIn
+currentParticipant.checkedIn
 
-?
+?"Geldi"
 
-"Giriş Yaptı"
-
-:
-
-"Bekliyor";
+:"Bekliyor";
 
 detailSeat.value=
 
-selectedParticipant.seat||"";
+currentParticipant.seat||"";
+
+participantDialog.showModal();
+
+});
+// admin.js Düzeltme Paketi
+// Parça 8/12
+
+participantDialogClose.addEventListener(
+
+"click",
+
+()=>{
+
+participantDialog.close();
+
+currentParticipant=null;
 
 }
-// admin.js
-// Parça 7/12
 
-saveParticipantBtn.onclick=
+);
+
+saveParticipantBtn.addEventListener(
+
+"click",
 
 async()=>{
 
-if(!selectedParticipant){
+if(!currentParticipant){
 
 return;
 
@@ -518,7 +412,7 @@ return;
 
 await updateSeat(
 
-selectedParticipant.kayitNo,
+currentParticipant.id,
 
 detailSeat.value.trim()
 
@@ -526,85 +420,18 @@ detailSeat.value.trim()
 
 participantDialog.close();
 
-};
+refreshStatistics();
 
-closeParticipantBtn.onclick=
-
-()=>participantDialog.close();
-
-participantDialogClose.onclick=
-
-()=>participantDialog.close();
-// admin.js
-// Parça 8/12
-
-async function toggleCheck(id){
-
-const participant=
-
-participants.find(
-
-x=>x.kayitNo===id
-
+}
 );
-
-if(!participant){
-
-return;
-
-}
-
-if(participant.checkedIn){
-
-await checkOut(id);
-
-}else{
-
-await checkIn(id);
-
-}
-
-}
-
-function confirmDelete(id){
-
-selectedParticipant=id;
-
-confirmDialog.showModal();
-
-}
-// admin.js
+// admin.js Düzeltme Paketi
 // Parça 9/12
-
-confirmYes.onclick=
-
-async()=>{
-
-await deleteRegistration(
-
-selectedParticipant
-
-);
-
-confirmDialog.close();
-
-};
-
-confirmNo.onclick=
-
-()=>{
-
-confirmDialog.close();
-
-};
-// admin.js
-// Parça 10/12
 
 search.addEventListener(
 
 "input",
 
-applyFilters
+renderTable
 
 );
 
@@ -612,7 +439,7 @@ statusFilter.addEventListener(
 
 "change",
 
-applyFilters
+renderTable
 
 );
 
@@ -620,30 +447,148 @@ sortSelect.addEventListener(
 
 "change",
 
-applyFilters
+renderTable
 
 );
-// admin.js
-// Parça 11/12
 
-listenRegistrations(
+refreshBtn.addEventListener(
 
-list=>{
+"click",
 
-participants=list;
+()=>{
 
-applyFilters();
+renderTable();
 
-loadStatistics();
+refreshStatistics();
 
-showLoading(false);
+}
+);
+// admin.js Düzeltme Paketi
+// Parça 10/12
+
+exportExcel.addEventListener(
+
+"click",
+
+()=>{
+
+exportCurrentData(participants);
 
 }
 
 );
 
-showLoading(true);
-// admin.js
+importExcelBtn.addEventListener(
+
+"click",
+
+()=>{
+
+excelFile.click();
+
+}
+
+);
+
+excelFile.addEventListener(
+
+"change",
+
+async e=>{
+
+const file=e.target.files[0];
+
+if(!file){
+
+return;
+
+}
+
+await importExcel(file);
+
+excelFile.value="";
+
+}
+
+);
+// admin.js Düzeltme Paketi
+// Parça 11/12
+
+checkAllBtn.addEventListener(
+
+"click",
+
+async()=>{
+
+if(!currentParticipant){
+
+return;
+
+}
+
+await checkIn(currentParticipant.id);
+
+refreshStatistics();
+
+}
+
+);
+
+uncheckAllBtn.addEventListener(
+
+"click",
+
+async()=>{
+
+if(!currentParticipant){
+
+return;
+
+}
+
+await checkOut(currentParticipant.id);
+
+refreshStatistics();
+
+}
+
+);
+
+deleteSelectedBtn.addEventListener(
+
+"click",
+
+async()=>{
+
+if(!currentParticipant){
+
+return;
+
+}
+
+const ok=
+
+confirm(
+
+`${currentParticipant.adSoyad} isimli katılımcı silinsin mi?`
+
+);
+
+if(!ok){
+
+return;
+
+}
+
+await deleteRegistration(currentParticipant.id);
+
+participantDialog.close();
+
+refreshStatistics();
+
+}
+);
+// admin.js Düzeltme Paketi
 // Parça 12/12 (Son)
 
 window.addEventListener(
@@ -652,9 +597,10 @@ window.addEventListener(
 
 ()=>{
 
-applyFilters();
+refreshStatistics();
 
-loadStatistics();
+renderTable();
 
 }
+
 );
