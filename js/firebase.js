@@ -593,3 +593,36 @@ export default {
     createEmptyRegistration
 
 };
+import {
+    onSnapshot
+} from "firebase/firestore";
+
+export function subscribeRegistrations(callback) {
+
+    return onSnapshot(
+
+        registrationsRef,
+
+        snapshot => {
+
+            const data = [];
+
+            snapshot.forEach(doc => {
+
+                data.push({
+
+                    id: doc.id,
+
+                    ...doc.data()
+
+                });
+
+            });
+
+            callback(data);
+
+        }
+
+    );
+
+}
