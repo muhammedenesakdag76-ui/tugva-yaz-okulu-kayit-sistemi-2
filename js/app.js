@@ -10,7 +10,7 @@ const remainingCount = document.getElementById("remainingCount");
 const registerNumber = document.getElementById("registerNumber");
 
 const newRegister = document.getElementById("newRegister");
-const downloadCard = document.getElementById("downloadCard");
+
 
 let aktifKayitNo = "";
 
@@ -153,6 +153,17 @@ const pdfButton = document.getElementById("downloadPdf");
 if (pdfButton) {
 
     pdfButton.addEventListener("click", () => {
+
+        if (!aktifKayitNo) {
+            alert("Önce kayıt oluşturulmalıdır.");
+            return;
+        }
+
+        downloadPDF(aktifKayitNo);
+
+    });
+
+}
 
         if (!aktifKayitNo) {
 
