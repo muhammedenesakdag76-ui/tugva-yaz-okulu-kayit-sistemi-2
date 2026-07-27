@@ -5,238 +5,124 @@
 
 <meta charset="UTF-8">
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0">
 
 <title>Yönetim Paneli</title>
 
-<link rel="stylesheet" href="css/style.css">
-
-<style>
-
-body{
-    background:#f4f6f9;
-}
-
-.header{
-    background:#0b8d42;
-    color:#fff;
-    padding:20px;
-    text-align:center;
-}
-
-.wrapper{
-    width:95%;
-    max-width:1400px;
-    margin:25px auto;
-}
-
-.stats{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-    gap:15px;
-    margin-bottom:25px;
-}
-
-.stat-card{
-    background:#fff;
-    padding:20px;
-    border-radius:15px;
-    box-shadow:0 8px 20px rgba(0,0,0,.08);
-    text-align:center;
-}
-
-.stat-card p{
-    color:#666;
-    margin-bottom:8px;
-}
-
-.stat-card h3{
-    color:#0b8d42;
-    font-size:34px;
-}
-
-.toolbar{
-    display:flex;
-    flex-wrap:wrap;
-    gap:10px;
-    margin-bottom:20px;
-}
-
-.toolbar input{
-    flex:1;
-    min-width:250px;
-    padding:13px;
-    border:1px solid #ccc;
-    border-radius:10px;
-}
-
-.toolbar button{
-    padding:13px 18px;
-    border:none;
-    border-radius:10px;
-    cursor:pointer;
-    color:#fff;
-    font-weight:bold;
-}
-
-#excelBtn{
-    background:#198754;
-}
-
-#refreshBtn{
-    background:#0d6efd;
-}
-
-#checkinPage{
-    background:#fd7e14;
-}
-
-#logoutBtn{
-    background:#dc3545;
-}
-
-.table-card{
-    background:#fff;
-    border-radius:15px;
-    overflow:auto;
-    box-shadow:0 8px 20px rgba(0,0,0,.08);
-}
-
-table{
-    width:100%;
-    border-collapse:collapse;
-    min-width:1200px;
-}
-
-th{
-    background:#0b8d42;
-    color:#fff;
-    padding:14px;
-    white-space:nowrap;
-}
-
-td{
-    padding:12px;
-    border-bottom:1px solid #eee;
-    white-space:nowrap;
-}
-
-.checkBtn,
-.cancelBtn,
-.deleteBtn{
-    border:none;
-    border-radius:8px;
-    padding:8px 12px;
-    color:#fff;
-    cursor:pointer;
-    margin-right:5px;
-}
-
-.checkBtn{
-    background:#198754;
-}
-
-.cancelBtn{
-    background:#ffc107;
-    color:#000;
-}
-
-.deleteBtn{
-    background:#dc3545;
-}
-
-@media(max-width:768px){
-
-.wrapper{
-    width:100%;
-}
-
-.toolbar{
-    flex-direction:column;
-}
-
-.toolbar button{
-    width:100%;
-}
-
-}
-
-</style>
+<link
+rel="stylesheet"
+href="css/style.css">
 
 </head>
 
 <body>
 
-<header class="header">
+<div class="background"></div>
 
-<h1>TÜGVA Yaz Okulu Yönetim Paneli</h1>
+<div class="container">
+
+<header class="hero">
+
+<h1>
+
+Yönetim Paneli
+
+</h1>
+
+<p>
+
+TÜGVA Yaz Okulu Kayıt Sistemi
+
+</p>
 
 </header>
 
-<div class="wrapper">
+<div class="button-group">
 
-<div class="stats">
+<button
+id="logoutBtn"
+class="btn btn-secondary">
 
-<div class="stat-card">
+Çıkış Yap
 
-<p>Toplam Kayıt</p>
-
-<h3 id="totalCount">0</h3>
-
-</div>
-
-<div class="stat-card">
-
-<p>Check-in</p>
-
-<h3 id="checkedCount">0</h3>
+</button>
 
 </div>
 
-<div class="stat-card">
+<div class="grid">
 
-<p>Bekleyen</p>
+<div class="card">
 
-<h3 id="waitingCount">0</h3>
+<h3>
+
+Toplam Kayıt
+
+</h3>
+
+<h1 id="totalCount">
+
+0
+
+</h1>
 
 </div>
 
-<div class="stat-card">
+<div class="card">
 
-<p>Kalan Kontenjan</p>
+<h3>
 
-<h3 id="remainingAdmin">40</h3>
+Check-in
+
+</h3>
+
+<h1 id="checkedCount">
+
+0
+
+</h1>
+
+</div>
+
+<div class="card">
+
+<h3>
+
+Kalan Kontenjan
+
+</h3>
+
+<h1 id="remainingCount">
+
+45
+
+</h1>
 
 </div>
 
 </div>
 
-<div class="toolbar">
+<section class="card">
+
+<h2>
+
+Katılımcılar
+
+</h2>
+
+<div class="form-group">
 
 <input
+
 type="text"
-id="searchInput"
-placeholder="🔍 Ad Soyad, Telefon, T.C. veya Kayıt No Ara...">
 
-<button id="excelBtn">
-Excel
-</button>
+id="search"
 
-<button id="refreshBtn">
-Yenile
-</button>
-
-<button id="checkinPage">
-QR Okuyucu
-</button>
-
-<button id="logoutBtn">
-Çıkış
-</button>
+placeholder="Ad Soyad, TC veya Kayıt No ile ara...">
 
 </div>
 
-<div class="table-card">
+<div class="table-wrapper">
 
 <table>
 
@@ -244,21 +130,15 @@ QR Okuyucu
 
 <tr>
 
-<th>Kayıt No</th>
+<th>No</th>
 
 <th>Ad Soyad</th>
 
-<th>T.C.</th>
-
 <th>Telefon</th>
 
-<th>Doğum</th>
+<th>Koltuk</th>
 
-<th>Cinsiyet</th>
-
-<th>Acil Durum</th>
-
-<th>Check-in</th>
+<th>Durum</th>
 
 <th>İşlem</th>
 
@@ -266,7 +146,7 @@ QR Okuyucu
 
 </thead>
 
-<tbody id="tableBody">
+<tbody id="participantTable">
 
 </tbody>
 
@@ -274,11 +154,153 @@ QR Okuyucu
 
 </div>
 
+</section>
+<script
+type="module"
+src="js/admin.js">
+
+</script>
+
+</body>
+
+</html>
+<!-- Katılımcı Detay Modal -->
+
+<div id="detailModal" class="modal hidden">
+
+    <div class="modal-content">
+
+        <div class="modal-header">
+
+            <h2>Katılımcı Bilgileri</h2>
+
+            <button id="closeModal" class="btn btn-secondary">
+                Kapat
+            </button>
+
+        </div>
+
+        <div id="participantDetail">
+
+        </div>
+
+    </div>
+
 </div>
 
-<script src="https://cdn.sheetjs.com/xlsx-latest/package/dist/xlsx.full.min.js"></script>
 
-<script type="module" src="js/admin.js"></script>
+<!-- Düzenleme Modal -->
+
+<div id="seatModal" class="modal hidden">
+
+    <div class="modal-content">
+
+        <h2>Koltuk Güncelle</h2>
+
+        <input
+            type="text"
+            id="seatValue"
+            placeholder="Örn: A12">
+
+        <div class="button-group">
+
+            <button
+                id="saveSeat"
+                class="btn btn-success">
+
+                Kaydet
+
+            </button>
+
+            <button
+                id="cancelSeat"
+                class="btn btn-secondary">
+
+                Vazgeç
+
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+<section class="card">
+
+<h2>
+
+İstatistikler
+
+</h2>
+
+<div class="grid">
+
+<div>
+
+<b>Toplam Erkek</b>
+
+<p id="maleCount">
+
+0
+
+</p>
+
+</div>
+
+<div>
+
+<b>Toplam Kız</b>
+
+<p id="femaleCount">
+
+0
+
+</p>
+
+</div>
+
+<div>
+
+<b>Bugün Giriş Yapan</b>
+
+<p id="todayCount">
+
+0
+
+</p>
+
+</div>
+
+<div>
+
+<b>Boş Koltuk</b>
+
+<p id="seatCount">
+
+45
+
+</p>
+
+</div>
+
+</div>
+
+</section>
+<footer>
+
+<p>
+
+TÜGVA Yaz Okulu Yönetim Paneli
+
+</p>
+
+</footer>
+
+<script
+type="module"
+src="js/admin.js">
+
+</script>
 
 </body>
 
