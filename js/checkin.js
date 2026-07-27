@@ -1,283 +1,108 @@
 import {
-    auth,
-    kayitNoIleBul,
-    checkinYap,
-    checkinIptal
+    authListener,
+    getRegistration,
+    checkIn
 } from "./firebase.js";
 
-import {
-    onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+const result =
+document.getElementById("result");
 
-const resultCard = document.getElementById("resultCard");
+authListener(user=>{
 
-const name = document.getElementById("name");
-const registerNo = document.getElementById("registerNo");
-const phone = document.getElementById("phone");
-const status = document.getElementById("status");
+if(!user){
 
-const checkBtn = document.getElementById("checkBtn");
-const cancelBtn = document.getElementById("cancelBtn");
-const backBtn = document.getElementById("backBtn");
-
-let scanner = null;
-let currentRecord = null;
-
-let cameras = [];
-let currentCamera = 0;
-
-onAuthStateChanged(auth, user => {
-
-    if (!user) {
-
-        window.location.href = "login.html";
-
-    }
-
-});
-
-async function stopScanner(){
-
-    if(!scanner) return;
-
-    try{
-
-        if(scanner.isScanning){
-
-            await scanner.stop();
-
-        }
-
-    }catch{}
-
-    try{
-
-        await scanner.clear();
-
-    }catch{}
+location.href="login.html";
 
 }
 
-async function qrOkundu(qrText){
+});
 
-    await stopScanner();
+function success(message,color="#16a34a"){
 
-    const kayit = await kayitNoIleBul(qrText);
+result.innerHTML=`
 
-    if(!kayit){
+<div class="card">
 
-        alert("Kayıt bulunamadı.");
+<h2 style="color:${color};">
 
-        setTimeout(kameraBaslat,700);
+${message}
 
-        return;
+</h2>
 
-    }
+</div>
 
-    currentRecord = kayit;
+`;
 
-    resultCard.style.display="block";
+}
+async function onScanSuccess(code){
 
-    name.textContent = kayit.adSoyad;
+const participant=
 
-    registerNo.textContent = kayit.kayitNo;
+await getRegistration(code);
 
-    phone.textContent = kayit.telefon;
+if(!participant){
 
-    if(kayit.checkin){
+success(
 
-        status.textContent="✅ Check-in Yapıldı";
+"Kayıt bulunamadı.",
 
-        status.style.color="#198754";
+"#dc2626"
 
-        checkBtn.style.display="none";
+);
 
-        cancelBtn.style.display="block";
-
-    }else{
-
-        status.textContent="⏳ Bekliyor";
-
-        status.style.color="#fd7e14";
-
-        checkBtn.style.display="block";
-
-        cancelBtn.style.display="none";
-
-    }
+return;
 
 }
 
-async function kameraBaslat(){
+if(participant.checkedIn){
 
-    resultCard.style.display="none";
+success(
 
-    await stopScanner();
+participant.adSoyad+
 
-    scanner=new Html5Qrcode("reader");
+"<br><br>Bu kişi zaten giriş yaptı.",
 
-    cameras=await Html5Qrcode.getCameras();
+"#f59e0b"
 
-    if(!cameras.length){
+);
 
-        alert("Kamera bulunamadı.");
-
-        return;
-
-    }
-
-    let backIndex=cameras.findIndex(cam=>
-
-        /back|rear|environment|arka/i.test(cam.label)
-
-    );
-
-    if(backIndex!=-1){
-
-        currentCamera=backIndex;
-
-    }
-
-    await scanner.start(
-
-        cameras[currentCamera].id,
-
-        {
-
-            fps:10,
-
-            qrbox:{
-
-                width:260,
-
-                height:260
-
-            }
-
-        },
-
-        decoded=>{
-
-            qrOkundu(decoded);
-
-        },
-
-        ()=>{}
-
-    );
+return;
 
 }
-checkBtn.addEventListener("click",async()=>{
 
-    if(!currentRecord) return;
+await checkIn(code);
 
-    try{
+success(
 
-        await checkinYap(currentRecord.id);
+participant.adSoyad+
 
-        alert("Check-in başarılı.");
+"<br><br>Giriş başarılı."
 
-        currentRecord=null;
-
-        setTimeout(kameraBaslat,700);
-
-    }catch(e){
-
-        console.error(e);
-
-        alert("İşlem başarısız.");
-
-    }
-
-});
-
-cancelBtn.addEventListener("click",async()=>{
-
-    if(!currentRecord) return;
-
-    try{
-
-        await checkinIptal(currentRecord.id);
-
-        alert("Check-in iptal edildi.");
-
-        currentRecord=null;
-
-        setTimeout(kameraBaslat,700);
-
-    }catch(e){
-
-        console.error(e);
-
-        alert("İşlem başarısız.");
-
-    }
-
-});
-
-backBtn.addEventListener("click",()=>{
-
-    window.location.href="admin.html";
-
-});
-
-/* Kamera değiştirme */
-async function kameraDegistir(){
-
-    if(cameras.length<2){
-
-        alert("Başka kamera bulunamadı.");
-
-        return;
-
-    }
-
-    currentCamera++;
-
-    if(currentCamera>=cameras.length){
-
-        currentCamera=0;
-
-    }
-
-    await kameraBaslat();
+);
 
 }
+const scanner =
 
-/* Eğer HTML'de
-<button id="switchCamera">📷 Kamera Değiştir</button>
-eklersen otomatik çalışır */
+new Html5QrcodeScanner(
 
-const switchBtn=document.getElementById("switchCamera");
+"reader",
 
-if(switchBtn){
+{
 
-    switchBtn.addEventListener("click",kameraDegistir);
+fps:10,
 
-}
+qrbox:250
 
-window.addEventListener("load",()=>{
+},
 
-    kameraBaslat();
+false
 
-});
+);
 
-window.addEventListener("beforeunload",async()=>{
+scanner.render(
 
-    await stopScanner();
+onScanSuccess,
 
-});
+()=>{}
 
-document.addEventListener("visibilitychange",async()=>{
-
-    if(document.hidden){
-
-        await stopScanner();
-
-    }else{
-
-        setTimeout(kameraBaslat,500);
-
-    }
-
-});
+);
