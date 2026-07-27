@@ -32,27 +32,35 @@ function cacheDOM() {
 
     APP.dom = {
 
-        form: document.getElementById("registrationForm"),
+        form: document.getElementById("registerForm"),
 
         submit: document.getElementById("submitButton"),
 
         reset: document.getElementById("resetButton"),
 
-        loading: document.getElementById("loadingOverlay"),
+        loading: document.getElementById("loading"),
 
-        success: document.getElementById("successModal"),
+        success: document.getElementById("successSection"),
 
-        qr: document.getElementById("successQr"),
+        qr: document.getElementById("qr"),
 
-        pdf: document.getElementById("downloadPdf"),
+        pdf: document.getElementById("downloadPdfButton"),
 
-        again: document.getElementById("newRegistration"),
+        again: document.getElementById("againButton"),
 
         remaining: document.getElementById("remainingCapacity"),
 
         remainingText: document.getElementById("remainingCapacityText"),
 
-        capacityBar: document.getElementById("capacityBar")
+        capacityBar: document.getElementById("capacityBar"),
+
+        successName: document.getElementById("successName"),
+
+        successRegisterNumber: document.getElementById("successRegisterNumber"),
+
+        successSeat: document.getElementById("successSeat"),
+
+        registrationInfo: document.getElementById("registrationInfo")
 
     };
 
@@ -72,25 +80,25 @@ function value(id) {
 
 }
 
-function setValue(id, value) {
+function text(id, value) {
 
     const element = $(id);
 
     if (element) {
 
-        element.value = value;
+        element.textContent = value;
 
     }
 
 }
 
-function setText(id, text) {
+function html(id, value) {
 
     const element = $(id);
 
     if (element) {
 
-        element.textContent = text;
+        element.innerHTML = value;
 
     }
 
@@ -98,21 +106,27 @@ function setText(id, text) {
 
 function show(element) {
 
-    if (element) {
+    if (!element) return;
 
-        element.classList.remove("hidden");
+    element.style.display = "";
 
-    }
+    element.classList.remove("hidden");
 
 }
 
 function hide(element) {
 
-    if (element) {
+    if (!element) return;
 
-        element.classList.add("hidden");
+    element.style.display = "none";
 
-    }
+    element.classList.add("hidden");
+
+}
+
+function onlyDigits(value) {
+
+    return value.replace(/\D/g, "");
 
 }
 
@@ -132,13 +146,11 @@ function setLoading(status) {
 
     }
 
-    if (status) {
+    if (APP.dom.loading) {
 
-        show(APP.dom.loading);
+        APP.dom.loading.style.display =
 
-    } else {
-
-        hide(APP.dom.loading);
+            status ? "flex" : "none";
 
     }
 
@@ -177,13 +189,13 @@ function getFormData() {
 
 function fillForm(data = {}) {
 
-    Object.keys(data).forEach(key => {
+    Object.entries(data).forEach(([key, val]) => {
 
         const input = $(key);
 
         if (input) {
 
-            input.value = data[key] ?? "";
+            input.value = val ?? "";
 
         }
 
@@ -193,7 +205,11 @@ function fillForm(data = {}) {
 
 function clearForm() {
 
-    APP.dom.form.reset();
+    if (APP.dom.form) {
+
+        APP.dom.form.reset();
+
+    }
 
     APP.registration = null;
 
@@ -213,9 +229,9 @@ function saveDraft() {
 
     }
 
-    catch (error) {
+    catch (e) {
 
-        console.error(error);
+        console.error(e);
 
     }
 
@@ -225,25 +241,25 @@ function loadDraft() {
 
     try {
 
-        const json = localStorage.getItem(
+        const draft = localStorage.getItem(
 
             "tyo-registration-draft"
 
         );
 
-        if (!json) {
+        if (!draft) {
 
             return;
 
         }
 
-        fillForm(JSON.parse(json));
+        fillForm(JSON.parse(draft));
 
     }
 
-    catch (error) {
+    catch (e) {
 
-        console.error(error);
+        console.error(e);
 
     }
 
@@ -259,12 +275,72 @@ function clearDraft() {
 
 }
 
+function saveLastRegistration(registration) {
+
+    sessionStorage.setItem(
+
+        "tyo-last-registration",
+
+        JSON.stringify(registration)
+
+    );
+
+}
+
+function loadLastRegistration() {
+
+    try {
+
+        const json = sessionStorage.getItem(
+
+            "tyo-last-registration"
+
+        );
+
+        if (!json) {
+
+            return null;
+
+        }
+
+        return JSON.parse(json);
+
+    }
+
+    catch (e) {
+
+        return null;
+
+    }
+
+}
+
+function clearLastRegistration() {
+
+    sessionStorage.removeItem(
+
+        "tyo-last-registration"
+
+    );
+
+}
+
 function bindDraftEvents() {
 
+    if (!APP.dom.form) {
+
+        return;
+
+    }
+
     APP.dom.form
+
         .querySelectorAll(
-            "input, select, textarea"
+
+            "input,select,textarea"
+
         )
+
         .forEach(input => {
 
             input.addEventListener(
@@ -278,21 +354,79 @@ function bindDraftEvents() {
         });
 
 }
+
+function setupInputFormatting() {
+
+    const tc = $("tc");
+
+    if (tc) {
+
+        tc.addEventListener("input", e => {
+
+            e.target.value =
+
+                onlyDigits(
+
+                    e.target.value
+
+                ).slice(0, 11);
+
+        });
+
+    }
+
+    const phone = $("phone");
+
+    if (phone) {
+
+        phone.addEventListener("input", e => {
+
+            e.target.value =
+
+                onlyDigits(
+
+                    e.target.value
+
+                ).slice(0, 10);
+
+        });
+
+    }
+
+    const parentPhone = $("parentPhone");
+
+    if (parentPhone) {
+
+        parentPhone.addEventListener("input", e => {
+
+            e.target.value =
+
+                onlyDigits(
+
+                    e.target.value
+
+                ).slice(0, 10);
+
+        });
+
+    }
+
+}
 function clearErrors() {
 
     document
         .querySelectorAll(".is-invalid")
-        .forEach(element => {
+        .forEach(input => {
 
-            element.classList.remove("is-invalid");
+            input.classList.remove("is-invalid");
 
         });
 
     document
         .querySelectorAll(".invalid-feedback")
-        .forEach(element => {
+        .forEach(error => {
 
-            element.remove();
+            error.remove();
 
         });
 
@@ -302,37 +436,33 @@ function showErrors(errors) {
 
     clearErrors();
 
-    Object.entries(errors).forEach(
+    Object.entries(errors).forEach(([field, message]) => {
 
-        ([field, message]) => {
+        const input = $(field);
 
-            const input = $(field);
+        if (!input) {
 
-            if (!input) {
-
-                return;
-
-            }
-
-            input.classList.add("is-invalid");
-
-            const div = document.createElement("div");
-
-            div.className = "invalid-feedback";
-
-            div.textContent = message;
-
-            input.insertAdjacentElement(
-
-                "afterend",
-
-                div
-
-            );
+            return;
 
         }
 
-    );
+        input.classList.add("is-invalid");
+
+        const feedback = document.createElement("div");
+
+        feedback.className = "invalid-feedback";
+
+        feedback.textContent = message;
+
+        input.insertAdjacentElement(
+
+            "afterend",
+
+            feedback
+
+        );
+
+    });
 
 }
 
@@ -370,25 +500,37 @@ async function updateCapacity() {
 
             APP.MAX_CAPACITY - remaining;
 
-        const percent =
+        const percent = Math.min(
 
-            Math.min(
+            (used / APP.MAX_CAPACITY) * 100,
 
-                (used / APP.MAX_CAPACITY) * 100,
+            100
 
-                100
+        );
 
-            );
+        if (APP.dom.remaining) {
 
-        APP.dom.remaining.textContent = remaining;
+            APP.dom.remaining.textContent =
 
-        APP.dom.remainingText.textContent =
+                remaining;
 
-            `${used} / ${APP.MAX_CAPACITY}`;
+        }
 
-        APP.dom.capacityBar.style.width =
+        if (APP.dom.remainingText) {
 
-            `${percent}%`;
+            APP.dom.remainingText.textContent =
+
+                `${used} / ${APP.MAX_CAPACITY}`;
+
+        }
+
+        if (APP.dom.capacityBar) {
+
+            APP.dom.capacityBar.style.width =
+
+                `${percent}%`;
+
+        }
 
     }
 
@@ -397,6 +539,28 @@ async function updateCapacity() {
         console.error(error);
 
     }
+
+}
+
+async function checkCapacityBeforeSubmit() {
+
+    const full = await isCapacityFull();
+
+    if (!full) {
+
+        return true;
+
+    }
+
+    alert(
+
+        "Üzgünüz, kontenjan dolmuştur."
+
+    );
+
+    await updateCapacity();
+
+    return false;
 
 }
 async function handleSubmit(event) {
@@ -409,13 +573,11 @@ async function handleSubmit(event) {
 
     }
 
-    const full = await isCapacityFull();
+    const available =
 
-    if (full) {
+        await checkCapacityBeforeSubmit();
 
-        alert("Kontenjan dolmuştur.");
-
-        await updateCapacity();
+    if (!available) {
 
         return;
 
@@ -433,19 +595,37 @@ async function handleSubmit(event) {
 
         setLoading(true);
 
-        const savedRegistration = await addRegistration(
+        const savedRegistration =
 
-            registration
+            await addRegistration(
 
-        );
+                registration
+
+            );
 
         APP.registration = savedRegistration;
 
         clearDraft();
 
+        saveLastRegistration(
+
+            savedRegistration
+
+        );
+
         await updateCapacity();
 
-        await showSuccess(savedRegistration);
+        await showSuccess(
+
+            savedRegistration
+
+        );
+
+        showToast(
+
+            "Kayıt başarıyla oluşturuldu."
+
+        );
 
     }
 
@@ -453,11 +633,13 @@ async function handleSubmit(event) {
 
         console.error(error);
 
-        alert(
+        showToast(
 
             error.message ||
 
-            "Kayıt oluşturulurken hata meydana geldi."
+            "Kayıt oluşturulamadı.",
+
+            "error"
 
         );
 
@@ -470,31 +652,60 @@ async function handleSubmit(event) {
     }
 
 }
+
 async function showSuccess(registration) {
 
-    setText(
+    APP.registration = registration;
 
-        "successName",
+    if (APP.dom.successName) {
 
-        registration.name
+        APP.dom.successName.textContent =
 
-    );
+            registration.name;
 
-    setText(
+    }
 
-        "successRegisterNumber",
+    if (APP.dom.successRegisterNumber) {
 
-        registration.registerNumber
+        APP.dom.successRegisterNumber.textContent =
 
-    );
+            registration.registerNumber;
 
-    setText(
+    }
 
-        "successSeat",
+    if (APP.dom.successSeat) {
 
-        registration.seat || "-"
+        APP.dom.successSeat.textContent =
 
-    );
+            registration.seat ||
+
+            "Henüz atanmadı";
+
+    }
+
+    if (APP.dom.registrationInfo) {
+
+        APP.dom.registrationInfo.innerHTML = `
+
+            <div class="success-card">
+
+                <p><strong>Ad Soyad:</strong> ${registration.name}</p>
+
+                <p><strong>Kayıt No:</strong> ${registration.registerNumber}</p>
+
+                <p><strong>Telefon:</strong> ${registration.phone}</p>
+
+                <p><strong>Okul:</strong> ${registration.school}</p>
+
+                <p><strong>Sınıf:</strong> ${registration.class}</p>
+
+                <p><strong>Koltuk:</strong> ${registration.seat || "Henüz atanmadı"}</p>
+
+            </div>
+
+        `;
+
+    }
 
     if (
 
@@ -503,6 +714,8 @@ async function showSuccess(registration) {
         typeof generateQRCode === "function"
 
     ) {
+
+        APP.dom.qr.innerHTML = "";
 
         await generateQRCode(
 
@@ -514,29 +727,70 @@ async function showSuccess(registration) {
 
     }
 
+    if (APP.dom.form) {
+
+        APP.dom.form.style.display =
+
+            "none";
+
+    }
+
     show(APP.dom.success);
+
+    window.scrollTo({
+
+        top: 0,
+
+        behavior: "smooth"
+
+    });
+
+}
+async function downloadCurrentPDF() {
+
+    if (!APP.registration) {
+
+        showToast(
+
+            "PDF oluşturulacak kayıt bulunamadı.",
+
+            "error"
+
+        );
+
+        return;
+
+    }
+
+    try {
+
+        await downloadRegistrationPDF(
+
+            APP.registration
+
+        );
+
+    }
+
+    catch (error) {
+
+        console.error(error);
+
+        showToast(
+
+            "PDF oluşturulamadı.",
+
+            "error"
+
+        );
+
+    }
 
 }
 
 function hideSuccess() {
 
     hide(APP.dom.success);
-
-}
-
-async function downloadCurrentPDF() {
-
-    if (!APP.registration) {
-
-        return;
-
-    }
-
-    await downloadRegistrationPDF(
-
-        APP.registration
-
-    );
 
 }
 
@@ -548,6 +802,20 @@ function startNewRegistration() {
 
     clearForm();
 
+    clearLastRegistration();
+
+    if (APP.dom.qr) {
+
+        APP.dom.qr.innerHTML = "";
+
+    }
+
+    if (APP.dom.form) {
+
+        APP.dom.form.style.display = "";
+
+    }
+
     window.scrollTo({
 
         top: 0,
@@ -557,104 +825,22 @@ function startNewRegistration() {
     });
 
 }
-function bindEvents() {
 
-    APP.dom.form.addEventListener(
+async function restoreLastRegistration() {
 
-        "submit",
+    const registration =
 
-        handleSubmit
+        loadLastRegistration();
 
-    );
+    if (!registration) {
 
-    APP.dom.reset.addEventListener(
-
-        "click",
-
-        () => {
-
-            clearErrors();
-
-            clearDraft();
-
-        }
-
-    );
-
-    APP.dom.pdf.addEventListener(
-
-        "click",
-
-        downloadCurrentPDF
-
-    );
-
-    APP.dom.again.addEventListener(
-
-        "click",
-
-        startNewRegistration
-
-    );
-
-    bindDraftEvents();
-
-}
-function onlyDigits(value) {
-
-    return value.replace(/\D/g, "");
-
-}
-
-function setupInputFormatting() {
-
-    const tc = $("tc");
-
-    if (tc) {
-
-        tc.addEventListener("input", e => {
-
-            e.target.value = onlyDigits(
-
-                e.target.value
-
-            ).substring(0, 11);
-
-        });
+        return;
 
     }
 
-    const phone = $("phone");
+    APP.registration = registration;
 
-    if (phone) {
-
-        phone.addEventListener("input", e => {
-
-            e.target.value = onlyDigits(
-
-                e.target.value
-
-            ).substring(0, 10);
-
-        });
-
-    }
-
-    const parentPhone = $("parentPhone");
-
-    if (parentPhone) {
-
-        parentPhone.addEventListener("input", e => {
-
-            e.target.value = onlyDigits(
-
-                e.target.value
-
-            ).substring(0, 10);
-
-        });
-
-    }
+    await showSuccess(registration);
 
 }
 function showToast(message, type = "success") {
@@ -686,6 +872,66 @@ function showToast(message, type = "success") {
     }, 3000);
 
 }
+function bindEvents() {
+
+    if (APP.dom.form) {
+
+        APP.dom.form.addEventListener(
+
+            "submit",
+
+            handleSubmit
+
+        );
+
+    }
+
+    if (APP.dom.reset) {
+
+        APP.dom.reset.addEventListener(
+
+            "click",
+
+            () => {
+
+                clearErrors();
+
+                clearDraft();
+
+            }
+
+        );
+
+    }
+
+    if (APP.dom.pdf) {
+
+        APP.dom.pdf.addEventListener(
+
+            "click",
+
+            downloadCurrentPDF
+
+        );
+
+    }
+
+    if (APP.dom.again) {
+
+        APP.dom.again.addEventListener(
+
+            "click",
+
+            startNewRegistration
+
+        );
+
+    }
+
+    bindDraftEvents();
+
+}
+
 function setupConnectionEvents() {
 
     window.addEventListener(
@@ -696,7 +942,7 @@ function setupConnectionEvents() {
 
             showToast(
 
-                "İnternet bağlantısı sağlandı."
+                "İnternet bağlantısı yeniden sağlandı."
 
             );
 
@@ -723,9 +969,22 @@ function setupConnectionEvents() {
     );
 
 }
+
 async function init() {
 
     cacheDOM();
+
+    if (!APP.dom.form) {
+
+        console.error(
+
+            "registerForm bulunamadı."
+
+        );
+
+        return;
+
+    }
 
     setupInputFormatting();
 
@@ -736,6 +995,8 @@ async function init() {
     setupConnectionEvents();
 
     await updateCapacity();
+
+    await restoreLastRegistration();
 
 }
 
