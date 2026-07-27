@@ -255,15 +255,9 @@ async function submitForm(e) {
     }
 
     catch (err) {
-
-        console.error(err);
-
-        showToast(
-            err.message,
-            false
-        );
-
-    }
+    console.error(err);
+    alert(err.message);
+}
 
     finally {
 
