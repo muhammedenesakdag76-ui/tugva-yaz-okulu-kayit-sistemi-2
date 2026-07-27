@@ -207,7 +207,7 @@ async function init() {
     bindSearch();
 
     bindRefresh();
-
+startRealtime();
     await loadRegistrations();
 
 }
@@ -598,3 +598,22 @@ document
 .getElementById("closeEditButton")
 
 .onclick = closeEditModal;
+import {
+    subscribeRegistrations
+} from "./firebase.js";
+
+function startRealtime() {
+
+    subscribeRegistrations(data => {
+
+        ADMIN.registrations = data;
+
+        ADMIN.filtered = [...data];
+
+        renderTable();
+
+        loadStatistics();
+
+    });
+
+}
