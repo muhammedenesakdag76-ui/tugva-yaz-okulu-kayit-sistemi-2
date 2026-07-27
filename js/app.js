@@ -1,7 +1,7 @@
 // app.js
 // Düzeltme Paketi
 // Parça 1/8
-
+alert("app.js çalıştı");
 import{
 createRegistration,
 generateRegisterNumber,
