@@ -3,6 +3,10 @@ import {
     getRemainingCapacity
 } from "./firebase.js";
 
+import {
+    downloadPDF
+} from "./pdf.js";
+
 
 // ===============================
 // Elements
@@ -332,7 +336,7 @@ if (newButton) {
     });
 
 }
-import { downloadPDF } from "./pdf.js";
+
 
 // ===============================
 // PDF Download
