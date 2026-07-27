@@ -229,7 +229,11 @@ function showToast(message, success = true) {
 
 async function submitForm(e) {
 
+    alert("submit çalıştı");
+
     e.preventDefault();
+
+}
 
     try {
 
