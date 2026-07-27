@@ -347,16 +347,11 @@ MAX_CAPACITY-
 
 total;
 
-return{
-
-total,
-
-checkedIn,
-
-waiting,
-
-remaining
-
+return {
+  total,
+  checked: checkedIn,
+  waiting,
+  remaining
 };
 
 }
