@@ -47,14 +47,10 @@ const detailStatus = document.getElementById("detailStatus");
 
 const detailQr = document.getElementById("detailQr");
 
-const statTotal = document.getElementById("statTotal");
-
-const statChecked = document.getElementById("statChecked");
-
-const statWaiting = document.getElementById("statWaiting");
-
-const statRemaining = document.getElementById("statRemaining");
-
+const statTotal = document.getElementById("totalCount");
+const statChecked = document.getElementById("checkedCount");
+const statWaiting = document.getElementById("waitingCount");
+const statRemaining = document.getElementById("remainingCount");
 const capacity = 45;
 
 document.addEventListener("DOMContentLoaded", init);
