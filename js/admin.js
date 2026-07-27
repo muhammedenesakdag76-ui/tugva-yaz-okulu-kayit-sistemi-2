@@ -336,6 +336,8 @@ setupQrButtons();
 
 autoRefresh();
 
+setupExportButtons();
+
 await loadRegistrations();
 
 }
@@ -578,5 +580,38 @@ function autoRefresh() {
         30000
 
     );
+
+}
+function setupExportButtons() {
+
+    const csvButton =
+        document.getElementById("exportCsvButton");
+
+    const pdfButton =
+        document.getElementById("printButton");
+
+    if (csvButton) {
+
+        csvButton.addEventListener(
+
+            "click",
+
+            exportCSV
+
+        );
+
+    }
+
+    if (pdfButton) {
+
+        pdfButton.addEventListener(
+
+            "click",
+
+            printTable
+
+        );
+
+    }
 
 }
