@@ -1,3 +1,6 @@
+<!-- checkin.html -->
+<!-- Parça 1/5 -->
+
 <!DOCTYPE html>
 <html lang="tr">
 
@@ -5,13 +8,15 @@
 
 <meta charset="UTF-8">
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta
+name="viewport"
+content="width=device-width, initial-scale=1.0">
 
 <title>QR Check-in</title>
 
-<link rel="stylesheet" href="css/style.css">
-
-<script src="https://unpkg.com/html5-qrcode"></script>
+<link
+rel="stylesheet"
+href="css/style.css">
 
 </head>
 
@@ -23,23 +28,142 @@
 
 <header class="hero">
 
-<h1>QR Check-in</h1>
+<h1>
 
-<p>TÜGVA Yaz Okulu Giriş Sistemi</p>
+QR Check-in
+
+</h1>
+
+<p>
+
+TÜGVA Yaz Okulu Giriş Sistemi
+
+</p>
 
 </header>
+<!-- checkin.html -->
+<!-- Profesyonel Sürüm -->
+<!-- Parça 2/5 -->
 
-<section class="card">
+<section class="stats-grid">
 
-<div id="reader"></div>
+<div class="stat-card">
 
-<div id="result" style="margin-top:25px;"></div>
+<div class="stat-title">
 
-</section>
+Giriş Yapan
 
 </div>
 
-<script type="module" src="js/checkin.js"></script>
+<div
+id="todayCount"
+class="stat-value">
+
+0
+
+</div>
+
+</div>
+
+<div class="stat-card">
+
+<div class="stat-title">
+
+Kalan Kontenjan
+
+</div>
+
+<div
+id="remainingCount">
+
+45
+
+</div>
+
+</div>
+
+</section>
+
+<section class="card">
+
+<h2>
+
+QR Kod Okut
+
+</h2>
+
+<div id="reader"></div>
+
+</section>
+<!-- checkin.html -->
+<!-- Parça 3/5 -->
+
+<section class="card">
+
+<h2>
+
+Manuel Giriş
+
+</h2>
+
+<div class="toolbar">
+
+<input
+
+type="text"
+
+id="manualCode"
+
+placeholder="Kayıt Numarası">
+
+<button
+
+id="manualButton"
+
+class="btn btn-success">
+
+Giriş Yap
+
+</button>
+
+</div>
+
+</section>
+<!-- checkin.html -->
+<!-- Parça 4/5 -->
+
+<section class="card">
+
+<h2>
+
+Sonuç
+
+</h2>
+
+<div
+
+id="result"
+
+class="check-result">
+
+Henüz işlem yapılmadı.
+
+</div>
+
+</section>
+<!-- checkin.html -->
+<!-- Parça 5/5 (Son) -->
+
+<script
+src="https://unpkg.com/html5-qrcode">
+</script>
+
+<script
+type="module"
+src="js/checkin.js">
+</script>
+
+</div>
 
 </body>
 
