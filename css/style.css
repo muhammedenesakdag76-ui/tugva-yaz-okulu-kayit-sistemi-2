@@ -1,296 +1,633 @@
+/* ===========================
+   RESET
+=========================== */
+
 *{
     margin:0;
     padding:0;
     box-sizing:border-box;
 }
 
-body{
-    font-family:Arial,Helvetica,sans-serif;
-    background:#f4f6f9;
-    color:#222;
+html{
+    scroll-behavior:smooth;
 }
+
+body{
+
+    font-family:'Poppins',sans-serif;
+
+    background:#eef3fb;
+
+    color:#222;
+
+    min-height:100vh;
+
+    overflow-x:hidden;
+
+}
+
+
+/* ===========================
+   BACKGROUND
+=========================== */
+
+.background{
+
+    position:fixed;
+
+    inset:0;
+
+    background:
+    linear-gradient(135deg,#0f172a,#1e3a8a,#2563eb);
+
+    z-index:-2;
+
+}
+
+.background::before{
+
+    content:"";
+
+    position:absolute;
+
+    width:600px;
+
+    height:600px;
+
+    background:rgba(255,255,255,.08);
+
+    border-radius:50%;
+
+    top:-250px;
+
+    left:-180px;
+
+    filter:blur(40px);
+
+}
+
+.background::after{
+
+    content:"";
+
+    position:absolute;
+
+    width:450px;
+
+    height:450px;
+
+    background:rgba(255,255,255,.05);
+
+    border-radius:50%;
+
+    right:-120px;
+
+    bottom:-120px;
+
+    filter:blur(50px);
+
+}
+
+
+/* ===========================
+   CONTAINER
+=========================== */
+
+.container{
+
+    width:min(1100px,92%);
+
+    margin:auto;
+
+    padding:40px 0 70px;
+
+}
+/* ===========================
+   HERO
+=========================== */
 
 .hero{
-    position:relative;
-    background:linear-gradient(135deg,#006837,#009245);
-    color:#fff;
-    padding:60px 20px;
+
     text-align:center;
-    overflow:hidden;
-}
 
-.overlay{
-    position:absolute;
-    inset:0;
-    background:rgba(0,0,0,.15);
-}
+    color:#fff;
 
-.hero-content{
-    position:relative;
-    z-index:2;
+    margin-bottom:30px;
+
 }
 
 .hero h1{
-    font-size:42px;
-    margin-bottom:10px;
-}
 
-.hero h2{
-    font-size:28px;
-    margin-bottom:10px;
+    font-size:42px;
+
+    font-weight:700;
+
 }
 
 .hero p{
-    font-size:18px;
-    opacity:.95;
+
+    margin-top:8px;
+
+    opacity:.9;
+
+    font-size:17px;
+
 }
 
-.container{
-    width:95%;
-    max-width:900px;
-    margin:30px auto;
+
+/* ===========================
+   CAPACITY CARD
+=========================== */
+
+.capacity-card{
+
+    width:220px;
+
+    margin:0 auto 30px;
+
+    background:rgba(255,255,255,.15);
+
+    backdrop-filter:blur(18px);
+
+    border-radius:22px;
+
+    padding:20px;
+
+    text-align:center;
+
+    color:#fff;
+
+    border:1px solid rgba(255,255,255,.2);
+
 }
+
+.capacity-title{
+
+    font-size:15px;
+
+    opacity:.85;
+
+}
+
+.capacity-number{
+
+    margin-top:8px;
+
+    font-size:48px;
+
+    font-weight:700;
+
+}
+/* ===========================
+   CARD
+=========================== */
 
 .card{
+
     background:#fff;
-    border-radius:15px;
-    padding:25px;
+
+    border-radius:22px;
+
+    padding:35px;
+
+    box-shadow:
+
+    0 15px 35px rgba(0,0,0,.08);
+
+    margin-bottom:30px;
+
+}
+
+.card h2{
+
     margin-bottom:25px;
-    box-shadow:0 10px 25px rgba(0,0,0,.08);
+
+    color:#1e3a8a;
+
 }
 
-.remaining-box{
-    text-align:center;
-}
 
-.remaining-box h3{
-    color:#666;
-    margin-bottom:10px;
-}
+/* ===========================
+   GRID
+=========================== */
 
-.remaining-box h1{
-    font-size:50px;
-    color:#0b8d42;
-}
+.grid{
 
-form{
-    display:flex;
-    flex-direction:column;
+    display:grid;
+
+    grid-template-columns:
+
+    repeat(auto-fit,minmax(260px,1fr));
+
     gap:18px;
+
 }
+
+
+/* ===========================
+   FORM
+=========================== */
 
 .form-group{
+
     display:flex;
+
     flex-direction:column;
+
+    margin-bottom:18px;
+
 }
 
 .form-group label{
+
     margin-bottom:8px;
+
     font-weight:600;
+
+    font-size:14px;
+
 }
 
 .form-group input,
+
 .form-group select,
+
 .form-group textarea{
-    width:100%;
+
     padding:14px;
-    border:1px solid #ccc;
-    border-radius:10px;
-    font-size:16px;
+
+    border:1px solid #d6dbe8;
+
+    border-radius:12px;
+
+    font-size:15px;
+
     transition:.25s;
+
+    outline:none;
+
 }
 
 .form-group input:focus,
-.form-group select:focus,
-.form-group textarea:focus{
-    outline:none;
-    border-color:#0b8d42;
-    box-shadow:0 0 0 3px rgba(11,141,66,.15);
-}
 
-textarea{
-    resize:vertical;
-    min-height:100px;
+.form-group textarea:focus,
+
+.form-group select:focus{
+
+    border-color:#2563eb;
+
+    box-shadow:
+
+    0 0 0 4px rgba(37,99,235,.12);
+
+}
+/* ===========================
+   CHECKBOX
+=========================== */
+
+.checkbox-group{
+
+    margin:25px 0;
+
+    display:flex;
+
+    flex-direction:column;
+
+    gap:15px;
+
 }
 
 .checkbox{
+
     display:flex;
+
     align-items:flex-start;
-    gap:10px;
+
+    gap:12px;
+
+    cursor:pointer;
+
+    font-size:15px;
+
+    line-height:1.5;
+
 }
 
-.checkbox label{
-    cursor:pointer;
-    line-height:1.5;
+.checkbox input{
+
+    width:20px;
+
+    height:20px;
+
+    margin-top:2px;
+
+    accent-color:#2563eb;
+
 }
+
+
+/* ===========================
+   BUTTONS
+=========================== */
 
 .button-area{
-    margin-top:10px;
+
+    margin-top:30px;
+
+}
+
+.button-group{
+
+    display:flex;
+
+    justify-content:center;
+
+    flex-wrap:wrap;
+
+    gap:15px;
+
+    margin-top:25px;
+
 }
 
 .btn{
-    width:100%;
+
     border:none;
-    border-radius:10px;
-    padding:15px;
-    font-size:17px;
-    font-weight:bold;
+
+    outline:none;
+
     cursor:pointer;
-    background:#0b8d42;
-    color:#fff;
-    transition:.25s;
+
+    border-radius:12px;
+
+    padding:15px 28px;
+
+    font-size:15px;
+
+    font-weight:600;
+
+    transition:.3s;
+
 }
 
 .btn:hover{
-    background:#087634;
+
+    transform:translateY(-2px);
+
+    box-shadow:0 10px 25px rgba(0,0,0,.15);
+
 }
 
-.secondary{
-    background:#0066cc;
-    margin-top:15px;
+.btn-primary{
+
+    width:100%;
+
+    background:#2563eb;
+
+    color:#fff;
+
 }
 
-.secondary:hover{
-    background:#0052a3;
+.btn-primary:hover{
+
+    background:#1d4ed8;
+
 }
+
+.btn-success{
+
+    background:#16a34a;
+
+    color:#fff;
+
+}
+
+.btn-success:hover{
+
+    background:#15803d;
+
+}
+
+.btn-secondary{
+
+    background:#475569;
+
+    color:#fff;
+
+}
+
+.btn-secondary:hover{
+
+    background:#334155;
+
+}
+/* ===========================
+   SUCCESS
+=========================== */
 
 .hidden{
+
     display:none;
+
 }
 
 #successCard{
+
     text-align:center;
+
+    animation:fadeUp .5s ease;
+
+}
+
+.success-icon{
+
+    font-size:72px;
+
+    margin-bottom:20px;
+
 }
 
 #registerNumber{
-    margin:20px 0;
-    color:#0b8d42;
+
+    color:#2563eb;
+
     font-size:34px;
-    word-break:break-word;
+
+    margin:18px 0;
+
+    letter-spacing:2px;
+
 }
 
-#qrcode{
-    margin:25px auto;
-}
+.qr-box{
 
-.footer{
-    text-align:center;
-    padding:25px;
-    color:#666;
-}
+    width:240px;
 
-.stats{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
-    gap:15px;
-    margin-bottom:25px;
-}
+    height:240px;
 
-.stat-card{
-    background:#fff;
-    padding:20px;
-    border-radius:15px;
-    text-align:center;
-    box-shadow:0 8px 20px rgba(0,0,0,.08);
-}
+    margin:30px auto;
 
-.stat-card p{
-    color:#666;
-    margin-bottom:10px;
-}
-
-.stat-card h3{
-    font-size:30px;
-    color:#0b8d42;
-}
-
-.toolbar{
     display:flex;
-    flex-wrap:wrap;
-    gap:10px;
-    margin-bottom:20px;
+
+    justify-content:center;
+
+    align-items:center;
+
+    background:#fff;
+
+    border-radius:18px;
+
+    border:2px dashed #d1d5db;
+
 }
 
-.toolbar input{
-    flex:1;
-    min-width:220px;
-    padding:12px;
-    border:1px solid #ccc;
-    border-radius:10px;
-}
 
-table{
-    width:100%;
-    border-collapse:collapse;
-}
+/* ===========================
+   FOOTER
+=========================== */
 
-th,
-td{
-    border-bottom:1px solid #eee;
-    padding:12px;
-    text-align:left;
-}
+footer{
 
-th{
-    background:#0b8d42;
+    text-align:center;
+
     color:#fff;
+
+    opacity:.9;
+
+    margin-top:30px;
+
 }
 
-.deleteBtn{
-    background:#d32f2f;
-    color:#fff;
-    border:none;
-    padding:8px 14px;
-    border-radius:8px;
-    cursor:pointer;
+footer p{
+
+    margin:5px 0;
+
 }
 
-.deleteBtn:hover{
-    background:#b71c1c;
-}
 
-.success{
-    background:#28a745;
-}
+/* ===========================
+   ANIMATION
+=========================== */
 
-.warning{
-    background:#ffc107;
-    color:#000;
+@keyframes fadeUp{
+
+    from{
+
+        opacity:0;
+
+        transform:translateY(20px);
+
+    }
+
+    to{
+
+        opacity:1;
+
+        transform:translateY(0);
+
+    }
+
 }
+/* ===========================
+   RESPONSIVE
+=========================== */
 
 @media(max-width:768px){
 
-.hero{
-    padding:40px 15px;
+    .hero h1{
+
+        font-size:30px;
+
+    }
+
+    .hero p{
+
+        font-size:15px;
+
+    }
+
+    .card{
+
+        padding:22px;
+
+    }
+
+    .capacity-card{
+
+        width:180px;
+
+    }
+
+    .capacity-number{
+
+        font-size:38px;
+
+    }
+
+    #registerNumber{
+
+        font-size:26px;
+
+    }
+
+    .qr-box{
+
+        width:200px;
+
+        height:200px;
+
+    }
+
+    .btn{
+
+        width:100%;
+
+    }
+
+    .button-group{
+
+        flex-direction:column;
+
+    }
+
 }
 
-.hero h1{
-    font-size:32px;
-}
+@media(max-width:480px){
 
-.hero h2{
-    font-size:22px;
-}
+    .container{
 
-.card{
-    padding:18px;
-}
+        width:95%;
 
-.btn{
-    font-size:16px;
-}
+        padding:20px 0 50px;
 
-table{
-    font-size:14px;
-}
+    }
 
-th,
-td{
-    padding:10px;
-}
+    .hero{
 
-}
-#switchCamera{
-    background:#6c757d;
-    color:#fff;
+        margin-bottom:20px;
+
+    }
+
+    .hero h1{
+
+        font-size:26px;
+
+    }
+
+    .card{
+
+        border-radius:16px;
+
+    }
+
+    .form-group input,
+
+    .form-group textarea,
+
+    .form-group select{
+
+        font-size:16px;
+
+    }
+
 }
