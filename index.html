@@ -5,139 +5,163 @@
 
 <meta charset="UTF-8">
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport"
+content="width=device-width, initial-scale=1.0">
 
-<title>TÜGVA Yaz Okulu Finali ve İstanbul Gezisi</title>
+<title>TÜGVA Yaz Okulu Kayıt</title>
 
-<link rel="stylesheet" href="css/style.css">
+<link
+rel="stylesheet"
+href="css/style.css">
+
+<link
+rel="preconnect"
+href="https://fonts.googleapis.com">
+
+<link
+rel="preconnect"
+href="https://fonts.gstatic.com"
+crossorigin>
+
+<link
+href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
+rel="stylesheet">
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
 </head>
 
 <body>
 
+<div class="background"></div>
+
+<div class="container">
+
 <header class="hero">
 
-<div class="overlay"></div>
+<h1>TÜGVA Yaz Okulu</h1>
 
-<div class="hero-content">
+<p>
 
-<h1>TÜGVA</h1>
+Online Kayıt Sistemi
 
-<h2>Yaz Okulu Finali ve İstanbul Gezisi</h2>
-
-<p>Katılım Kayıt Sistemi</p>
-
-</div>
+</p>
 
 </header>
 
-<main class="container">
+<div class="capacity-card">
 
-<section class="card">
+<div class="capacity-title">
 
-<div class="remaining-box">
-
-<h3>Kalan Kontenjan</h3>
-
-<h1 id="remainingCapacity"">45</h1>
+Kalan Kontenjan
 
 </div>
 
-</section>
+<div
+class="capacity-number"
+id="remainingCapacity">
+
+45
+
+</div>
+
+</div>
 
 <section
-id="formSection"
-class="card">
+class="card"
+id="formSection">
 
-<h2>Katılımcı Bilgileri</h2>
+<h2>
+
+Katılımcı Bilgileri
+
+</h2>
 
 <form
-id="registerForm"
-autocomplete="off">
+id="registerForm">
+
+<div class="grid">
 
 <div class="form-group">
 
-<label for="name">
+<label>
 
 Ad Soyad
 
 </label>
 
 <input
+type="text"
 id="adSoyad"
-type="text"
-placeholder="Ad Soyad"
 required>
 
 </div>
 
 <div class="form-group">
 
-<label for="tc">
+<label>
 
-T.C. Kimlik No
+TC Kimlik No
 
 </label>
 
 <input
+type="text"
 id="tc"
-type="text"
 maxlength="11"
-inputmode="numeric"
-placeholder="11 Haneli T.C."
 required>
 
 </div>
 
 <div class="form-group">
 
-<label for="birth">
-
-Doğum Tarihi
-
-</label>
-
-<input
-id="dogumTarihi"
-type="date"
-required>
-
-</div>
-
-<div class="form-group">
-
-<label for="phone">
+<label>
 
 Telefon
 
 </label>
 
 <input
+type="text"
 id="telefon"
-type="tel"
-placeholder="05XXXXXXXXX"
+maxlength="11"
 required>
 
 </div>
 
 <div class="form-group">
 
-<label for="email">
+<label>
 
 E-Posta
 
 </label>
 
 <input
-id="email"
 type="email"
-placeholder="ornek@mail.com">
+id="email">
+
+</div>
+<div class="form-group">
+
+<label>
+
+Doğum Tarihi
+
+</label>
+
+<input
+type="date"
+id="dogumTarihi"
+required>
 
 </div>
 
 <div class="form-group">
 
-<label for="gender">
+<label>
 
 Cinsiyet
 
@@ -153,139 +177,151 @@ Seçiniz
 
 </option>
 
-<option value="Erkek">
+<option>
 
 Erkek
 
 </option>
 
-<option value="Kadın">
+<option>
 
-Kadın
+Kız
 
 </option>
 
 </select>
 
 </div>
+
 <div class="form-group">
 
-<label for="okul">
+<label>
 
 Okul
 
 </label>
 
 <input
-id="okul"
 type="text"
-placeholder="Okul Adı"
+id="okul"
 required>
 
 </div>
 
 <div class="form-group">
 
-<label for="sinif">
+<label>
 
 Sınıf
 
 </label>
 
 <input
-id="sinif"
 type="text"
-placeholder="Örn: 8. Sınıf"
+id="sinif"
 required>
 
 </div>
 
 <div class="form-group">
 
-<label for="adres">
+<label>
+
+Veli Adı
+
+</label>
+
+<input
+type="text"
+id="veliAdi"
+required>
+
+</div>
+
+<div class="form-group">
+
+<label>
+
+Veli Telefonu
+
+</label>
+
+<input
+type="text"
+id="veliTelefon"
+maxlength="11"
+required>
+
+</div>
+
+</div>
+
+<div class="form-group">
+
+<label>
 
 Adres
 
 </label>
 
 <textarea
+
 id="adres"
+
 rows="3"
-placeholder="Adres"></textarea>
 
-</div>
-<div class="form-group">
-
-<label for="emergencyName">
-
-Acil Durum Yakını
-
-</label>
-
-<input
-id="veliadi"
-type="text"
-placeholder="Ad Soyad"
 required>
 
-</div>
-
-<div class="form-group">
-
-<label for="emergencyPhone">
-
-Acil Durum Telefonu
-
-</label>
-
-<input
-id="veliTelefon"
-type="tel"
-placeholder="05XXXXXXXXX"
-required>
+</textarea>
 
 </div>
 
 <div class="form-group">
 
-<label for="note">
+<label>
 
 Not
 
 </label>
 
 <textarea
+
 id="note"
-rows="4"
-placeholder="Varsa belirtmek istediğiniz sağlık bilgisi veya not yazabilirsiniz."></textarea>
+
+rows="3">
+
+</textarea>
 
 </div>
+<div class="checkbox-group">
 
-<div class="checkbox">
-
-<label>
+<label class="checkbox">
 
 <input
-id="parent"
 type="checkbox"
+id="kvkk"
 required>
 
-Veli/Vasi onayını aldığımı kabul ediyorum.
+<span>
+
+KVKK kapsamında kişisel verilerin işlenmesini kabul ediyorum.
+
+</span>
 
 </label>
 
-</div>
-
-<div class="checkbox">
-
-<label>
+<label class="checkbox">
 
 <input
-id="kvkk"
 type="checkbox"
+id="parent"
 required>
 
-KVKK kapsamında kişisel verilerimin işlenmesini kabul ediyorum.
+<span>
+
+Veli/Vasi olarak kayıt onayını veriyorum.
+
+</span>
 
 </label>
 
@@ -295,9 +331,9 @@ KVKK kapsamında kişisel verilerimin işlenmesini kabul ediyorum.
 
 <button
 type="submit"
-class="btn">
+class="btn btn-primary">
 
-Kayıt Ol
+Kaydı Tamamla
 
 </button>
 
@@ -307,13 +343,26 @@ Kayıt Ol
 
 </section>
 
+
+<!-- ========================= -->
+<!-- SUCCESS CARD -->
+<!-- ========================= -->
+
 <section
+
 id="successCard"
+
 class="card hidden">
+
+<div class="success-icon">
+
+✅
+
+</div>
 
 <h2>
 
-🎉 Kayıt Başarıyla Tamamlandı
+Kayıt Başarıyla Tamamlandı
 
 </h2>
 
@@ -324,6 +373,7 @@ Kayıt Numaranız
 </p>
 
 <h1
+
 id="registerNumber">
 
 TYG26-0001
@@ -331,43 +381,67 @@ TYG26-0001
 </h1>
 
 <div
+
 id="qrcode"
-style="display:flex;justify-content:center;margin:25px 0;">
+
+class="qr-box">
 
 </div>
 
-<button id="downloadPdf" class="btn">
-📄 PDF Biletini İndir
+<div class="button-group">
+
+<button
+
+id="downloadPdf"
+
+class="btn btn-success">
+
+PDF İndir
+
 </button>
 
 <button
-id="newRegister"
-class="btn secondary">
 
-➕ Yeni Kayıt
+id="newRegister"
+
+class="btn btn-secondary">
+
+Yeni Kayıt
 
 </button>
 
-</section>
-</main>
+</div>
 
-<footer class="footer">
+</section>
+<footer>
 
 <p>
 
-© 2026 TÜGVA Yaz Okulu Finali ve İstanbul Gezisi
+© 2026 TÜGVA Yaz Okulu
+
+</p>
+
+<p>
+
+Online Kayıt Sistemi
 
 </p>
 
 </footer>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</div>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<!-- ========================= -->
+<!-- JAVASCRIPT -->
+<!-- ========================= -->
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<script
 
-<script type="module" src="js/app.js"></script>
+type="module"
+
+src="js/app.js">
+
+</script>
 </body>
 
 </html>
