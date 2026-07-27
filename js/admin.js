@@ -1,65 +1,91 @@
+// ===============================
+// admin.js
+// Bölüm 1
+// ===============================
+
 import {
-    authListener,
     login,
     logout,
-    listenRegistrations,
-    deleteRegistration,
-    updateRegistration,
-    checkIn,
-    checkOut,
-    getStatistics
+    authListener,
+    realtimeParticipants,
+    updateParticipant,
+    deleteParticipant
 } from "./firebase.js";
 
 import {
-    downloadRegistrationPDF
-} from "./pdf.js";
+    showToast,
+    showLoading,
+    hideLoading
+} from "./validation.js";
 
-let registrations = [];
+// ===============================
+// ELEMENTLER
+// ===============================
 
-let filteredRegistrations = [];
-
-let selectedRegistration = null;
+const loginPage = document.getElementById("loginPage");
+const adminPanel = document.getElementById("adminPanel");
 
 const loginForm = document.getElementById("loginForm");
 
 const emailInput = document.getElementById("email");
-
 const passwordInput = document.getElementById("password");
 
-const tableBody = document.getElementById("tableBody");
+const logoutButton = document.getElementById("logoutButton");
 
-const searchInput = document.getElementById("search");
+const tableBody = document.getElementById("participantTable");
 
-const filterSelect = document.getElementById("filter");
+const totalCount = document.getElementById("totalCount");
+const adultCount = document.getElementById("adultCount");
+const childCount = document.getElementById("childCount");
+const assignedCount = document.getElementById("assignedCount");
 
-const totalElement = document.getElementById("statTotal");
+const searchInput = document.getElementById("searchInput");
+const filterBus = document.getElementById("filterBus");
 
-const checkedElement = document.getElementById("statChecked");
+const editModal = document.getElementById("editModal");
 
-const waitingElement = document.getElementById("statWaiting");
+const editId = document.getElementById("editId");
+const editBus = document.getElementById("editBus");
+const editSeat = document.getElementById("editSeat");
 
-const remainingElement = document.getElementById("statRemaining");
+const saveButton = document.getElementById("saveButton");
+const cancelButton = document.getElementById("cancelButton");
 
-function setLoading(status) {
+let participants = [];
 
-    const button = loginForm?.querySelector("button");
+// ===============================
+// AUTH
+// ===============================
 
-    if (!button) return;
+authListener(user => {
 
-    button.disabled = status;
+    hideLoading();
 
-    button.textContent = status
+    if (user) {
 
-        ? "Giriş Yapılıyor..."
+        loginPage.classList.add("hidden");
+        adminPanel.classList.remove("hidden");
 
-        : "Giriş Yap";
+        loadParticipants();
 
-}
-async function handleLogin(event) {
+    } else {
 
-    event.preventDefault();
+        loginPage.classList.remove("hidden");
+        adminPanel.classList.add("hidden");
 
-    setLoading(true);
+    }
+
+});
+
+// ===============================
+// LOGIN
+// ===============================
+
+loginForm.addEventListener("submit", async e => {
+
+    e.preventDefault();
+
+    showLoading();
 
     try {
 
@@ -71,145 +97,105 @@ async function handleLogin(event) {
 
         );
 
+        showToast("Giriş başarılı.");
+
     }
 
-    catch (error) {
+    catch (err) {
 
-        console.error(error);
+        console.error(err);
 
-        alert("E-posta veya şifre hatalı.");
+        showToast(
+
+            "E-Posta veya şifre hatalı.",
+
+            "error"
+
+        );
 
     }
 
     finally {
 
-        setLoading(false);
-
-    }
-
-}
-
-async function handleLogout() {
-
-    try {
-
-        await logout();
-
-    }
-
-    catch (error) {
-
-        console.error(error);
-
-        alert("Çıkış yapılırken hata oluştu.");
-
-    }
-
-}
-
-function showLogin() {
-
-    document
-        .getElementById("loginPage")
-        ?.classList.remove("hidden");
-
-    document
-        .getElementById("adminPage")
-        ?.classList.add("hidden");
-
-}
-
-function showAdmin() {
-
-    document
-        .getElementById("loginPage")
-        ?.classList.add("hidden");
-
-    document
-        .getElementById("adminPage")
-        ?.classList.remove("hidden");
-
-}
-
-authListener(user => {
-
-    if (user) {
-
-        showAdmin();
-
-        loadRegistrations();
-
-    }
-
-    else {
-
-        showLogin();
+        hideLoading();
 
     }
 
 });
 
-loginForm?.addEventListener(
+// ===============================
+// LOGOUT
+// ===============================
 
-    "submit",
+logoutButton.addEventListener("click", async () => {
 
-    handleLogin
+    await logout();
 
-);
+});
 
-document
+// ===============================
+// REALTIME
+// ===============================
 
-    .getElementById("logoutButton")
+function loadParticipants() {
 
-    ?.addEventListener(
+    realtimeParticipants(list => {
 
-        "click",
+        participants = list;
 
-        handleLogout
+        renderTable(list);
 
-    );
-    function loadRegistrations() {
-
-    listenRegistrations(data => {
-
-        registrations = data;
-
-        applyFilters();
-
-        updateStatistics();
+        updateStatistics(list);
 
     });
 
 }
 
-function updateStatistics() {
+// ===============================
+// İSTATİSTİKLER
+// ===============================
 
-    const total = registrations.length;
+function updateStatistics(list) {
 
-    const checked = registrations.filter(item => item.checkedIn).length;
+    totalCount.textContent = list.length;
 
-    const waiting = total - checked;
+    adultCount.textContent = list.filter(
 
-    const remaining = Math.max(0, 45 - total);
+        p => p.age >= 18
 
-    if (totalElement) totalElement.textContent = total;
-    if (checkedElement) checkedElement.textContent = checked;
-    if (waitingElement) waitingElement.textContent = waiting;
-    if (remainingElement) remainingElement.textContent = remaining;
+    ).length;
+
+    childCount.textContent = list.filter(
+
+        p => p.age < 18
+
+    ).length;
+
+    assignedCount.textContent = list.filter(
+
+        p => p.busNumber && p.seatNumber
+
+    ).length;
 
 }
+// ===============================
+// admin.js
+// Bölüm 2
+// ===============================
 
-function renderTable(list = registrations) {
+// ===============================
+// TABLOYU OLUŞTUR
+// ===============================
 
-    if (!tableBody) return;
+function renderTable(list) {
 
     tableBody.innerHTML = "";
 
-    if (!list.length) {
+    if (list.length === 0) {
 
         tableBody.innerHTML = `
             <tr>
-                <td colspan="10" class="text-center">
+                <td colspan="8" style="text-align:center;padding:40px;">
                     Kayıt bulunamadı.
                 </td>
             </tr>
@@ -219,1082 +205,250 @@ function renderTable(list = registrations) {
 
     }
 
-    list.forEach(item => {
+    list.forEach(participant => {
 
-        const tr = document.createElement("tr");
+        const row = document.createElement("tr");
 
-        tr.innerHTML = `
-            <td>${item.registerNumber}</td>
-            <td>${item.name}</td>
-            <td>${item.school}</td>
-            <td>${item.class}</td>
-            <td>${item.phone}</td>
-            <td>
-                ${
-                    item.checkedIn
-                        ? '<span class="badge success">Giriş Yaptı</span>'
-                        : '<span class="badge warning">Bekliyor</span>'
-                }
-            </td>
-            <td>
-                <button class="btn-view" data-id="${item.id}">
-                    Görüntüle
+        row.innerHTML = `
+
+        <td>${participant.registrationCode}</td>
+
+        <td>
+
+            ${participant.firstName}
+            ${participant.lastName}
+
+        </td>
+
+        <td>${participant.tc}</td>
+
+        <td>${participant.phone}</td>
+
+        <td>${participant.age}</td>
+
+        <td>
+
+            ${participant.busNumber || "-"}
+
+        </td>
+
+        <td>
+
+            ${participant.seatNumber || "-"}
+
+        </td>
+
+        <td>
+
+            <div class="actionButtons">
+
+                <button
+                    class="iconButton editButton"
+                    data-id="${participant.id}">
+
+                    <i class="fa-solid fa-pen"></i>
+
                 </button>
 
-                <button class="btn-edit" data-id="${item.id}">
-                    Düzenle
+                <button
+                    class="iconButton qrButton"
+                    data-id="${participant.id}">
+
+                    <i class="fa-solid fa-qrcode"></i>
+
                 </button>
 
-                <button class="btn-delete" data-id="${item.id}">
-                    Sil
+                <button
+                    class="iconButton deleteButton"
+                    data-id="${participant.id}">
+
+                    <i class="fa-solid fa-trash"></i>
+
                 </button>
-            </td>
+
+            </div>
+
+        </td>
+
         `;
 
-        tableBody.appendChild(tr);
+        tableBody.appendChild(row);
 
     });
 
-    attachRowEvents();
-
 }
-function applyFilters() {
 
-    const search = (searchInput?.value || "")
+// ===============================
+// ARAMA
+// ===============================
+
+searchInput.addEventListener("input", () => {
+
+    const value = searchInput.value
         .trim()
-        .toLocaleLowerCase("tr-TR");
+        .toLocaleLowerCase("tr");
 
-    const filter = filterSelect?.value || "all";
+    const filtered = participants.filter(item => {
 
-    filteredRegistrations = registrations.filter(item => {
+        return (
 
-        const matchesSearch =
+            `${item.firstName} ${item.lastName}`
 
-            (item.registerNumber || "")
-                .toLocaleLowerCase("tr-TR")
-                .includes(search)
+                .toLocaleLowerCase("tr")
 
-            ||
-
-            (item.name || "")
-                .toLocaleLowerCase("tr-TR")
-                .includes(search)
+                .includes(value)
 
             ||
 
-            (item.tc || "")
-                .includes(search)
-
-            ||
-
-            (item.phone || "")
-                .includes(search)
-
-            ||
-
-            (item.school || "")
-                .toLocaleLowerCase("tr-TR")
-                .includes(search);
-
-        let matchesFilter = true;
-
-        switch (filter) {
-
-            case "checked":
-                matchesFilter = item.checkedIn;
-                break;
-
-            case "waiting":
-                matchesFilter = !item.checkedIn;
-                break;
-
-            default:
-                matchesFilter = true;
-
-        }
-
-        return matchesSearch && matchesFilter;
-
-    });
-
-    renderTable(filteredRegistrations);
-
-}
-
-function attachRowEvents() {
-
-    document.querySelectorAll(".btn-view")
-        .forEach(button => {
-
-            button.onclick = () => {
-
-                const id = button.dataset.id;
-
-                selectedRegistration = registrations.find(
-
-                    item => item.id === id
-
-                );
-
-                if (!selectedRegistration) return;
-
-                openDetailModal(selectedRegistration);
-
-            };
-
-        });
-
-    document.querySelectorAll(".btn-edit")
-        .forEach(button => {
-
-            button.onclick = () => {
-
-                const id = button.dataset.id;
-
-                selectedRegistration = registrations.find(
-
-                    item => item.id === id
-
-                );
-
-                if (!selectedRegistration) return;
-
-                openEditModal(selectedRegistration);
-
-            };
-
-        });
-
-    document.querySelectorAll(".btn-delete")
-        .forEach(button => {
-
-            button.onclick = async () => {
-
-                const id = button.dataset.id;
-
-                const registration = registrations.find(
-
-                    item => item.id === id
-
-                );
-
-                if (!registration) return;
-
-                const confirmed = confirm(
-
-                    `${registration.name} adlı kaydı silmek istiyor musunuz?`
-
-                );
-
-                if (!confirmed) return;
-
-                try {
-
-                    await deleteRegistration(id);
-
-                }
-
-                catch (error) {
-
-                    console.error(error);
-
-                    alert("Kayıt silinemedi.");
-
-                }
-
-            };
-
-        });
-
-}
-
-searchInput?.addEventListener(
-
-    "input",
-
-    applyFilters
-
-);
-
-filterSelect?.addEventListener(
-
-    "change",
-
-    applyFilters
-
-);
-const detailModal = document.getElementById("detailModal");
-const editModal = document.getElementById("editModal");
-
-function openDetailModal(registration) {
-
-    if (!detailModal) return;
-
-    detailModal.querySelector("[data-name]").textContent = registration.name;
-    detailModal.querySelector("[data-register]").textContent = registration.registerNumber;
-    detailModal.querySelector("[data-tc]").textContent = registration.tc;
-    detailModal.querySelector("[data-phone]").textContent = registration.phone;
-    detailModal.querySelector("[data-school]").textContent = registration.school;
-    detailModal.querySelector("[data-class]").textContent = registration.class;
-    detailModal.querySelector("[data-parent]").textContent = registration.parent;
-    detailModal.querySelector("[data-parent-phone]").textContent = registration.parentPhone;
-    detailModal.querySelector("[data-address]").textContent = registration.address || "-";
-    detailModal.querySelector("[data-note]").textContent = registration.note || "-";
-
-    detailModal.classList.add("show");
-
-}
-
-function closeDetailModal() {
-
-    detailModal?.classList.remove("show");
-
-}
-
-function openEditModal(registration) {
-
-    if (!editModal) return;
-
-    editModal.dataset.id = registration.id;
-
-    editModal.querySelector('[name="name"]').value = registration.name;
-    editModal.querySelector('[name="phone"]').value = registration.phone;
-    editModal.querySelector('[name="school"]').value = registration.school;
-    editModal.querySelector('[name="class"]').value = registration.class;
-    editModal.querySelector('[name="parent"]').value = registration.parent;
-    editModal.querySelector('[name="parentPhone"]').value = registration.parentPhone;
-    editModal.querySelector('[name="address"]').value = registration.address || "";
-    editModal.querySelector('[name="note"]').value = registration.note || "";
-
-    editModal.classList.add("show");
-
-}
-
-function closeEditModal() {
-
-    editModal?.classList.remove("show");
-
-}
-
-async function saveRegistration() {
-
-    const id = editModal.dataset.id;
-
-    const data = {
-
-        name: editModal.querySelector('[name="name"]').value,
-
-        phone: editModal.querySelector('[name="phone"]').value,
-
-        school: editModal.querySelector('[name="school"]').value,
-
-        class: editModal.querySelector('[name="class"]').value,
-
-        parent: editModal.querySelector('[name="parent"]').value,
-
-        parentPhone: editModal.querySelector('[name="parentPhone"]').value,
-
-        address: editModal.querySelector('[name="address"]').value,
-
-        note: editModal.querySelector('[name="note"]').value
-
-    };
-
-    try {
-
-        await updateRegistration(id, data);
-
-        closeEditModal();
-
-    }
-
-    catch (error) {
-
-        console.error(error);
-
-        alert("Kayıt güncellenemedi.");
-
-    }
-
-}
-
-async function toggleCheck(registration) {
-
-    try {
-
-        if (registration.checkedIn) {
-
-            await checkOut(registration.id);
-
-        } else {
-
-            await checkIn(registration.id);
-
-        }
-
-    }
-
-    catch (error) {
-
-        console.error(error);
-
-        alert("Yoklama işlemi başarısız.");
-
-    }
-
-}
-
-async function printRegistration(registration) {
-
-    try {
-
-        await downloadRegistrationPDF(registration);
-
-    }
-
-    catch (error) {
-
-        console.error(error);
-
-        alert("PDF oluşturulamadı.");
-
-    }
-
-}
-import {
-    batchDelete,
-    batchCheckIn,
-    batchCheckOut
-} from "./firebase.js";
-
-let selectedIds = new Set();
-
-function updateSelectedCount() {
-
-    const element = document.getElementById("selectedCount");
-
-    if (element) {
-
-        element.textContent = selectedIds.size;
-
-    }
-
-}
-
-function toggleSelection(id, checked) {
-
-    if (checked) {
-
-        selectedIds.add(id);
-
-    } else {
-
-        selectedIds.delete(id);
-
-    }
-
-    updateSelectedCount();
-
-}
-
-function clearSelection() {
-
-    selectedIds.clear();
-
-    document.querySelectorAll(".row-checkbox").forEach(box => {
-
-        box.checked = false;
-
-    });
-
-    updateSelectedCount();
-
-}
-
-function selectAllRows(checked) {
-
-    document.querySelectorAll(".row-checkbox").forEach(box => {
-
-        box.checked = checked;
-
-        toggleSelection(
-
-            box.dataset.id,
-
-            checked
+            item.tc.includes(value)
 
         );
 
     });
 
-}
-
-document
-.getElementById("selectAll")
-?.addEventListener("change", function () {
-
-    clearSelection();
-
-    selectAllRows(this.checked);
+    renderTable(filtered);
 
 });
 
-function attachCheckboxEvents() {
+// ===============================
+// OTOBÜS FİLTRESİ
+// ===============================
 
-    document.querySelectorAll(".row-checkbox").forEach(box => {
+filterBus.addEventListener("change", () => {
 
-        box.addEventListener("change", function () {
+    if (filterBus.value === "") {
 
-            toggleSelection(
-
-                this.dataset.id,
-
-                this.checked
-
-            );
-
-        });
-
-    });
-
-}
-
-async function deleteSelected() {
-
-    if (selectedIds.size === 0) {
-
-        alert("Kayıt seçiniz.");
+        renderTable(participants);
 
         return;
 
     }
-
-    if (!confirm("Seçilen kayıtlar silinsin mi?")) {
-
-        return;
-
-    }
-
-    try {
-
-        await batchDelete([...selectedIds]);
-
-        clearSelection();
-
-    }
-
-    catch (error) {
-
-        console.error(error);
-
-        alert("Toplu silme başarısız.");
-
-    }
-
-}
-
-async function checkInSelected() {
-
-    if (!selectedIds.size) return;
-
-    try {
-
-        await batchCheckIn([...selectedIds]);
-
-        clearSelection();
-
-    }
-
-    catch (error) {
-
-        console.error(error);
-
-        alert("Toplu giriş başarısız.");
-
-    }
-
-}
-
-async function checkOutSelected() {
-
-    if (!selectedIds.size) return;
-
-    try {
-
-        await batchCheckOut([...selectedIds]);
-
-        clearSelection();
-
-    }
-
-    catch (error) {
-
-        console.error(error);
-
-        alert("Toplu çıkış başarısız.");
-
-    }
-
-}
-
-document
-.getElementById("deleteSelected")
-?.addEventListener(
-
-    "click",
-
-    deleteSelected
-
-);
-
-document
-.getElementById("checkInSelected")
-?.addEventListener(
-
-    "click",
-
-    checkInSelected
-
-);
-
-document
-.getElementById("checkOutSelected")
-?.addEventListener(
-
-    "click",
-
-    checkOutSelected
-
-);
-import {
-    exportData,
-    importData
-} from "./firebase.js";
-
-async function exportJson() {
-
-    try {
-
-        const json = await exportData();
-
-        const blob = new Blob(
-            [json],
-            {
-                type: "application/json"
-            }
-        );
-
-        const url = URL.createObjectURL(blob);
-
-        const a = document.createElement("a");
-
-        a.href = url;
-
-        a.download = `tugva-yaz-okulu-${new Date().toISOString().slice(0,10)}.json`;
-
-        a.click();
-
-        URL.revokeObjectURL(url);
-
-    }
-
-    catch (error) {
-
-        console.error(error);
-
-        alert("Yedek oluşturulamadı.");
-
-    }
-
-}
-
-async function importJson(file) {
-
-    try {
-
-        const text = await file.text();
-
-        const data = JSON.parse(text);
-
-        await importData(data);
-
-        alert("Yedek başarıyla geri yüklendi.");
-
-    }
-
-    catch (error) {
-
-        console.error(error);
-
-        alert("Yedek yüklenemedi.");
-
-    }
-
-}
-
-function exportCSV() {
-
-    const rows = [
-
-        [
-            "Kayıt No",
-            "Ad Soyad",
-            "TC",
-            "Telefon",
-            "Okul",
-            "Sınıf",
-            "Veli",
-            "Veli Telefonu",
-            "Durum"
-        ]
-
-    ];
-
-    filteredRegistrations.forEach(item => {
-
-        rows.push([
-
-            item.registerNumber,
-
-            item.name,
-
-            item.tc,
-
-            item.phone,
-
-            item.school,
-
-            item.class,
-
-            item.parent,
-
-            item.parentPhone,
-
-            item.checkedIn ? "Giriş Yaptı" : "Bekliyor"
-
-        ]);
-
-    });
-
-    const csv = rows
-        .map(row => row.join(";"))
-        .join("\n");
-
-    const blob = new Blob(
-        [csv],
-        {
-            type: "text/csv;charset=utf-8;"
-        }
-    );
-
-    const url = URL.createObjectURL(blob);
-
-    const link = document.createElement("a");
-
-    link.href = url;
-
-    link.download = "kayitlar.csv";
-
-    link.click();
-
-    URL.revokeObjectURL(url);
-
-}
-
-document
-.getElementById("exportJson")
-?.addEventListener(
-    "click",
-    exportJson
-);
-
-document
-.getElementById("exportCsv")
-?.addEventListener(
-    "click",
-    exportCSV
-);
-
-document
-.getElementById("importJson")
-?.addEventListener(
-    "change",
-    event => {
-
-        const file = event.target.files[0];
-
-        if (file) {
-
-            importJson(file);
-
-        }
-
-    }
-);
-let currentPage = 1;
-
-let pageSize = 20;
-
-let currentSortField = "registerNumber";
-
-let currentSortDirection = "asc";
-
-function sortRegistrations(list) {
-
-    return [...list].sort((a, b) => {
-
-        let valueA = a[currentSortField] ?? "";
-
-        let valueB = b[currentSortField] ?? "";
-
-        if (typeof valueA === "string") {
-
-            valueA = valueA.toLocaleLowerCase("tr-TR");
-
-            valueB = valueB.toLocaleLowerCase("tr-TR");
-
-        }
-
-        if (valueA < valueB) {
-
-            return currentSortDirection === "asc" ? -1 : 1;
-
-        }
-
-        if (valueA > valueB) {
-
-            return currentSortDirection === "asc" ? 1 : -1;
-
-        }
-
-        return 0;
-
-    });
-
-}
-
-function paginate(list) {
-
-    const start = (currentPage - 1) * pageSize;
-
-    return list.slice(
-
-        start,
-
-        start + pageSize
-
-    );
-
-}
-
-function refreshTable() {
-
-    const sorted = sortRegistrations(
-
-        filteredRegistrations
-
-    );
 
     renderTable(
 
-        paginate(sorted)
+        participants.filter(item =>
+
+            item.busNumber == filterBus.value
+
+        )
 
     );
-
-    renderPagination(
-
-        sorted.length
-
-    );
-
-}
-
-function changeSort(field) {
-
-    if (currentSortField === field) {
-
-        currentSortDirection =
-
-            currentSortDirection === "asc"
-
-                ? "desc"
-
-                : "asc";
-
-    } else {
-
-        currentSortField = field;
-
-        currentSortDirection = "asc";
-
-    }
-
-    refreshTable();
-
-}
-
-document.querySelectorAll("[data-sort]")
-
-.forEach(header => {
-
-    header.addEventListener("click", () => {
-
-        changeSort(
-
-            header.dataset.sort
-
-        );
-
-    });
 
 });
 
-document
+// ===============================
+// TABLO TIKLAMA
+// ===============================
 
-.getElementById("pageSize")
+tableBody.addEventListener("click", e => {
 
-?.addEventListener("change", event => {
+    const button = e.target.closest("button");
 
-    pageSize = Number(
+    if (!button) return;
 
-        event.target.value
+    const id = button.dataset.id;
 
-    );
+    if (button.classList.contains("editButton")) {
 
-    currentPage = 1;
+        openEditModal(id);
 
-    refreshTable();
-
-});
-
-function renderPagination(totalRows) {
-
-    const container = document.getElementById(
-
-        "pagination"
-
-    );
-
-    if (!container) return;
-
-    container.innerHTML = "";
-
-    const totalPages = Math.max(
-
-        1,
-
-        Math.ceil(totalRows / pageSize)
-
-    );
-
-    for (
-
-        let page = 1;
-
-        page <= totalPages;
-
-        page++
-
-    ) {
-
-        const button = document.createElement(
-
-            "button"
-
-        );
-
-        button.textContent = page;
-
-        button.className =
-
-            page === currentPage
-
-                ? "active"
-
-                : "";
-
-        button.onclick = () => {
-
-            currentPage = page;
-
-            refreshTable();
-
-        };
-
-        container.appendChild(button);
+        return;
 
     }
 
-}
-function updateDashboard() {
+    if (button.classList.contains("deleteButton")) {
 
-    updateStatistics();
+        removeParticipant(id);
 
-    renderRecentRegistrations();
-
-}
-
-function renderRecentRegistrations(limit = 5) {
-
-    const container = document.getElementById("recentRegistrations");
-
-    if (!container) return;
-
-    container.innerHTML = "";
-
-    registrations
-        .slice()
-        .sort((a, b) => {
-
-            const dateA = a.createdAt?.seconds || 0;
-            const dateB = b.createdAt?.seconds || 0;
-
-            return dateB - dateA;
-
-        })
-        .slice(0, limit)
-        .forEach(item => {
-
-            const div = document.createElement("div");
-
-            div.className = "recent-item";
-
-            div.innerHTML = `
-                <strong>${item.name}</strong>
-                <div>${item.school} / ${item.class}</div>
-                <small>${item.registerNumber}</small>
-            `;
-
-            container.appendChild(div);
-
-        });
-
-}
-
-function refreshDashboard() {
-
-    applyFilters();
-
-    updateDashboard();
-
-}
-
-document
-.getElementById("refreshButton")
-?.addEventListener(
-    "click",
-    refreshDashboard
-);
-
-document.addEventListener("keydown", event => {
-
-    if (event.ctrlKey && event.key.toLowerCase() === "f") {
-
-        event.preventDefault();
-
-        searchInput?.focus();
+        return;
 
     }
 
-    if (event.ctrlKey && event.key.toLowerCase() === "r") {
+    if (button.classList.contains("qrButton")) {
 
-        event.preventDefault();
+        showQRCode(id);
 
-        refreshDashboard();
-
-    }
-
-    if (event.key === "Escape") {
-
-        closeDetailModal();
-
-        closeEditModal();
+        return;
 
     }
 
 });
 
-window.addEventListener("focus", () => {
+// ===============================
+// MODAL AÇ
+// ===============================
 
-    refreshDashboard();
+function openEditModal(id) {
 
-});
+    const participant = participants.find(
 
-setInterval(() => {
+        item => item.id === id
 
-    updateStatistics();
+    );
 
-}, 30000);
-function attachGlobalEvents() {
+    if (!participant) return;
 
-    document
-        .querySelectorAll("[data-close-modal]")
-        .forEach(button => {
+    editId.value = participant.id;
 
-            button.addEventListener("click", () => {
+    editBus.value = participant.busNumber || "";
 
-                closeDetailModal();
+    editSeat.value = participant.seatNumber || "";
 
-                closeEditModal();
-
-            });
-
-        });
-
-    detailModal?.addEventListener("click", event => {
-
-        if (event.target === detailModal) {
-
-            closeDetailModal();
-
-        }
-
-    });
-
-    editModal?.addEventListener("click", event => {
-
-        if (event.target === editModal) {
-
-            closeEditModal();
-
-        }
-
-    });
-
-    document
-        .getElementById("saveRegistration")
-        ?.addEventListener(
-            "click",
-            saveRegistration
-        );
+    editModal.classList.remove("hidden");
 
 }
 
-async function init() {
+// ===============================
+// MODAL KAPAT
+// ===============================
+
+cancelButton.addEventListener("click", () => {
+
+    editModal.classList.add("hidden");
+
+});
+
+window.addEventListener("click", e => {
+
+    if (e.target === editModal) {
+
+        editModal.classList.add("hidden");
+
+    }
+
+});
+// ===============================
+// admin.js
+// Bölüm 3
+// ===============================
+
+// ===============================
+// KAYDET
+// ===============================
+
+saveButton.addEventListener("click", async () => {
+
+    const id = editId.value;
+
+    if (!id) return;
 
     try {
 
-        attachGlobalEvents();
+        showLoading();
 
-        authListener(user => {
+        await updateParticipant(id, {
 
-            if (user) {
+            busNumber: editBus.value.trim(),
 
-                showAdmin();
-
-                loadRegistrations();
-
-            } else {
-
-                showLogin();
-
-            }
+            seatNumber: editSeat.value.trim()
 
         });
 
-        console.log(
+        editModal.classList.add("hidden");
 
-            "Admin Paneli Hazır."
+        showToast(
+
+            "Otobüs ve koltuk bilgileri güncellendi."
 
         );
 
@@ -1304,82 +458,266 @@ async function init() {
 
         console.error(error);
 
-        alert(
+        showToast(
 
-            "Admin paneli başlatılamadı."
+            "Güncelleme sırasında hata oluştu.",
+
+            "error"
 
         );
+
+    }
+
+    finally {
+
+        hideLoading();
+
+    }
+
+});
+
+// ===============================
+// KATILIMCI SİL
+// ===============================
+
+async function removeParticipant(id) {
+
+    const approve = confirm(
+
+        "Bu kayıt kalıcı olarak silinsin mi?"
+
+    );
+
+    if (!approve) return;
+
+    try {
+
+        showLoading();
+
+        await deleteParticipant(id);
+
+        showToast(
+
+            "Kayıt başarıyla silindi."
+
+        );
+
+    }
+
+    catch (error) {
+
+        console.error(error);
+
+        showToast(
+
+            "Silme işlemi başarısız.",
+
+            "error"
+
+        );
+
+    }
+
+    finally {
+
+        hideLoading();
 
     }
 
 }
 
-window.addEventListener(
+// ===============================
+// QR BİLGİLERİNİ GÖSTER
+// ===============================
 
-    "DOMContentLoaded",
+function showQRCode(id) {
 
-    init
+    const participant = participants.find(
 
-);
+        item => item.id === id
 
-window.addEventListener(
+    );
 
-    "error",
+    if (!participant) return;
 
-    event => {
+    alert(
 
-        console.error(
+`Kayıt Kodu : ${participant.registrationCode}
 
-            "Beklenmeyen Hata:",
+Ad Soyad : ${participant.firstName} ${participant.lastName}
 
-            event.error
+Otobüs : ${participant.busNumber || "Atanmadı"}
 
-        );
+Koltuk : ${participant.seatNumber || "Atanmadı"}
+
+Bu bilgiler QR okutulduğunda görüntülenir.`
+
+    );
+
+}
+
+// ===============================
+// SAYI GİRİŞİ
+// ===============================
+
+editSeat.addEventListener("input", () => {
+
+    editSeat.value = editSeat.value.replace(/\D/g, "");
+
+    if (
+
+        Number(editSeat.value) > 60
+
+    ) {
+
+        editSeat.value = 60;
 
     }
 
+});
+
+// ===============================
+// YENİLE
+// ===============================
+
+document
+
+.getElementById("refreshButton")
+
+.addEventListener(
+
+"click",
+
+() => {
+
+renderTable(participants);
+
+updateStatistics(participants);
+
+showToast(
+
+"Liste yenilendi."
+
 );
 
-window.addEventListener(
-
-    "unhandledrejection",
-
-    event => {
-
-        console.error(
-
-            "Promise Hatası:",
-
-            event.reason
-
-        );
-
-    }
+}
 
 );
 
-export {
+// ===============================
+// ESC İLE MODAL KAPAT
+// ===============================
 
-    init,
+document.addEventListener(
 
-    refreshDashboard,
+"keydown",
 
-    loadRegistrations,
+event => {
 
-    renderTable,
+if (
 
-    applyFilters,
+event.key === "Escape"
 
-    openDetailModal,
+) {
 
-    openEditModal,
+editModal.classList.add(
 
-    saveRegistration,
+"hidden"
 
-    deleteSelected,
+);
 
-    checkInSelected,
+}
 
-    checkOutSelected
+}
 
-};
+);
+
+// ===============================
+// TABLO SATIRINI BUL
+// ===============================
+
+function findParticipant(id){
+
+return participants.find(
+
+item=>item.id===id
+
+);
+
+}
+
+// ===============================
+// OTOBÜS DOLULUK
+// ===============================
+
+function getBusSeatCount(busNumber){
+
+return participants.filter(
+
+item=>item.busNumber==busNumber
+
+).length;
+
+}
+
+// ===============================
+// KOLTUK DOLU MU
+// ===============================
+
+function seatIsUsed(bus,seat,currentId=null){
+
+return participants.some(item=>
+
+item.id!==currentId &&
+
+item.busNumber==bus &&
+
+String(item.seatNumber)===String(seat)
+
+);
+
+}
+
+// ===============================
+// KAYDET ÖNCESİ KONTROL
+// ===============================
+
+saveButton.addEventListener(
+
+"click",
+
+event=>{
+
+const bus=editBus.value;
+
+const seat=editSeat.value;
+
+const id=editId.value;
+
+if(bus && seat){
+
+if(seatIsUsed(bus,seat,id)){
+
+event.stopImmediatePropagation();
+
+showToast(
+
+"Bu koltuk dolu.",
+
+"error"
+
+);
+
+}
+
+}
+
+},
+
+true
+
+);
+
+// ===============================
+// BİTİŞ
+// ===============================
