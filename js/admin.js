@@ -355,6 +355,8 @@ async function init() {
 
 setupSearch();
 
+setupLogout();
+
 setupRefreshButton();
 
 setupQrButtons();
@@ -638,5 +640,25 @@ function setupExportButtons() {
         );
 
     }
+
+}
+function setupLogout() {
+
+    const button =
+        document.getElementById("logoutButton");
+
+    if (!button) return;
+
+    button.addEventListener(
+
+        "click",
+
+        async () => {
+
+            await logout();
+
+        }
+
+    );
 
 }
