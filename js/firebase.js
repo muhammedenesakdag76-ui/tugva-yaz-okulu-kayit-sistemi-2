@@ -1,14 +1,13 @@
 // ===============================
-// Firebase Configuration
+// Firebase Imports
 // ===============================
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
 
 import {
     getFirestore,
     collection,
     doc,
-    addDoc,
     getDoc,
     getDocs,
     setDoc,
@@ -20,14 +19,14 @@ import {
     limit,
     onSnapshot,
     serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
 
 import {
     getAuth,
     signInWithEmailAndPassword,
     signOut,
     onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+} from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
 
 
 // ===============================
@@ -36,17 +35,17 @@ import {
 
 const firebaseConfig = {
 
-    apiKey: "BURAYA_APIKEY",
+    apiKey: "BURAYA_API_KEY",
 
-    authDomain: "BURAYA_AUTHDOMAIN",
+    authDomain: "BURAYA.firebaseapp.com",
 
-    projectId: "BURAYA_PROJECTID",
+    projectId: "BURAYA",
 
-    storageBucket: "BURAYA_STORAGE",
+    storageBucket: "BURAYA.appspot.com",
 
-    messagingSenderId: "BURAYA_SENDER",
+    messagingSenderId: "000000000000",
 
-    appId: "BURAYA_APPID"
+    appId: "1:000000000000:web:xxxxxxxx"
 
 };
 
@@ -66,35 +65,48 @@ export const auth = getAuth(app);
 // Constants
 // ===============================
 
-export const MAX_KONTENJAN = 45;
-
 export const COLLECTION = "kayitlar";
+
+export const MAX_CAPACITY = 45;
+
+export const PREFIX = "TYG26";
 
 
 // ===============================
-// Registration Number Generator
+// Collection Reference
+// ===============================
+
+const registrationsRef =
+    collection(db, COLLECTION);
+
+
+// ===============================
+// Register Number Generator
 // ===============================
 
 export async function generateRegisterNumber() {
 
-    const snap = await getDocs(collection(db, COLLECTION));
+    const snapshot = await getDocs(
+        query(
+            registrationsRef,
+            orderBy("kayitNo", "desc"),
+            limit(1)
+        )
+    );
 
-    const count = snap.size + 1;
+    if (snapshot.empty) {
 
-    return "TYG26-" + String(count).padStart(4, "0");
+        return `${PREFIX}-0001`;
 
-}
+    }
 
+    const last =
+        snapshot.docs[0].data().kayitNo;
 
-// ===============================
-// Remaining Capacity
-// ===============================
+    const number =
+        parseInt(last.split("-")[1]) + 1;
 
-export async function getRemainingCapacity() {
-
-    const snap = await getDocs(collection(db, COLLECTION));
-
-    return MAX_KONTENJAN - snap.size;
+    return `${PREFIX}-${String(number).padStart(4, "0")}`;
 
 }
 
@@ -105,42 +117,95 @@ export async function getRemainingCapacity() {
 
 export async function getTotalRegistrations() {
 
-    const snap = await getDocs(collection(db, COLLECTION));
+    const snapshot =
+        await getDocs(registrationsRef);
 
-    return snap.size;
+    return snapshot.size;
 
 }
 
 
 // ===============================
-// Registration Full?
+// Remaining Capacity
+// ===============================
+
+export async function getRemainingCapacity() {
+
+    const total =
+        await getTotalRegistrations();
+
+    return MAX_CAPACITY - total;
+
+}
+// ===============================
+// Capacity Control
 // ===============================
 
 export async function isFull() {
 
-    const total = await getTotalRegistrations();
+    const remaining = await getRemainingCapacity();
 
-    return total >= MAX_KONTENJAN;
+    return remaining <= 0;
 
 }
 
 
 // ===============================
-// TC Exists?
+// TC Exists
 // ===============================
 
 export async function tcExists(tc) {
 
     const q = query(
-        collection(db, COLLECTION),
+        registrationsRef,
         where("tc", "==", tc)
     );
 
-    const snap = await getDocs(q);
+    const snapshot = await getDocs(q);
 
-    return !snap.empty;
+    return !snapshot.empty;
 
 }
+
+
+// ===============================
+// Phone Exists
+// ===============================
+
+export async function phoneExists(phone) {
+
+    const q = query(
+        registrationsRef,
+        where("telefon", "==", phone)
+    );
+
+    const snapshot = await getDocs(q);
+
+    return !snapshot.empty;
+
+}
+
+
+// ===============================
+// Email Exists
+// ===============================
+
+export async function emailExists(email) {
+
+    if (!email) return false;
+
+    const q = query(
+        registrationsRef,
+        where("email", "==", email)
+    );
+
+    const snapshot = await getDocs(q);
+
+    return !snapshot.empty;
+
+}
+
+
 // ===============================
 // Create Registration
 // ===============================
@@ -148,22 +213,46 @@ export async function tcExists(tc) {
 export async function createRegistration(data) {
 
     if (await isFull()) {
+
         throw new Error("Kontenjan dolmuştur.");
+
     }
 
     if (await tcExists(data.tc)) {
-        throw new Error("Bu TC Kimlik Numarası ile daha önce kayıt yapılmış.");
+
+        throw new Error("Bu TC Kimlik Numarası ile kayıt yapılmış.");
+
+    }
+
+    if (await phoneExists(data.telefon)) {
+
+        throw new Error("Bu telefon numarası kayıtlı.");
+
+    }
+
+    if (data.email) {
+
+        if (await emailExists(data.email)) {
+
+            throw new Error("Bu e-posta kayıtlı.");
+
+        }
+
     }
 
     const kayitNo = await generateRegisterNumber();
 
     const registration = {
+
         kayitNo,
 
         adSoyad: data.adSoyad,
+
         tc: data.tc,
+
         telefon: data.telefon,
-        email: data.email,
+
+        email: data.email || "",
 
         dogumTarihi: data.dogumTarihi,
 
@@ -177,7 +266,7 @@ export async function createRegistration(data) {
 
         veliTelefon: data.veliTelefon,
 
-        adres: data.adres || "",
+        adres: data.adres,
 
         not: data.not || "",
 
@@ -188,17 +277,20 @@ export async function createRegistration(data) {
         checkinTime: null,
 
         createdAt: serverTimestamp()
+
     };
 
     await setDoc(
+
         doc(db, COLLECTION, kayitNo),
+
         registration
+
     );
 
     return registration;
+
 }
-
-
 // ===============================
 // Get Registration
 // ===============================
@@ -207,15 +299,15 @@ export async function getRegistration(kayitNo) {
 
     const ref = doc(db, COLLECTION, kayitNo);
 
-    const snap = await getDoc(ref);
+    const snapshot = await getDoc(ref);
 
-    if (!snap.exists()) {
+    if (!snapshot.exists()) {
 
         return null;
 
     }
 
-    return snap.data();
+    return snapshot.data();
 
 }
 
@@ -226,22 +318,19 @@ export async function getRegistration(kayitNo) {
 
 export async function getAllRegistrations() {
 
-    const q = query(
-        collection(db, COLLECTION),
-        orderBy("createdAt", "desc")
+    const snapshot = await getDocs(
+
+        query(
+
+            registrationsRef,
+
+            orderBy("createdAt", "desc")
+
+        )
+
     );
 
-    const snap = await getDocs(q);
-
-    const list = [];
-
-    snap.forEach((item) => {
-
-        list.push(item.data());
-
-    });
-
-    return list;
+    return snapshot.docs.map(doc => doc.data());
 
 }
 
@@ -253,7 +342,9 @@ export async function getAllRegistrations() {
 export async function deleteRegistration(kayitNo) {
 
     await deleteDoc(
+
         doc(db, COLLECTION, kayitNo)
+
     );
 
 }
@@ -263,15 +354,18 @@ export async function deleteRegistration(kayitNo) {
 // Seat Assignment
 // ===============================
 
-export async function updateSeat(kayitNo, seatNo) {
+export async function updateSeat(kayitNo, seat) {
 
     await updateDoc(
+
         doc(db, COLLECTION, kayitNo),
+
         {
 
-            seat: seatNo
+            seat
 
         }
+
     );
 
 }
@@ -284,7 +378,9 @@ export async function updateSeat(kayitNo, seatNo) {
 export async function checkIn(kayitNo) {
 
     await updateDoc(
+
         doc(db, COLLECTION, kayitNo),
+
         {
 
             checkedIn: true,
@@ -292,6 +388,7 @@ export async function checkIn(kayitNo) {
             checkinTime: serverTimestamp()
 
         }
+
     );
 
 }
@@ -304,7 +401,9 @@ export async function checkIn(kayitNo) {
 export async function checkOut(kayitNo) {
 
     await updateDoc(
+
         doc(db, COLLECTION, kayitNo),
+
         {
 
             checkedIn: false,
@@ -312,33 +411,31 @@ export async function checkOut(kayitNo) {
             checkinTime: null
 
         }
+
     );
 
 }
 // ===============================
-// Search Participants
+// Search
 // ===============================
 
-export async function searchParticipants(keyword) {
+export async function searchParticipants(text) {
 
-    const list = await getAllRegistrations();
+    const all = await getAllRegistrations();
 
-    if (!keyword || keyword.trim() === "") {
-        return list;
-    }
+    const q = text.toLowerCase();
 
-    const q = keyword.toLowerCase().trim();
+    return all.filter(item =>
 
-    return list.filter(item => {
+        item.adSoyad.toLowerCase().includes(q) ||
 
-        return (
-            item.adSoyad?.toLowerCase().includes(q) ||
-            item.tc?.includes(q) ||
-            item.telefon?.includes(q) ||
-            item.kayitNo?.toLowerCase().includes(q)
-        );
+        item.kayitNo.toLowerCase().includes(q) ||
 
-    });
+        item.tc.includes(q) ||
+
+        item.telefon.includes(q)
+
+    );
 
 }
 
@@ -351,21 +448,13 @@ export async function getStatistics() {
 
     const list = await getAllRegistrations();
 
-    const checked = list.filter(x => x.checkedIn).length;
-
-    const emptySeat = list.filter(x => !x.seat).length;
-
     return {
 
         total: list.length,
 
-        checkedIn: checked,
+        checkedIn: list.filter(x => x.checkedIn).length,
 
-        notCheckedIn: list.length - checked,
-
-        emptySeat,
-
-        remaining: MAX_KONTENJAN - list.length
+        remaining: MAX_CAPACITY - list.length
 
     };
 
@@ -373,37 +462,22 @@ export async function getStatistics() {
 
 
 // ===============================
-// Live Registration Listener
+// Live Listener
 // ===============================
 
 export function listenRegistrations(callback) {
 
     return onSnapshot(
 
-        collection(db, COLLECTION),
+        registrationsRef,
 
-        (snapshot) => {
+        snapshot => {
 
-            const data = [];
+            callback(
 
-            snapshot.forEach(doc => {
+                snapshot.docs.map(doc => doc.data())
 
-                data.push(doc.data());
-
-            });
-
-            data.sort((a, b) => {
-
-                if (!a.createdAt || !b.createdAt) return 0;
-
-                return (
-                    b.createdAt.seconds -
-                    a.createdAt.seconds
-                );
-
-            });
-
-            callback(data);
+            );
 
         }
 
@@ -413,54 +487,7 @@ export function listenRegistrations(callback) {
 
 
 // ===============================
-// Live Statistics
-// ===============================
-
-export function listenStatistics(callback) {
-
-    return onSnapshot(
-
-        collection(db, COLLECTION),
-
-        (snapshot) => {
-
-            const registrations = [];
-
-            snapshot.forEach(doc => {
-
-                registrations.push(doc.data());
-
-            });
-
-            const checkedIn = registrations.filter(x => x.checkedIn).length;
-
-            const emptySeat = registrations.filter(x => !x.seat).length;
-
-            callback({
-
-                total: registrations.length,
-
-                checkedIn,
-
-                notCheckedIn:
-                    registrations.length - checkedIn,
-
-                emptySeat,
-
-                remaining:
-                    MAX_KONTENJAN - registrations.length
-
-            });
-
-        }
-
-    );
-
-}
-
-
-// ===============================
-// Authentication
+// Login
 // ===============================
 
 export async function login(email, password) {
@@ -478,6 +505,10 @@ export async function login(email, password) {
 }
 
 
+// ===============================
+// Logout
+// ===============================
+
 export async function logout() {
 
     await signOut(auth);
@@ -485,91 +516,12 @@ export async function logout() {
 }
 
 
+// ===============================
+// Auth Listener
+// ===============================
+
 export function authListener(callback) {
 
-    return onAuthStateChanged(
-
-        auth,
-
-        callback
-
-    );
+    onAuthStateChanged(auth, callback);
 
 }
-
-
-// ===============================
-// Participant Exists
-// ===============================
-
-export async function registrationExists(kayitNo) {
-
-    const ref = doc(db, COLLECTION, kayitNo);
-
-    const snap = await getDoc(ref);
-
-    return snap.exists();
-
-}
-
-
-// ===============================
-// Get By QR
-// ===============================
-
-export async function getByQR(kayitNo) {
-
-    return await getRegistration(kayitNo);
-
-}
-
-
-// ===============================
-// Export Default
-// ===============================
-
-export default {
-
-    db,
-
-    auth,
-
-    createRegistration,
-
-    getRegistration,
-
-    getAllRegistrations,
-
-    deleteRegistration,
-
-    updateSeat,
-
-    checkIn,
-
-    checkOut,
-
-    getStatistics,
-
-    listenStatistics,
-
-    listenRegistrations,
-
-    searchParticipants,
-
-    login,
-
-    logout,
-
-    authListener,
-
-    registrationExists,
-
-    getByQR,
-
-    getRemainingCapacity,
-
-    getTotalRegistrations,
-
-    generateRegisterNumber
-
-};
