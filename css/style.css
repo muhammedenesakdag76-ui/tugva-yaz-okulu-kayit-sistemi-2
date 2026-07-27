@@ -1,28 +1,372 @@
-.alert-box.warning {
-    background-color: #fff3cd;
-    color: #856404;
-    border: 1px solid #ffeeba;
-    padding: 15px;
-    border-radius: 8px;
-    margin-bottom: 20px;
-    font-size: 0.95rem;
+:root{
+    --primary:#0F4C81;
+    --primary-dark:#08375d;
+    --secondary:#f5f7fb;
+    --success:#16a34a;
+    --danger:#dc2626;
+    --warning:#f59e0b;
+    --text:#1f2937;
+    --text-light:#6b7280;
+    --border:#e5e7eb;
+    --white:#ffffff;
+    --radius:18px;
+    --shadow:0 12px 30px rgba(0,0,0,.08);
+    --transition:.25s ease;
 }
 
-.seat-badge {
-    margin-top: 15px;
-    background: #e3f2fd;
-    color: #0d47a1;
-    padding: 10px;
-    border-radius: 6px;
-    font-size: 1.1rem;
-    font-weight: bold;
+*{
+    margin:0;
+    padding:0;
+    box-sizing:border-box;
 }
 
-.pdf-card {
-    background: #fff;
-    padding: 25px;
-    border: 2px dashed #0088cc;
-    border-radius: 12px;
-    text-align: center;
-    margin-bottom: 20px;
+html{
+    scroll-behavior:smooth;
+}
+
+body{
+    font-family:'Inter',sans-serif;
+    background:#eef2f7;
+    color:var(--text);
+    line-height:1.6;
+}
+
+.hidden{
+    display:none!important;
+}
+
+.container{
+    width:min(1200px,94%);
+    margin:auto;
+}
+
+header{
+    background:var(--primary);
+    color:#fff;
+    position:sticky;
+    top:0;
+    z-index:1000;
+    box-shadow:0 5px 20px rgba(0,0,0,.12);
+}
+
+header .container{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:18px 0;
+}
+
+.logo{
+    display:flex;
+    align-items:center;
+    gap:16px;
+}
+
+.logo i{
+    font-size:42px;
+}
+
+.logo h1{
+    font-size:28px;
+    font-weight:800;
+}
+
+.logo span{
+    font-size:14px;
+    opacity:.9;
+}
+
+.hero{
+    background:linear-gradient(135deg,#0F4C81,#155ea0);
+    color:#fff;
+    padding:70px 0;
+    text-align:center;
+}
+
+.hero h2{
+    font-size:42px;
+    margin-bottom:12px;
+}
+
+.hero p{
+    max-width:700px;
+    margin:auto;
+    opacity:.9;
+    font-size:18px;
+}
+
+main{
+    padding:45px 0 80px;
+}
+
+.card{
+    background:var(--white);
+    border-radius:var(--radius);
+    padding:28px;
+    margin-bottom:25px;
+    box-shadow:var(--shadow);
+}
+
+.card h3{
+    margin-bottom:25px;
+    display:flex;
+    align-items:center;
+    gap:12px;
+    color:var(--primary);
+    font-size:22px;
+}
+
+.grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+    gap:22px;
+}
+
+.input{
+    display:flex;
+    flex-direction:column;
+}
+
+.input label{
+    margin-bottom:8px;
+    font-weight:600;
+}
+
+.input input,
+.input select,
+textarea{
+    width:100%;
+    padding:14px 16px;
+    border:1px solid var(--border);
+    border-radius:12px;
+    outline:none;
+    transition:var(--transition);
+    font-size:15px;
+    background:#fff;
+}
+
+.input input:focus,
+.input select:focus,
+textarea:focus{
+    border-color:var(--primary);
+    box-shadow:0 0 0 4px rgba(15,76,129,.12);
+}
+
+textarea{
+    resize:vertical;
+}
+
+.checkbox{
+    display:flex;
+    gap:12px;
+    align-items:flex-start;
+    margin-bottom:18px;
+    cursor:pointer;
+}
+
+.checkbox input{
+    margin-top:4px;
+    width:18px;
+    height:18px;
+}
+
+.buttons{
+    display:flex;
+    justify-content:flex-end;
+    gap:15px;
+    margin-top:35px;
+}
+
+.primary,
+.secondary{
+    border:none;
+    border-radius:12px;
+    padding:15px 26px;
+    font-size:15px;
+    font-weight:700;
+    cursor:pointer;
+    transition:var(--transition);
+}
+
+.primary{
+    background:var(--primary);
+    color:#fff;
+}
+
+.primary:hover{
+    background:var(--primary-dark);
+    transform:translateY(-2px);
+}
+
+.secondary{
+    background:#dfe5ec;
+    color:#1f2937;
+}
+
+.secondary:hover{
+    background:#cfd8e3;
+    transform:translateY(-2px);
+}
+
+.successCard{
+    max-width:760px;
+    margin:60px auto;
+    background:#fff;
+    padding:45px;
+    border-radius:25px;
+    text-align:center;
+    box-shadow:var(--shadow);
+}
+
+.successCard .icon{
+    width:100px;
+    height:100px;
+    margin:auto;
+    border-radius:50%;
+    background:#dcfce7;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    color:var(--success);
+    font-size:55px;
+    margin-bottom:25px;
+}
+
+.successCard h2{
+    margin-bottom:15px;
+}
+
+.successCard p{
+    color:var(--text-light);
+    margin-bottom:35px;
+}
+
+#qrArea{
+    display:flex;
+    justify-content:center;
+    align-items:center;
+    margin-bottom:35px;
+    min-height:240px;
+}
+
+.buttonArea{
+    display:flex;
+    justify-content:center;
+    gap:18px;
+    flex-wrap:wrap;
+}
+
+footer{
+    background:#fff;
+    padding:22px;
+    text-align:center;
+    color:var(--text-light);
+    border-top:1px solid var(--border);
+}
+
+#loading{
+    position:fixed;
+    inset:0;
+    background:#fff;
+    display:flex;
+    flex-direction:column;
+    justify-content:center;
+    align-items:center;
+    z-index:99999;
+}
+
+.loader{
+    width:70px;
+    height:70px;
+    border:6px solid #dbeafe;
+    border-top:6px solid var(--primary);
+    border-radius:50%;
+    animation:spin 1s linear infinite;
+    margin-bottom:20px;
+}
+
+@keyframes spin{
+    to{
+        transform:rotate(360deg);
+    }
+}
+
+#toastContainer{
+    position:fixed;
+    right:20px;
+    top:20px;
+    display:flex;
+    flex-direction:column;
+    gap:12px;
+    z-index:999999;
+}
+
+.toast{
+    background:#fff;
+    padding:15px 18px;
+    border-radius:12px;
+    box-shadow:var(--shadow);
+    border-left:5px solid var(--primary);
+    animation:slide .25s ease;
+}
+
+.toast.success{
+    border-color:var(--success);
+}
+
+.toast.error{
+    border-color:var(--danger);
+}
+
+.toast.warning{
+    border-color:var(--warning);
+}
+
+@keyframes slide{
+    from{
+        opacity:0;
+        transform:translateX(35px);
+    }
+    to{
+        opacity:1;
+        transform:translateX(0);
+    }
+}
+
+small{
+    color:var(--danger);
+    margin-top:5px;
+}
+
+@media(max-width:768px){
+
+.hero{
+padding:55px 0;
+}
+
+.hero h2{
+font-size:30px;
+}
+
+.logo h1{
+font-size:22px;
+}
+
+.card{
+padding:20px;
+}
+
+.buttons{
+flex-direction:column;
+}
+
+.primary,
+.secondary{
+width:100%;
+}
+
+.successCard{
+padding:30px 20px;
+}
+
 }
