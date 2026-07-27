@@ -6,39 +6,78 @@
 <meta charset="UTF-8">
 
 <meta name="viewport"
-      content="width=device-width, initial-scale=1">
+content="width=device-width, initial-scale=1.0">
 
 <title>TÜGVA Yaz Okulu Yönetim Paneli</title>
 
-<link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/css/bootstrap.min.css"
-      rel="stylesheet">
+<link
+href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css"
+rel="stylesheet">
 
-<link rel="stylesheet"
-      href="css/admin.css">
+<link
+rel="stylesheet"
+href="css/admin.css">
+
+<script
+src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js">
+</script>
+
+<script
+src="https://unpkg.com/html5-qrcode">
+</script>
 
 </head>
 
 <body class="bg-light">
+<nav class="navbar navbar-dark bg-primary shadow">
 
-<div class="container-fluid py-4">
+<div class="container-fluid">
 
-<h2 class="mb-4">
+<span class="navbar-brand">
 
-Yönetici Paneli
+🎓 TÜGVA Yaz Okulu Yönetim Paneli
 
-</h2>
+</span>
 
-<div class="row g-3 mb-4">
+<div>
 
-<div class="col-lg-3">
+<span
+id="clock"
+class="text-white me-3">
+</span>
 
-<div class="card shadow-sm">
+<button
+id="logout"
+class="btn btn-outline-light">
+
+Çıkış
+
+</button>
+
+</div>
+
+</div>
+
+</nav>
+<div class="container mt-4">
+
+<div class="row g-3">
+
+<div class="col-md-3">
+
+<div
+id="capacityCard"
+class="card shadow">
 
 <div class="card-body">
 
 <h6>Toplam Kayıt</h6>
 
-<h2 id="totalRegistrations">0</h2>
+<h2 id="totalStudent">
+
+0
+
+</h2>
 
 </div>
 
@@ -46,31 +85,19 @@ Yönetici Paneli
 
 </div>
 
-<div class="col-lg-3">
+<div class="col-md-3">
 
-<div class="card shadow-sm">
-
-<div class="card-body">
-
-<h6>Giriş Yapan</h6>
-
-<h2 id="checkedInCount">0</h2>
-
-</div>
-
-</div>
-
-</div>
-
-<div class="col-lg-3">
-
-<div class="card shadow-sm">
+<div class="card shadow">
 
 <div class="card-body">
 
 <h6>Kalan Kontenjan</h6>
 
-<h2 id="remainingCapacity">500</h2>
+<h2 id="remainingStudent">
+
+45
+
+</h2>
 
 </div>
 
@@ -78,15 +105,39 @@ Yönetici Paneli
 
 </div>
 
-<div class="col-lg-3">
+<div class="col-md-3">
 
-<div class="card shadow-sm">
+<div class="card shadow">
 
 <div class="card-body">
 
-<h6>Koltuk Verilen</h6>
+<h6>Yoklama</h6>
 
-<h2 id="seatCount">0</h2>
+<h2 id="checkedStudent">
+
+0
+
+</h2>
+
+</div>
+
+</div>
+
+</div>
+
+<div class="col-md-3">
+
+<div class="card shadow">
+
+<div class="card-body">
+
+<h6>Doluluk</h6>
+
+<h2 id="percentStudent">
+
+0%
+
+</h2>
 
 </div>
 
@@ -95,125 +146,82 @@ Yönetici Paneli
 </div>
 
 </div>
-<div class="card shadow-sm mb-4">
+<div class="card mt-4 shadow">
 
-    <div class="card-body">
+<div class="card-body">
 
-        <div class="row g-3 align-items-center">
+<div class="row g-2">
 
-            <div class="col-lg-4">
+<div class="col-md-4">
 
-                <input
-                    id="searchInput"
-                    type="text"
-                    class="form-control"
-                    placeholder="İsim, Telefon, TC veya Kayıt No Ara">
+<input
 
-            </div>
+id="search"
 
-            <div class="col-lg-8 text-lg-end">
+class="form-control"
 
-                <button
-                    id="refreshButton"
-                    class="btn btn-primary">
+placeholder="Ad, Telefon, TC veya Kayıt No">
 
-                    Yenile
+</div>
 
-                </button>
+<div class="col-md-8 text-end">
 
-                <button
-                    id="exportCsvButton"
-                    class="btn btn-success">
+<button
 
-                    CSV İndir
+id="exportExcel"
 
-                </button>
+class="btn btn-success">
 
-                <button
-                    id="printButton"
-                    class="btn btn-secondary">
+Excel
 
-                    Yazdır
+</button>
 
-                </button>
+<button
 
-                <button
-                    id="startQrButton"
-                    class="btn btn-dark">
+id="printList"
 
-                    Kamerayı Aç
+class="btn btn-secondary">
 
-                </button>
+Yazdır
 
-                <button
-                    id="stopQrButton"
-                    class="btn btn-outline-dark">
+</button>
 
-                    Kamerayı Kapat
+<button
 
-                </button>
+onclick="startQRScanner()"
 
-            </div>
+class="btn btn-primary">
 
-        </div>
+QR Kamera
+
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+<div class="card shadow mt-4">
+
+    <div class="card-header d-flex justify-content-between align-items-center">
+
+        <h5 class="mb-0">
+            Kayıtlı Öğrenciler
+        </h5>
+
+        <span class="badge bg-primary">
+            Maksimum Kontenjan: 45
+        </span>
 
     </div>
 
-</div>
-
-<div class="card shadow-sm mb-4">
-
-    <div class="card-header">
-
-        <strong>QR Kod Okuyucu</strong>
-
-    </div>
-
-    <div class="card-body">
-
-        <div
-            id="qr-reader"
-            style="
-                width:100%;
-                max-width:450px;
-                margin:auto;
-            ">
-        </div>
-
-    </div>
-
-</div>
-<div
-    id="loading"
-    class="text-center py-5"
-    style="display:none;">
-
-    <div
-        class="spinner-border text-primary"
-        role="status">
-
-    </div>
-
-    <div class="mt-3">
-
-        Yükleniyor...
-
-    </div>
-
-</div>
-<div class="card shadow-sm">
-
-    <div class="card-header">
-
-        <strong>Kayıt Listesi</strong>
-
-    </div>
-
-    <div class="card-body">
+    <div class="card-body p-0">
 
         <div class="table-responsive">
 
-            <table class="table table-hover table-bordered align-middle">
+            <table class="table table-hover align-middle mb-0">
 
                 <thead class="table-dark">
 
@@ -225,25 +233,27 @@ Yönetici Paneli
 
                         <th>Telefon</th>
 
-                        <th>Koltuk</th>
+                        <th>Veli</th>
 
                         <th>Durum</th>
 
-                        <th>QR Giriş</th>
+                        <th>Koltuk</th>
 
-                        <th>Sil</th>
+                        <th width="220">
+                            İşlemler
+                        </th>
 
                     </tr>
 
                 </thead>
 
-                <tbody id="registrationTableBody">
+                <tbody id="tableBody">
 
                     <tr>
 
-                        <td colspan="7" class="text-center py-4">
+                        <td colspan="7" class="text-center p-5">
 
-                            Henüz kayıt bulunmuyor.
+                            Kayıt bekleniyor...
 
                         </td>
 
@@ -258,42 +268,103 @@ Yönetici Paneli
     </div>
 
 </div>
-<div class="position-fixed bottom-0 end-0 p-3"
-     style="z-index:1080;">
+<div class="card shadow mt-4">
 
-    <div id="adminToast"
-         class="toast"
-         role="alert"
-         aria-live="assertive"
-         aria-atomic="true">
+    <div class="card-header">
 
-        <div class="d-flex">
+        <h5 class="mb-0">
 
-            <div class="toast-body">
+            QR Kod Okuyucu
 
-                İşlem başarılı.
+        </h5>
 
-            </div>
+    </div>
 
-            <button
-                type="button"
-                class="btn-close me-2 m-auto"
-                data-bs-dismiss="toast">
-            </button>
+    <div class="card-body">
 
+        <div
+            id="qr-reader"
+            style="
+            max-width:420px;
+            margin:auto;
+            ">
         </div>
 
     </div>
 
 </div>
+<div
+class="toast-container position-fixed bottom-0 end-0 p-3">
+
+<div
+id="toast"
+class="toast border-0">
+
+<div class="d-flex">
+
+<div class="toast-body">
+
+Mesaj
+
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.7/dist/js/bootstrap.bundle.min.js"></script>
+<button
 
-<script src="https://unpkg.com/html5-qrcode"></script>
+class="btn-close btn-close-white me-2 m-auto"
+
+data-bs-dismiss="toast">
+
+</button>
+
+</div>
+
+</div>
+
+</div>
+<div
+class="modal fade"
+id="studentModal">
+
+<div class="modal-dialog modal-lg">
+
+<div class="modal-content">
+
+<div class="modal-header">
+
+<h5>
+
+Öğrenci Bilgileri
+
+</h5>
+
+<button
+
+class="btn-close"
+
+data-bs-dismiss="modal">
+
+</button>
+
+</div>
+
+<div
+id="studentDetail"
+class="modal-body">
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+<!-- Bootstrap -->
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<!-- Admin -->
 
 <script type="module" src="js/admin.js"></script>
 
 </body>
-
 </html>
