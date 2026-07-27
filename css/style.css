@@ -1,633 +1,439 @@
-/* ===========================
-   RESET
-=========================== */
+/* style.css */
+/* Admin Panel Bölümü */
+/* Parça 1/8 */
 
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-}
+.admin-container{
 
-html{
-    scroll-behavior:smooth;
-}
-
-body{
-
-    font-family:'Poppins',sans-serif;
-
-    background:#eef3fb;
-
-    color:#222;
-
-    min-height:100vh;
-
-    overflow-x:hidden;
+max-width:1700px;
 
 }
 
+.stats-grid{
 
-/* ===========================
-   BACKGROUND
-=========================== */
+display:grid;
 
-.background{
+grid-template-columns:
 
-    position:fixed;
+repeat(4,1fr);
 
-    inset:0;
+gap:20px;
 
-    background:
-    linear-gradient(135deg,#0f172a,#1e3a8a,#2563eb);
-
-    z-index:-2;
+margin-bottom:30px;
 
 }
 
-.background::before{
+.stat-card{
 
-    content:"";
+background:#fff;
 
-    position:absolute;
+border-radius:18px;
 
-    width:600px;
+padding:25px;
 
-    height:600px;
+box-shadow:
 
-    background:rgba(255,255,255,.08);
+0 8px 25px rgba(0,0,0,.08);
 
-    border-radius:50%;
-
-    top:-250px;
-
-    left:-180px;
-
-    filter:blur(40px);
+text-align:center;
 
 }
 
-.background::after{
+.stat-title{
 
-    content:"";
+font-size:15px;
 
-    position:absolute;
+font-weight:600;
 
-    width:450px;
+color:#777;
 
-    height:450px;
-
-    background:rgba(255,255,255,.05);
-
-    border-radius:50%;
-
-    right:-120px;
-
-    bottom:-120px;
-
-    filter:blur(50px);
+margin-bottom:12px;
 
 }
 
+.stat-value{
 
-/* ===========================
-   CONTAINER
-=========================== */
+font-size:42px;
 
-.container{
+font-weight:700;
 
-    width:min(1100px,92%);
-
-    margin:auto;
-
-    padding:40px 0 70px;
-
-}
-/* ===========================
-   HERO
-=========================== */
-
-.hero{
-
-    text-align:center;
-
-    color:#fff;
-
-    margin-bottom:30px;
+color:#0b7d41;
 
 }
 
-.hero h1{
+.toolbar{
 
-    font-size:42px;
+display:flex;
 
-    font-weight:700;
+gap:15px;
 
-}
+flex-wrap:wrap;
 
-.hero p{
+margin-bottom:25px;
 
-    margin-top:8px;
-
-    opacity:.9;
-
-    font-size:17px;
+align-items:center;
 
 }
 
+.toolbar input{
 
-/* ===========================
-   CAPACITY CARD
-=========================== */
+flex:1;
 
-.capacity-card{
-
-    width:220px;
-
-    margin:0 auto 30px;
-
-    background:rgba(255,255,255,.15);
-
-    backdrop-filter:blur(18px);
-
-    border-radius:22px;
-
-    padding:20px;
-
-    text-align:center;
-
-    color:#fff;
-
-    border:1px solid rgba(255,255,255,.2);
+min-width:260px;
 
 }
 
-.capacity-title{
+.toolbar select{
 
-    font-size:15px;
+width:180px;
 
-    opacity:.85;
+}
+/* style.css */
+/* Parça 2/8 */
+
+.table-wrapper{
+
+overflow:auto;
+
+border-radius:15px;
 
 }
 
-.capacity-number{
+.admin-table{
 
-    margin-top:8px;
+width:100%;
 
-    font-size:48px;
+border-collapse:collapse;
 
-    font-weight:700;
-
-}
-/* ===========================
-   CARD
-=========================== */
-
-.card{
-
-    background:#fff;
-
-    border-radius:22px;
-
-    padding:35px;
-
-    box-shadow:
-
-    0 15px 35px rgba(0,0,0,.08);
-
-    margin-bottom:30px;
+background:#fff;
 
 }
 
-.card h2{
+.admin-table th{
 
-    margin-bottom:25px;
+background:#0b7d41;
 
-    color:#1e3a8a;
+color:#fff;
 
-}
+padding:16px;
 
+font-size:15px;
 
-/* ===========================
-   GRID
-=========================== */
-
-.grid{
-
-    display:grid;
-
-    grid-template-columns:
-
-    repeat(auto-fit,minmax(260px,1fr));
-
-    gap:18px;
+text-align:left;
 
 }
 
+.admin-table td{
 
-/* ===========================
-   FORM
-=========================== */
+padding:14px;
 
-.form-group{
+border-bottom:
 
-    display:flex;
+1px solid #ececec;
 
-    flex-direction:column;
-
-    margin-bottom:18px;
+vertical-align:middle;
 
 }
 
-.form-group label{
+.admin-table tr:hover{
 
-    margin-bottom:8px;
-
-    font-weight:600;
-
-    font-size:14px;
+background:#f8faf8;
 
 }
 
-.form-group input,
+.row-checkbox{
 
-.form-group select,
+width:18px;
 
-.form-group textarea{
+height:18px;
 
-    padding:14px;
+cursor:pointer;
 
-    border:1px solid #d6dbe8;
+}
+/* style.css */
+/* Parça 3/8 */
 
-    border-radius:12px;
+.status{
 
-    font-size:15px;
+padding:7px 14px;
 
-    transition:.25s;
+border-radius:999px;
 
-    outline:none;
+font-size:13px;
+
+font-weight:700;
+
+display:inline-block;
 
 }
 
-.form-group input:focus,
+.status.checked{
 
-.form-group textarea:focus,
+background:#dcfce7;
 
-.form-group select:focus{
-
-    border-color:#2563eb;
-
-    box-shadow:
-
-    0 0 0 4px rgba(37,99,235,.12);
-
-}
-/* ===========================
-   CHECKBOX
-=========================== */
-
-.checkbox-group{
-
-    margin:25px 0;
-
-    display:flex;
-
-    flex-direction:column;
-
-    gap:15px;
+color:#166534;
 
 }
 
-.checkbox{
+.status.waiting{
 
-    display:flex;
+background:#fef3c7;
 
-    align-items:flex-start;
-
-    gap:12px;
-
-    cursor:pointer;
-
-    font-size:15px;
-
-    line-height:1.5;
+color:#92400e;
 
 }
 
-.checkbox input{
+.seat-input{
 
-    width:20px;
+width:70px;
 
-    height:20px;
+padding:8px;
 
-    margin-top:2px;
+text-align:center;
 
-    accent-color:#2563eb;
+border-radius:8px;
+
+border:1px solid #dcdcdc;
+
+}
+/* style.css */
+/* Parça 4/8 */
+
+.action-buttons{
+
+display:flex;
+
+gap:8px;
 
 }
 
+.view-btn,
 
-/* ===========================
-   BUTTONS
-=========================== */
+.check-btn,
 
-.button-area{
+.delete-btn{
 
-    margin-top:30px;
+padding:8px 12px;
 
-}
+border:none;
 
-.button-group{
+border-radius:8px;
 
-    display:flex;
+cursor:pointer;
 
-    justify-content:center;
-
-    flex-wrap:wrap;
-
-    gap:15px;
-
-    margin-top:25px;
+font-weight:600;
 
 }
 
-.btn{
+.view-btn{
 
-    border:none;
+background:#2563eb;
 
-    outline:none;
-
-    cursor:pointer;
-
-    border-radius:12px;
-
-    padding:15px 28px;
-
-    font-size:15px;
-
-    font-weight:600;
-
-    transition:.3s;
+color:#fff;
 
 }
 
-.btn:hover{
+.check-btn{
 
-    transform:translateY(-2px);
+background:#16a34a;
 
-    box-shadow:0 10px 25px rgba(0,0,0,.15);
-
-}
-
-.btn-primary{
-
-    width:100%;
-
-    background:#2563eb;
-
-    color:#fff;
+color:#fff;
 
 }
 
-.btn-primary:hover{
+.delete-btn{
 
-    background:#1d4ed8;
+background:#dc2626;
+
+color:#fff;
+
+}
+/* style.css */
+/* Parça 5/8 */
+
+.modal,
+
+dialog{
+
+border:none;
+
+border-radius:18px;
+
+padding:0;
+
+max-width:850px;
+
+width:92%;
 
 }
 
-.btn-success{
+.dialog-header{
 
-    background:#16a34a;
+display:flex;
 
-    color:#fff;
+justify-content:space-between;
 
-}
+align-items:center;
 
-.btn-success:hover{
+padding:22px;
 
-    background:#15803d;
-
-}
-
-.btn-secondary{
-
-    background:#475569;
-
-    color:#fff;
+border-bottom:1px solid #eee;
 
 }
 
-.btn-secondary:hover{
+.dialog-body{
 
-    background:#334155;
+padding:25px;
 
 }
-/* ===========================
-   SUCCESS
-=========================== */
+
+.dialog-footer{
+
+padding:22px;
+
+display:flex;
+
+justify-content:flex-end;
+
+gap:10px;
+
+border-top:1px solid #eee;
+
+}
+/* style.css */
+/* Parça 6/8 */
+
+.detail-grid{
+
+display:grid;
+
+grid-template-columns:
+
+repeat(2,1fr);
+
+gap:20px;
+
+}
+
+.detail-grid input{
+
+width:100%;
+
+}
+
+.close-btn{
+
+font-size:28px;
+
+background:none;
+
+border:none;
+
+cursor:pointer;
+
+}
+/* style.css */
+/* Parça 7/8 */
+
+.loading-overlay{
+
+position:fixed;
+
+inset:0;
+
+background:rgba(255,255,255,.8);
+
+display:flex;
+
+flex-direction:column;
+
+justify-content:center;
+
+align-items:center;
+
+z-index:9999;
+
+}
+
+.spinner{
+
+width:55px;
+
+height:55px;
+
+border-radius:50%;
+
+border:6px solid #ddd;
+
+border-top-color:#0b7d41;
+
+animation:spin 1s linear infinite;
+
+}
+
+@keyframes spin{
+
+to{
+
+transform:rotate(360deg);
+
+}
+
+}
 
 .hidden{
 
-    display:none;
+display:none!important;
+
+}
+/* style.css */
+/* Parça 8/8 */
+
+@media(max-width:992px){
+
+.stats-grid{
+
+grid-template-columns:
+
+repeat(2,1fr);
 
 }
 
-#successCard{
+.detail-grid{
 
-    text-align:center;
-
-    animation:fadeUp .5s ease;
+grid-template-columns:1fr;
 
 }
 
-.success-icon{
+}
 
-    font-size:72px;
+@media(max-width:650px){
 
-    margin-bottom:20px;
+.stats-grid{
+
+grid-template-columns:1fr;
 
 }
 
-#registerNumber{
+.toolbar{
 
-    color:#2563eb;
-
-    font-size:34px;
-
-    margin:18px 0;
-
-    letter-spacing:2px;
+flex-direction:column;
 
 }
 
-.qr-box{
+.toolbar input,
 
-    width:240px;
+.toolbar select,
 
-    height:240px;
+.toolbar button{
 
-    margin:30px auto;
-
-    display:flex;
-
-    justify-content:center;
-
-    align-items:center;
-
-    background:#fff;
-
-    border-radius:18px;
-
-    border:2px dashed #d1d5db;
+width:100%;
 
 }
 
+.admin-table{
 
-/* ===========================
-   FOOTER
-=========================== */
-
-footer{
-
-    text-align:center;
-
-    color:#fff;
-
-    opacity:.9;
-
-    margin-top:30px;
+font-size:13px;
 
 }
-
-footer p{
-
-    margin:5px 0;
-
-}
-
-
-/* ===========================
-   ANIMATION
-=========================== */
-
-@keyframes fadeUp{
-
-    from{
-
-        opacity:0;
-
-        transform:translateY(20px);
-
-    }
-
-    to{
-
-        opacity:1;
-
-        transform:translateY(0);
-
-    }
-
-}
-/* ===========================
-   RESPONSIVE
-=========================== */
-
-@media(max-width:768px){
-
-    .hero h1{
-
-        font-size:30px;
-
-    }
-
-    .hero p{
-
-        font-size:15px;
-
-    }
-
-    .card{
-
-        padding:22px;
-
-    }
-
-    .capacity-card{
-
-        width:180px;
-
-    }
-
-    .capacity-number{
-
-        font-size:38px;
-
-    }
-
-    #registerNumber{
-
-        font-size:26px;
-
-    }
-
-    .qr-box{
-
-        width:200px;
-
-        height:200px;
-
-    }
-
-    .btn{
-
-        width:100%;
-
-    }
-
-    .button-group{
-
-        flex-direction:column;
-
-    }
-
-}
-
-@media(max-width:480px){
-
-    .container{
-
-        width:95%;
-
-        padding:20px 0 50px;
-
-    }
-
-    .hero{
-
-        margin-bottom:20px;
-
-    }
-
-    .hero h1{
-
-        font-size:26px;
-
-    }
-
-    .card{
-
-        border-radius:16px;
-
-    }
-
-    .form-group input,
-
-    .form-group textarea,
-
-    .form-group select{
-
-        font-size:16px;
-
-    }
 
 }
