@@ -228,3 +228,128 @@ export async function isCapacityFull() {
     return remaining <= 0;
 
 }
+export async function getRegistrations() {
+
+    const q = query(
+        registrationsRef,
+        orderBy("createdAt", "desc")
+    );
+
+    const snapshot = await getDocs(q);
+
+    return snapshot.docs.map(docItem => ({
+        id: docItem.id,
+        ...docItem.data()
+    }));
+
+}
+
+export async function getRegistration(id) {
+
+    const ref = doc(
+        db,
+        "registrations",
+        id
+    );
+
+    const snapshot = await getDoc(ref);
+
+    if (!snapshot.exists()) {
+
+        return null;
+
+    }
+
+    return {
+
+        id: snapshot.id,
+
+        ...snapshot.data()
+
+    };
+
+}
+export async function updateSeat(id, seat) {
+
+    const ref = doc(
+        db,
+        "registrations",
+        id
+    );
+
+    await updateDoc(ref, {
+
+        seat
+
+    });
+
+}
+export async function updateCheckIn(id, checkedIn = true) {
+
+    const ref = doc(
+        db,
+        "registrations",
+        id
+    );
+
+    await updateDoc(ref, {
+
+        checkedIn
+
+    });
+
+}
+export async function deleteRegistration(id) {
+
+    const ref = doc(
+        db,
+        "registrations",
+        id
+    );
+
+    await deleteDoc(ref);
+
+}
+export async function searchRegistrations(searchText) {
+
+    const registrations = await getRegistrations();
+
+    if (!searchText) {
+
+        return registrations;
+
+    }
+
+    const keyword = searchText
+        .toLowerCase()
+        .trim();
+
+    return registrations.filter(item => {
+
+        return (
+
+            (item.name || "")
+                .toLowerCase()
+                .includes(keyword)
+
+            ||
+
+            (item.tc || "")
+                .includes(keyword)
+
+            ||
+
+            (item.phone || "")
+                .includes(keyword)
+
+            ||
+
+            (item.registerNumber || "")
+                .toLowerCase()
+                .includes(keyword)
+
+        );
+
+    });
+
+}
