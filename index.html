@@ -1,3 +1,6 @@
+<!-- index.html -->
+<!-- Parça 1/8 -->
+
 <!DOCTYPE html>
 <html lang="tr">
 
@@ -5,7 +8,8 @@
 
 <meta charset="UTF-8">
 
-<meta name="viewport"
+<meta
+name="viewport"
 content="width=device-width, initial-scale=1.0">
 
 <title>TÜGVA Yaz Okulu Kayıt</title>
@@ -27,9 +31,17 @@ crossorigin>
 href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap"
 rel="stylesheet">
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script
+src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js">
+</script>
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script
+src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js">
+</script>
+
+<script
+src="https://cdn.sheetjs.com/xlsx-0.20.2/package/dist/xlsx.full.min.js">
+</script>
 
 </head>
 
@@ -41,7 +53,11 @@ rel="stylesheet">
 
 <header class="hero">
 
-<h1>TÜGVA Yaz Okulu</h1>
+<h1>
+
+TÜGVA Yaz Okulu
+
+</h1>
 
 <p>
 
@@ -51,31 +67,31 @@ Online Kayıt Sistemi
 
 </header>
 
-<div class="capacity-card">
+<section class="capacity-card">
 
-<div class="capacity-title">
+<h2>
 
 Kalan Kontenjan
 
-</div>
+</h2>
 
 <div
-class="capacity-number"
-id="remainingCapacity">
+id="remainingCapacity"
+class="capacity-value">
 
 45
 
 </div>
 
-</div>
+</section>
 
 <section
-class="card"
-id="formSection">
+id="formSection"
+class="card">
 
 <h2>
 
-Katılımcı Bilgileri
+Kayıt Formu
 
 </h2>
 
@@ -83,6 +99,8 @@ Katılımcı Bilgileri
 id="registerForm">
 
 <div class="grid">
+<!-- index.html -->
+<!-- Parça 2/8 -->
 
 <div class="form-group">
 
@@ -93,8 +111,11 @@ Ad Soyad
 </label>
 
 <input
+
 type="text"
+
 id="adSoyad"
+
 required>
 
 </div>
@@ -108,9 +129,13 @@ TC Kimlik No
 </label>
 
 <input
+
 type="text"
+
 id="tc"
+
 maxlength="11"
+
 required>
 
 </div>
@@ -124,9 +149,13 @@ Telefon
 </label>
 
 <input
+
 type="text"
+
 id="telefon"
+
 maxlength="11"
+
 required>
 
 </div>
@@ -140,10 +169,13 @@ E-Posta
 </label>
 
 <input
+
 type="email"
+
 id="email">
 
 </div>
+
 <div class="form-group">
 
 <label>
@@ -153,8 +185,11 @@ Doğum Tarihi
 </label>
 
 <input
+
 type="date"
+
 id="dogumTarihi"
+
 required>
 
 </div>
@@ -192,6 +227,8 @@ Kız
 </select>
 
 </div>
+<!-- index.html -->
+<!-- Parça 3/8 -->
 
 <div class="form-group">
 
@@ -202,8 +239,11 @@ Okul
 </label>
 
 <input
+
 type="text"
+
 id="okul"
+
 required>
 
 </div>
@@ -217,8 +257,11 @@ Sınıf
 </label>
 
 <input
+
 type="text"
+
 id="sinif"
+
 required>
 
 </div>
@@ -232,8 +275,11 @@ Veli Adı
 </label>
 
 <input
+
 type="text"
+
 id="veliAdi"
+
 required>
 
 </div>
@@ -242,21 +288,25 @@ required>
 
 <label>
 
-Veli Telefonu
+Veli Telefon
 
 </label>
 
 <input
+
 type="text"
+
 id="veliTelefon"
+
 maxlength="11"
+
 required>
 
 </div>
+<!-- index.html -->
+<!-- Parça 4/8 -->
 
-</div>
-
-<div class="form-group">
+<div class="form-group full">
 
 <label>
 
@@ -268,7 +318,7 @@ Adres
 
 id="adres"
 
-rows="3"
+rows="4"
 
 required>
 
@@ -276,7 +326,7 @@ required>
 
 </div>
 
-<div class="form-group">
+<div class="form-group full">
 
 <label>
 
@@ -293,44 +343,51 @@ rows="3">
 </textarea>
 
 </div>
-<div class="checkbox-group">
+<!-- index.html -->
+<!-- Parça 5/8 -->
 
-<label class="checkbox">
+<div class="checkbox-group full">
+
+<label>
 
 <input
+
 type="checkbox"
+
 id="kvkk"
+
 required>
 
-<span>
-
-KVKK kapsamında kişisel verilerin işlenmesini kabul ediyorum.
-
-</span>
-
-</label>
-
-<label class="checkbox">
-
-<input
-type="checkbox"
-id="parent"
-required>
-
-<span>
-
-Veli/Vasi olarak kayıt onayını veriyorum.
-
-</span>
+KVKK Aydınlatma Metnini Okudum.
 
 </label>
 
 </div>
 
-<div class="button-area">
+<div class="checkbox-group full">
+
+<label>
+
+<input
+
+type="checkbox"
+
+id="parent"
+
+required>
+
+Veli Olarak Onaylıyorum.
+
+</label>
+
+</div>
+
+<div class="form-group full">
 
 <button
+
 type="submit"
+
 class="btn btn-primary">
 
 Kaydı Tamamla
@@ -339,30 +396,25 @@ Kaydı Tamamla
 
 </div>
 
+</div>
+
 </form>
 
 </section>
-
-
-<!-- ========================= -->
-<!-- SUCCESS CARD -->
-<!-- ========================= -->
+<!-- index.html -->
+<!-- Parça 6/8 -->
 
 <section
 
 id="successCard"
 
-class="card hidden">
+class="card"
 
-<div class="success-icon">
-
-✅
-
-</div>
+style="display:none;">
 
 <h2>
 
-Kayıt Başarıyla Tamamlandı
+Kayıt Başarılı
 
 </h2>
 
@@ -372,21 +424,15 @@ Kayıt Numaranız
 
 </p>
 
-<h1
-
-id="registerNumber">
-
-TYG26-0001
+<h1 id="registerNumber">
 
 </h1>
 
-<div
-
-id="qrcode"
-
-class="qr-box">
+<div id="qrcode">
 
 </div>
+<!-- index.html -->
+<!-- Parça 7/8 -->
 
 <div class="button-group">
 
@@ -394,7 +440,9 @@ class="qr-box">
 
 id="downloadPdf"
 
-class="btn btn-success">
+class="btn btn-success"
+
+type="button">
 
 PDF İndir
 
@@ -404,7 +452,9 @@ PDF İndir
 
 id="newRegister"
 
-class="btn btn-secondary">
+class="btn btn-secondary"
+
+type="button">
 
 Yeni Kayıt
 
@@ -413,6 +463,7 @@ Yeni Kayıt
 </div>
 
 </section>
+
 <footer>
 
 <p>
@@ -421,27 +472,17 @@ Yeni Kayıt
 
 </p>
 
-<p>
-
-Online Kayıt Sistemi
-
-</p>
-
 </footer>
+<!-- index.html -->
+<!-- Parça 8/8 (Son) -->
+
+<script
+type="module"
+src="js/app.js">
+</script>
 
 </div>
 
-<!-- ========================= -->
-<!-- JAVASCRIPT -->
-<!-- ========================= -->
-
-<script
-
-type="module"
-
-src="js/app.js">
-
-</script>
 </body>
 
 </html>
