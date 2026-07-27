@@ -45,7 +45,7 @@ export const auth = getAuth(app);
 
 export const COLLECTION = "kayitlar";
 
-export const MAX_KONTENJAN = 40;
+export const MAX_KONTENJAN = 45;
 
 export const ETKINLIK_BILGISI = {
 
