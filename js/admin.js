@@ -1,664 +1,333 @@
 import {
-
-    login,
-    logout,
-    checkAuth
-
-} from "./auth.js";
-
-import {
-
-    getRegistrations,
+    listenRegistrations,
     getStatistics,
-    updateSeat,
-    updateCheckIn,
     deleteRegistration,
+    assignSeat,
+    toggleCheckIn,
     searchRegistrations
-
 } from "./firebase.js";
 
-const ADMIN = {
+const tbody = document.getElementById("tableBody");
 
-    registrations: [],
+const searchInput = document.getElementById("search");
 
-    filtered: []
+const totalCard = document.getElementById("totalStudent");
+const remainCard = document.getElementById("remainingStudent");
+const checkCard = document.getElementById("checkedStudent");
+const percentCard = document.getElementById("percentStudent");
 
-};
+let registrations = [];
 
-const $ = selector => document.querySelector(selector);
+/* ===================================================== */
 
-const $$ = selector => document.querySelectorAll(selector);
+document.addEventListener("DOMContentLoaded", init);
 
-function text(id, value) {
+async function init() {
 
-    const element = document.getElementById(id);
+    loadDashboard();
 
-    if (element) {
+    listenRegistrations(data => {
 
-        element.textContent = value;
+        registrations = data;
 
-    }
+        renderTable(data);
 
-}
+        loadDashboard();
 
-function html(id, value) {
+    });
 
-    const element = document.getElementById(id);
-
-    if (element) {
-
-        element.innerHTML = value;
-
-    }
+    searchInput.addEventListener("input", search);
 
 }
+/* ===================================================== */
 
-function showLoading() {
-
-    const loading = $("#loading");
-
-    if (loading) {
-
-        loading.style.display = "flex";
-
-    }
-
-}
-
-function hideLoading() {
-
-    const loading = $("#loading");
-
-    if (loading) {
-
-        loading.style.display = "none";
-
-    }
-
-}
-async function loadStatistics() {
+async function loadDashboard() {
 
     const stats = await getStatistics();
 
-    text("totalRegistrations", stats.total);
+    totalCard.textContent = stats.total;
 
-    text("checkedInCount", stats.checkedIn);
+    remainCard.textContent = stats.remaining;
 
-    text("remainingCapacity", stats.remaining);
+    checkCard.textContent = stats.checkedIn;
 
-    text("seatCount", stats.seated);
+    percentCard.textContent = stats.percent + "%";
 
-}
-async function loadRegistrations() {
+    if (stats.full) {
 
-    showLoading();
-
-    try {
-
-        ADMIN.registrations =
-
-            await getRegistrations();
-
-        ADMIN.filtered =
-
-            [...ADMIN.registrations];
-
-        renderTable();
-
-        await loadStatistics();
-
-    }
-
-    finally {
-
-        hideLoading();
+        remainCard.classList.add("text-danger");
 
     }
 
 }
-function renderTable() {
+/* ===================================================== */
 
-    const tbody = document.getElementById(
-        "registrationTableBody"
-    );
+function renderTable(list) {
 
-    if (!tbody) return;
+    tbody.innerHTML = "";
 
-    if (ADMIN.filtered.length === 0) {
+    if (!list.length) {
 
         tbody.innerHTML = `
-            <tr>
-                <td colspan="8" class="text-center py-4">
-                    Kayıt bulunamadı.
-                </td>
-            </tr>
+        <tr>
+        <td colspan="10" class="text-center">
+        Kayıt bulunamadı
+        </td>
+        </tr>
         `;
 
         return;
 
     }
 
-    tbody.innerHTML = ADMIN.filtered.map(item => `
+    list.forEach(item => {
 
-        <tr>
-
-            <td>${item.registerNumber}</td>
-
-            <td>${item.name}</td>
-
-            <td>${item.phone}</td>
-
-            <td>
-
-                <input
-                    type="text"
-                    class="form-control seat-input"
-                    data-id="${item.id}"
-                    value="${item.seat ?? ""}"
-                    placeholder="Koltuk">
-
-            </td>
-
-            <td>
-
-                ${
-                    item.checkedIn
-
-                        ? '<span class="badge bg-success">Giriş Yaptı</span>'
-
-                        : '<span class="badge bg-secondary">Bekliyor</span>'
-
-                }
-
-            </td>
-
-            <td>
-
-                <button
-                    class="btn btn-success btn-sm check-btn"
-                    data-id="${item.id}">
-
-                    QR Giriş
-
-                </button>
-
-            </td>
-
-            <td>
-
-                <button
-                    class="btn btn-danger btn-sm delete-btn"
-                    data-id="${item.id}">
-
-                    Sil
-
-                </button>
-
-            </td>
-
-        </tr>
-
-    `).join("");
-
-    bindTableEvents();
-
-}
-function bindTableEvents() {
-
-    document
-        .querySelectorAll(".seat-input")
-        .forEach(input => {
-
-            input.addEventListener(
-
-                "change",
-
-                async e => {
-
-                    await updateSeat(
-
-                        e.target.dataset.id,
-
-                        e.target.value
-
-                    );
-
-                }
-
-            );
-
-        });
-
-    document
-        .querySelectorAll(".check-btn")
-        .forEach(button => {
-
-            button.addEventListener(
-
-                "click",
-
-                async () => {
-
-                    await updateCheckIn(
-
-                        button.dataset.id
-
-                    );
-
-                    await loadRegistrations();
-
-                }
-
-            );
-
-        });
-
-    document
-        .querySelectorAll(".delete-btn")
-        .forEach(button => {
-
-            button.addEventListener(
-
-                "click",
-
-                async () => {
-
-                    const ok = confirm(
-
-                        "Bu kayıt silinsin mi?"
-
-                    );
-
-                    if (!ok) return;
-
-                    await deleteRegistration(
-
-                        button.dataset.id
-
-                    );
-
-                    await loadRegistrations();
-
-                }
-
-            );
-
-        });
-
-}
-function setupSearch() {
-
-    const input = document.getElementById(
-        "searchInput"
-    );
-
-    if (!input) return;
-
-    input.addEventListener(
-
-        "input",
-
-        async e => {
-
-            ADMIN.filtered = await searchRegistrations(
-
-                e.target.value
-
-            );
-
-            renderTable();
-
-        }
-
-    );
-
-}
-function setupRefreshButton() {
-
-    const button = document.getElementById(
-        "refreshButton"
-    );
-
-    if (!button) return;
-
-    button.addEventListener(
-
-        "click",
-
-        async () => {
-
-            await loadRegistrations();
-
-        }
-
-    );
-
-}
-
-function protectPage() {
-
-    checkAuth(user => {
-
-        if (!user) {
-
-            window.location.href = "login.html";
-
-        }
+        tbody.innerHTML += createRow(item);
 
     });
 
 }
+/* ===================================================== */
 
-async function init() {
+function createRow(item) {
 
-    protectPage();
+return `
 
-setupSearch();
+<tr>
 
-setupLogout();
+<td>${item.registerNumber}</td>
 
-setupRefreshButton();
+<td>${item.name}</td>
 
-setupQrButtons();
+<td>${item.phone}</td>
 
-setupExportButtons();
+<td>${item.parent}</td>
 
-autoRefresh();
+<td>
 
-await loadRegistrations();
+<span class="badge bg-${item.checkedIn?"success":"secondary"}">
+
+${item.checkedIn?"Geldi":"Gelmedi"}
+
+</span>
+
+</td>
+
+<td>
+
+<input
+
+type="number"
+
+min="1"
+
+max="45"
+
+value="${item.seat||""}"
+
+class="form-control seatInput"
+
+data-id="${item.id}"
+
+>
+
+</td>
+
+<td>
+
+<button
+
+class="btn btn-success btn-sm checkBtn"
+
+data-id="${item.id}">
+
+QR
+
+</button>
+
+<button
+
+class="btn btn-primary btn-sm saveSeat"
+
+data-id="${item.id}">
+
+Kaydet
+
+</button>
+
+<button
+
+class="btn btn-danger btn-sm deleteBtn"
+
+data-id="${item.id}">
+
+Sil
+
+</button>
+
+</td>
+
+</tr>
+
+`;
+
+}
+/* =====================================================
+   ARAMA
+===================================================== */
+
+async function search(e) {
+
+    const keyword = e.target.value.trim();
+
+    if (!keyword) {
+        renderTable(registrations);
+        return;
+    }
+
+    const result = await searchRegistrations(keyword);
+
+    renderTable(result);
 
 }
 
-document.addEventListener(
+/* =====================================================
+   TABLO OLAYLARI
+===================================================== */
 
-    "DOMContentLoaded",
+tbody.addEventListener("click", async (e) => {
 
-    init
+    const id = e.target.dataset.id;
 
-);
-let qrScanner = null;
+    if (!id) return;
 
-async function onQrSuccess(decodedText) {
+    /* -----------------------------
+       KOLTUK KAYDET
+    ----------------------------- */
 
-    if (qrScanner) {
+    if (e.target.classList.contains("saveSeat")) {
 
-        await qrScanner.stop();
+        const input = document.querySelector(
+            `.seatInput[data-id="${id}"]`
+        );
+
+        try {
+
+            await assignSeat(id, input.value);
+
+            showToast("Koltuk kaydedildi.");
+
+        }
+
+        catch(err){
+
+            showToast(err.message,false);
+
+        }
 
     }
 
-    try {
+    /* -----------------------------
+       QR GİRİŞ
+    ----------------------------- */
 
-        const data = JSON.parse(decodedText);
+    if (e.target.classList.contains("checkBtn")) {
 
-        if (!data.id) {
+        try{
 
-            alert("Geçersiz QR kod.");
+            await toggleCheckIn(id);
 
+            showToast("Yoklama güncellendi.");
+
+        }
+
+        catch(err){
+
+            showToast(err.message,false);
+
+        }
+
+    }
+
+    /* -----------------------------
+       SİL
+    ----------------------------- */
+
+    if (e.target.classList.contains("deleteBtn")) {
+
+        if(!confirm("Bu kayıt silinsin mi?"))
             return;
 
+        try{
+
+            await deleteRegistration(id);
+
+            showToast("Kayıt silindi.");
+
         }
 
-        await updateCheckIn(data.id, true);
+        catch(err){
 
-        alert("Giriş başarıyla kaydedildi.");
+            showToast(err.message,false);
 
-        await loadRegistrations();
-
-    }
-
-    catch (error) {
-
-        console.error(error);
-
-        alert("QR kod okunamadı.");
+        }
 
     }
 
-}
+});
+/* =====================================================
+   TOAST
+===================================================== */
 
-function startQrScanner() {
+function showToast(message, success = true){
 
-    const reader = document.getElementById("qr-reader");
-
-    if (!reader) return;
-
-    qrScanner = new Html5Qrcode("qr-reader");
-
-    qrScanner.start(
-
-        { facingMode: "environment" },
-
-        {
-
-            fps: 10,
-
-            qrbox: 250
-
-        },
-
-        onQrSuccess,
-
-        () => {}
-
-    );
-
-}
-
-async function stopQrScanner() {
-
-    if (!qrScanner) return;
-
-    try {
-
-        await qrScanner.stop();
-
-        await qrScanner.clear();
-
-    }
-
-    catch (e) {
-
-        console.error(e);
-
-    }
-
-    qrScanner = null;
-
-}
-function setupQrButtons() {
-
-    const openButton = document.getElementById("startQrButton");
-
-    const closeButton = document.getElementById("stopQrButton");
-
-    if (openButton) {
-
-        openButton.addEventListener(
-
-            "click",
-
-            startQrScanner
-
-        );
-
-    }
-
-    if (closeButton) {
-
-        closeButton.addEventListener(
-
-            "click",
-
-            stopQrScanner
-
-        );
-
-    }
-
-}
-function showToast(message, type = "success") {
-
-    const toast = document.getElementById("adminToast");
-
-    if (!toast) {
-
-        alert(message);
-
-        return;
-
-    }
+    const toast =
+        document.getElementById("toast");
 
     toast.className =
-        `toast align-items-center text-bg-${type}`;
+        `toast align-items-center text-bg-${success?"success":"danger"} border-0 show`;
 
-    toast.querySelector(".toast-body").textContent =
-        message;
+    toast.querySelector(".toast-body")
+        .textContent = message;
 
-    const bsToast =
-        bootstrap.Toast.getOrCreateInstance(toast);
+    setTimeout(()=>{
 
-    bsToast.show();
+        toast.classList.remove("show");
 
-}
-function exportCSV() {
-
-    const rows = [
-
-        [
-            "Kayıt No",
-            "Ad Soyad",
-            "Telefon",
-            "TC",
-            "Koltuk",
-            "Durum"
-        ]
-
-    ];
-
-    ADMIN.registrations.forEach(item => {
-
-        rows.push([
-
-            item.registerNumber,
-
-            item.name,
-
-            item.phone,
-
-            item.tc,
-
-            item.seat ?? "",
-
-            item.checkedIn
-                ? "Giriş Yaptı"
-                : "Bekliyor"
-
-        ]);
-
-    });
-
-    const csv = rows
-        .map(r => r.join(";"))
-        .join("\n");
-
-    const blob = new Blob(
-
-        [csv],
-
-        {
-
-            type: "text/csv;charset=utf-8;"
-
-        }
-
-    );
-
-    const url =
-        URL.createObjectURL(blob);
-
-    const a =
-        document.createElement("a");
-
-    a.href = url;
-
-    a.download =
-        "kayitlar.csv";
-
-    a.click();
-
-    URL.revokeObjectURL(url);
+    },3000);
 
 }
-function printTable() {
+/* =====================================================
+   DASHBOARD RENKLERİ
+===================================================== */
 
-    window.print();
+async function refreshCards(){
 
-}
-function autoRefresh() {
+    const stats = await getStatistics();
 
-    setInterval(
+    if(stats.remaining<=5){
 
-        async () => {
+        remainCard.classList.remove("text-success");
 
-            await loadRegistrations();
-
-        },
-
-        30000
-
-    );
-
-}
-function setupExportButtons() {
-
-    const csvButton =
-        document.getElementById("exportCsvButton");
-
-    const pdfButton =
-        document.getElementById("printButton");
-
-    if (csvButton) {
-
-        csvButton.addEventListener(
-
-            "click",
-
-            exportCSV
-
-        );
+        remainCard.classList.add("text-danger");
 
     }
 
-    if (pdfButton) {
+    if(stats.percent>=90){
 
-        pdfButton.addEventListener(
-
-            "click",
-
-            printTable
-
-        );
+        percentCard.classList.add("text-danger");
 
     }
 
 }
-function setupLogout() {
+/* =====================================================
+   AUTO REFRESH
+===================================================== */
 
-    const button =
-        document.getElementById("logoutButton");
+setInterval(async()=>{
 
-    if (!button) return;
+    await loadDashboard();
 
-    button.addEventListener(
+    await refreshCards();
 
-        "click",
-
-        async () => {
-
-            await logout();
-
-        }
-
-    );
-
-}
+},5000);
