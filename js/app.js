@@ -1,110 +1,73 @@
 // app.js
-// Profesyonel Sürüm
-// Parça 1/10
+// Düzeltme Paketi
+// Parça 1/8
 
 import{
-
 createRegistration,
-
 generateRegisterNumber,
-
 getRemainingCapacity,
-
 registrationExists,
-
 phoneExists,
-
 isFull
-
-}
-
-from "./firebase.js";
+}from"./firebase.js";
 
 import{
-
 validateForm,
-
 onlyNumber
-
-}
-
-from "./validation.js";
+}from"./validation.js";
 
 import{
-
 generateQR
-
-}
-
-from "./qr.js";
+}from"./qr.js";
 
 import{
-
 downloadPDF
+}from"./pdf.js";
 
-}
+const form=document.getElementById("registerForm");
 
-from "./pdf.js";
+const formSection=document.getElementById("formSection");
 
-const form=
+const successCard=document.getElementById("successCard");
 
-document.getElementById(
+const registerNumber=document.getElementById("registerNumber");
 
-"registerForm"
+const remainingCapacity=document.getElementById("remainingCapacity");
 
-);
+const downloadPdf=document.getElementById("downloadPdf");
 
-const formSection=
+const newRegister=document.getElementById("newRegister");
 
-document.getElementById(
+/* ======== Eksik olan tüm inputlar ======== */
 
-"formSection"
+const adSoyad=document.getElementById("adSoyad");
 
-);
+const tc=document.getElementById("tc");
 
-const successCard=
+const telefon=document.getElementById("telefon");
 
-document.getElementById(
+const email=document.getElementById("email");
 
-"successCard"
+const dogumTarihi=document.getElementById("dogumTarihi");
 
-);
+const cinsiyet=document.getElementById("cinsiyet");
 
-const registerNumber=
+const okul=document.getElementById("okul");
 
-document.getElementById(
+const sinif=document.getElementById("sinif");
 
-"registerNumber"
+const veliAdi=document.getElementById("veliAdi");
 
-);
+const veliTelefon=document.getElementById("veliTelefon");
 
-const remainingCapacity=
+const adres=document.getElementById("adres");
 
-document.getElementById(
-
-"remainingCapacity"
-
-);
-
-const downloadPdf=
-
-document.getElementById(
-
-"downloadPdf"
-
-);
-
-const newRegister=
-
-document.getElementById(
-
-"newRegister"
-
-);
+const note=document.getElementById("note");
 
 let currentParticipant=null;
 // app.js
-// Parça 2/10
+// Düzeltme Paketi
+// Parça 2/8
 
 async function updateCapacity(){
 
@@ -175,8 +138,15 @@ note.value.trim()
 };
 
 }
+
+function clearForm(){
+
+form.reset();
+
+}
 // app.js
-// Parça 3/10
+// Düzeltme Paketi
+// Parça 3/8
 
 async function register(){
 
@@ -198,11 +168,7 @@ getFormData();
 
 const error=
 
-validateForm(
-
-data
-
-);
+validateForm(data);
 
 if(error){
 
@@ -216,7 +182,7 @@ if(await registrationExists(data.tc)){
 
 alert(
 
-"Bu TC ile kayıt bulunmaktadır."
+"Bu TC Kimlik Numarası ile kayıt bulunmaktadır."
 
 );
 
@@ -228,25 +194,19 @@ if(await phoneExists(data.telefon)){
 
 alert(
 
-"Bu telefon ile kayıt bulunmaktadır."
+"Bu telefon numarası ile kayıt bulunmaktadır."
 
 );
 
 return;
 
 }
-// app.js
-// Parça 4/10
 
 data.kayitNo=
 
 await generateRegisterNumber();
 
-await createRegistration(
-
-data
-
-);
+await createRegistration(data);
 
 currentParticipant=data;
 
@@ -254,13 +214,18 @@ showSuccess();
 
 }
 // app.js
-// Parça 5/10
+// Düzeltme Paketi
+// Parça 4/8
 
 function showSuccess(){
 
-formSection.style.display="none";
+formSection.style.display=
 
-successCard.style.display="block";
+"none";
+
+successCard.style.display=
+
+"block";
 
 registerNumber.textContent=
 
@@ -276,11 +241,20 @@ updateCapacity();
 
 }
 // app.js
-// Parça 6/10
+// Düzeltme Paketi
+// Parça 5/8
 
-downloadPdf.onclick=
+downloadPdf.addEventListener(
+
+"click",
 
 ()=>{
+
+if(!currentParticipant){
+
+return;
+
+}
 
 downloadPDF(
 
@@ -288,17 +262,35 @@ currentParticipant
 
 );
 
-};
+}
 
-newRegister.onclick=
+);
+
+newRegister.addEventListener(
+
+"click",
 
 ()=>{
 
-location.reload();
+clearForm();
 
-};
+successCard.style.display=
+
+"none";
+
+formSection.style.display=
+
+"block";
+
+updateCapacity();
+
+currentParticipant=null;
+
+}
+);
 // app.js
-// Parça 7/10
+// Düzeltme Paketi
+// Parça 6/8
 
 form.addEventListener(
 
@@ -313,8 +305,6 @@ await register();
 }
 
 );
-// app.js
-// Parça 8/10
 
 [
 
@@ -324,9 +314,7 @@ telefon,
 
 veliTelefon
 
-]
-
-.forEach(input=>{
+].forEach(input=>{
 
 input.addEventListener(
 
@@ -338,7 +326,8 @@ onlyNumber
 
 });
 // app.js
-// Parça 9/10
+// Düzeltme Paketi
+// Parça 7/8
 
 function capitalize(input){
 
@@ -364,9 +353,7 @@ adSoyad,
 
 veliAdi
 
-]
-
-.forEach(input=>{
+].forEach(input=>{
 
 input.addEventListener(
 
@@ -378,7 +365,8 @@ input.addEventListener(
 
 });
 // app.js
-// Parça 10/10 (Son)
+// Düzeltme Paketi
+// Parça 8/8 (Son)
 
 window.addEventListener(
 
@@ -388,4 +376,15 @@ window.addEventListener(
 
 updateCapacity();
 
-});
+form.reset();
+
+successCard.style.display=
+
+"none";
+
+formSection.style.display=
+
+"block";
+
+}
+);
