@@ -1,6 +1,3 @@
-<!-- ==========================================
-KATILIMCI TABLOSU
-========================================== -->
 <!DOCTYPE html>
 <html lang="tr">
 
@@ -26,7 +23,173 @@ KATILIMCI TABLOSU
 
 <div class="layout">
 
+<!-- ==========================================
+SIDEBAR
+========================================== -->
+
 <aside class="sidebar">
+
+<div class="logo">
+
+<h2>TÜGVA</h2>
+
+<p>Yaz Okulu Yönetim Paneli</p>
+
+</div>
+
+<nav>
+
+<button class="menu active" data-page="participantsPage">
+👥 Katılımcılar
+</button>
+
+<button class="menu" data-page="reportsPage">
+📊 Raporlar
+</button>
+
+<button class="menu" data-page="logsPage">
+📝 İşlem Geçmişi
+</button>
+
+<button class="menu" data-page="settingsPage">
+⚙️ Ayarlar
+</button>
+
+</nav>
+
+<div class="sidebar-footer">
+
+<button id="logoutBtn" class="logout-btn">
+
+Oturumu Kapat
+
+</button>
+
+</div>
+
+</aside>
+
+<!-- ==========================================
+İÇERİK
+========================================== -->
+
+<main class="content">
+
+<header class="topbar">
+
+<div>
+
+<h1>TÜGVA Yaz Okulu</h1>
+
+<p>Katılımcı Yönetim Paneli</p>
+
+</div>
+
+<div class="topbar-buttons">
+
+<button id="refreshBtn" class="btn btn-success">
+
+Yenile
+
+</button>
+
+<button id="exportExcelBtn" class="btn btn-success">
+
+Excel İndir
+
+</button>
+
+<button id="importExcelBtn" class="btn btn-secondary">
+
+Excel Yükle
+
+</button>
+
+</div>
+
+</header>
+
+<!-- ==========================================
+İSTATİSTİKLER
+========================================== -->
+
+<div class="stats">
+
+<div class="stat-card">
+
+<span>Toplam Kayıt</span>
+
+<h2 id="totalCount">0</h2>
+
+</div>
+
+<div class="stat-card">
+
+<span>Giriş Yapan</span>
+
+<h2 id="checkedCount">0</h2>
+
+</div>
+
+<div class="stat-card">
+
+<span>Bekleyen</span>
+
+<h2 id="waitingCount">0</h2>
+
+</div>
+
+<div class="stat-card">
+
+<span>Kalan Kontenjan</span>
+
+<h2 id="remainingCount">45</h2>
+
+</div>
+
+</div>
+
+<!-- ==========================================
+ARAÇ ÇUBUĞU
+========================================== -->
+
+<div class="toolbar">
+
+<div class="toolbar-left">
+
+<input
+type="text"
+id="searchInput"
+placeholder="Ad, kayıt numarası veya telefon ara...">
+
+<select id="schoolFilter">
+
+<option value="">
+
+Tüm Okullar
+
+</option>
+
+</select>
+
+</div>
+
+<div class="toolbar-right">
+
+<button
+id="newParticipantBtn"
+class="btn btn-success">
+
+Yeni Katılımcı
+
+</button>
+
+</div>
+
+</div>
+<!-- ==========================================
+KATILIMCI TABLOSU
+========================================== -->
 
 <section id="participantsPage" class="page active">
 
@@ -76,13 +239,13 @@ Toplu Sil
 
 <th width="40"></th>
 
-<th>QR</th>
+<th width="90">QR</th>
 
 <th>Kayıt No</th>
 
 <th>Ad Soyad</th>
 
-<th>TC</th>
+<th>TC Kimlik</th>
 
 <th>Telefon</th>
 
@@ -120,8 +283,6 @@ Henüz kayıt bulunmuyor.
 
 </div>
 
-</section>
-
 <!-- ==========================================
 DETAY PANELİ
 ========================================== -->
@@ -150,7 +311,7 @@ Katılımcı Seçilmedi
 
 <div class="row">
 
-<span>TC</span>
+<span>TC Kimlik</span>
 
 <strong id="detailTc">-</strong>
 
@@ -208,7 +369,11 @@ Katılımcı Seçilmedi
 
 <span>Durum</span>
 
-<strong id="detailStatus">Bekliyor</strong>
+<strong id="detailStatus">
+
+Bekliyor
+
+</strong>
 
 </div>
 
@@ -249,24 +414,19 @@ Sil
 </div>
 
 </aside>
+
+</section>
 <!-- ==========================================
 DÜZENLE MODALI
 ========================================== -->
 
-<div
-class="modal"
-id="editModal">
+<div class="modal" id="editModal">
 
-<div
-class="modal-content large">
+<div class="modal-content large">
 
 <div class="modal-header">
 
-<h2>
-
-Katılımcıyı Düzenle
-
-</h2>
+<h2>Katılımcıyı Düzenle</h2>
 
 <button
 id="closeEditModal"
@@ -280,18 +440,13 @@ class="close-btn">
 
 <div class="modal-body">
 
-<form
-id="editForm">
+<form id="editForm">
 
 <div class="grid">
 
 <div class="form-group">
 
-<label>
-
-Ad Soyad
-
-</label>
+<label>Ad Soyad</label>
 
 <input
 type="text"
@@ -301,11 +456,7 @@ id="editName">
 
 <div class="form-group">
 
-<label>
-
-TC Kimlik
-
-</label>
+<label>TC Kimlik</label>
 
 <input
 type="text"
@@ -315,11 +466,7 @@ id="editTc">
 
 <div class="form-group">
 
-<label>
-
-Telefon
-
-</label>
+<label>Telefon</label>
 
 <input
 type="text"
@@ -329,11 +476,7 @@ id="editPhone">
 
 <div class="form-group">
 
-<label>
-
-E-Posta
-
-</label>
+<label>E-Posta</label>
 
 <input
 type="email"
@@ -343,11 +486,7 @@ id="editEmail">
 
 <div class="form-group">
 
-<label>
-
-Doğum Tarihi
-
-</label>
+<label>Doğum Tarihi</label>
 
 <input
 type="date"
@@ -357,26 +496,13 @@ id="editBirth">
 
 <div class="form-group">
 
-<label>
+<label>Cinsiyet</label>
 
-Cinsiyet
+<select id="editGender">
 
-</label>
+<option value="Erkek">Erkek</option>
 
-<select
-id="editGender">
-
-<option>
-
-Erkek
-
-</option>
-
-<option>
-
-Kız
-
-</option>
+<option value="Kız">Kız</option>
 
 </select>
 
@@ -384,11 +510,7 @@ Kız
 
 <div class="form-group">
 
-<label>
-
-Okul
-
-</label>
+<label>Okul</label>
 
 <input
 type="text"
@@ -398,11 +520,7 @@ id="editSchool">
 
 <div class="form-group">
 
-<label>
-
-Sınıf
-
-</label>
+<label>Sınıf</label>
 
 <input
 type="text"
@@ -412,11 +530,7 @@ id="editClass">
 
 <div class="form-group">
 
-<label>
-
-Veli Adı
-
-</label>
+<label>Veli Adı</label>
 
 <input
 type="text"
@@ -426,11 +540,7 @@ id="editParent">
 
 <div class="form-group">
 
-<label>
-
-Veli Telefon
-
-</label>
+<label>Veli Telefon</label>
 
 <input
 type="text"
@@ -440,11 +550,7 @@ id="editParentPhone">
 
 <div class="form-group full">
 
-<label>
-
-Adres
-
-</label>
+<label>Adres</label>
 
 <textarea
 id="editAddress"
@@ -454,11 +560,7 @@ rows="3"></textarea>
 
 <div class="form-group full">
 
-<label>
-
-Not
-
-</label>
+<label>Not</label>
 
 <textarea
 id="editNote"
@@ -468,11 +570,7 @@ rows="3"></textarea>
 
 <div class="form-group">
 
-<label>
-
-Koltuk
-
-</label>
+<label>Koltuk</label>
 
 <input
 type="text"
@@ -523,11 +621,7 @@ class="modal-content small">
 
 <div class="modal-header">
 
-<h2>
-
-QR Kod
-
-</h2>
+<h2>QR Kod</h2>
 
 <button
 id="closeQrModal"
@@ -541,20 +635,15 @@ class="close-btn">
 
 <div class="modal-body center">
 
-<div
-id="qrModalImage">
+<div id="qrModalImage"></div>
 
-</div>
-
-<h3
-id="qrModalNumber">
+<h3 id="qrModalNumber">
 
 TYG26-0001
 
 </h3>
 
-<p
-id="qrModalName">
+<p id="qrModalName">
 
 Katılımcı
 
@@ -587,7 +676,7 @@ Yazdır
 </div>
 
 <!-- ==========================================
-SİLME ONAYI
+SİLME ONAY MODALI
 ========================================== -->
 
 <div
@@ -650,23 +739,13 @@ Sil
 LOADING OVERLAY
 ========================================== -->
 
-<div
-id="loadingOverlay"
-class="loading-overlay hidden">
+<div id="loadingOverlay" class="loading-overlay hidden">
 
 <div class="loader"></div>
 
-<h3>
+<h3>İşlem Yapılıyor...</h3>
 
-İşlem Yapılıyor...
-
-</h3>
-
-<p>
-
-Lütfen bekleyiniz.
-
-</p>
+<p>Lütfen bekleyiniz.</p>
 
 </div>
 
@@ -674,30 +753,23 @@ Lütfen bekleyiniz.
 TOAST
 ========================================== -->
 
-<div
-id="toast"
-class="toast">
+<div id="toast" class="toast">
 
-<div
-id="toastIcon"
-class="toast-icon">
+<div id="toastIcon" class="toast-icon">
 
 ✔
 
 </div>
 
-<div
-class="toast-content">
+<div class="toast-content">
 
-<h4
-id="toastTitle">
+<h4 id="toastTitle">
 
 Başarılı
 
 </h4>
 
-<p
-id="toastMessage">
+<p id="toastMessage">
 
 İşlem başarıyla tamamlandı.
 
@@ -705,9 +777,7 @@ id="toastMessage">
 
 </div>
 
-<button
-id="closeToast"
-class="toast-close">
+<button id="closeToast" class="toast-close">
 
 ✕
 
@@ -719,23 +789,13 @@ class="toast-close">
 RAPORLAR
 ========================================== -->
 
-<section
-id="reportsPage"
-class="page">
+<section id="reportsPage" class="page">
 
 <div class="page-header">
 
-<h2>
+<h2>Raporlar</h2>
 
-Raporlar
-
-</h2>
-
-<p>
-
-Yaz Okulu istatistikleri
-
-</p>
+<p>Yaz Okulu İstatistikleri</p>
 
 </div>
 
@@ -743,69 +803,33 @@ Yaz Okulu istatistikleri
 
 <div class="report-card">
 
-<h4>
+<h4>Erkek</h4>
 
-Erkek
-
-</h4>
-
-<h2
-id="maleCount">
-
-0
-
-</h2>
+<h2 id="maleCount">0</h2>
 
 </div>
 
 <div class="report-card">
 
-<h4>
+<h4>Kız</h4>
 
-Kız
-
-</h4>
-
-<h2
-id="femaleCount">
-
-0
-
-</h2>
+<h2 id="femaleCount">0</h2>
 
 </div>
 
 <div class="report-card">
 
-<h4>
+<h4>Bugünkü Kayıt</h4>
 
-Bugünkü Kayıt
-
-</h4>
-
-<h2
-id="todayRegister">
-
-0
-
-</h2>
+<h2 id="todayRegister">0</h2>
 
 </div>
 
 <div class="report-card">
 
-<h4>
+<h4>Doluluk</h4>
 
-Doluluk
-
-</h4>
-
-<h2
-id="capacityRate">
-
-0%
-
-</h2>
+<h2 id="capacityRate">0%</h2>
 
 </div>
 
@@ -813,10 +837,7 @@ id="capacityRate">
 
 <div class="chart-card">
 
-<canvas
-id="reportChart">
-
-</canvas>
+<canvas id="reportChart"></canvas>
 
 </div>
 
@@ -826,64 +847,39 @@ id="reportChart">
 İŞLEM GEÇMİŞİ
 ========================================== -->
 
-<section
-id="logsPage"
-class="page">
+<section id="logsPage" class="page">
 
 <div class="page-header">
 
-<h2>
-
-İşlem Geçmişi
-
-</h2>
+<h2>İşlem Geçmişi</h2>
 
 </div>
 
 <div class="table-card">
 
-<table
-class="history-table">
+<table class="history-table">
 
 <thead>
 
 <tr>
 
-<th>
+<th>Tarih</th>
 
-Tarih
+<th>İşlem</th>
 
-</th>
+<th>Katılımcı</th>
 
-<th>
-
-İşlem
-
-</th>
-
-<th>
-
-Katılımcı
-
-</th>
-
-<th>
-
-Yönetici
-
-</th>
+<th>Yönetici</th>
 
 </tr>
 
 </thead>
 
-<tbody
-id="logsBody">
+<tbody id="logsBody">
 
 <tr>
 
-<td
-colspan="4">
+<td colspan="4">
 
 Henüz işlem bulunmuyor.
 
@@ -903,17 +899,11 @@ Henüz işlem bulunmuyor.
 AYARLAR
 ========================================== -->
 
-<section
-id="settingsPage"
-class="page">
+<section id="settingsPage" class="page">
 
 <div class="page-header">
 
-<h2>
-
-Sistem Ayarları
-
-</h2>
+<h2>Sistem Ayarları</h2>
 
 </div>
 
@@ -921,11 +911,7 @@ Sistem Ayarları
 
 <div class="setting-card">
 
-<h3>
-
-Kontenjan
-
-</h3>
+<h3>Kontenjan</h3>
 
 <input
 type="number"
@@ -944,32 +930,15 @@ Kaydet
 
 <div class="setting-card">
 
-<h3>
+<h3>QR Boyutu</h3>
 
-QR Boyutu
+<select id="qrSize">
 
-</h3>
+<option value="256">256 px</option>
 
-<select
-id="qrSize">
+<option value="512">512 px</option>
 
-<option value="256">
-
-256 px
-
-</option>
-
-<option value="512">
-
-512 px
-
-</option>
-
-<option value="1024">
-
-1024 px
-
-</option>
+<option value="1024">1024 px</option>
 
 </select>
 
@@ -977,11 +946,7 @@ id="qrSize">
 
 <div class="setting-card">
 
-<h3>
-
-Otomatik PDF
-
-</h3>
+<h3>Otomatik PDF</h3>
 
 <label>
 
@@ -997,11 +962,7 @@ Kayıttan sonra PDF oluştur
 
 <div class="setting-card">
 
-<h3>
-
-Veriler
-
-</h3>
+<h3>Veriler</h3>
 
 <button
 id="backupBtn"
@@ -1024,6 +985,7 @@ Geri Yükle
 </div>
 
 </section>
+
 <!-- ==========================================
 FOOTER
 ========================================== -->
