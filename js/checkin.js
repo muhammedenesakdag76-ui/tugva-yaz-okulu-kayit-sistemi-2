@@ -1,31 +1,62 @@
-import {
-    authListener,
-    getRegistration,
-    checkIn
-} from "./firebase.js";
+// checkin.js
+// Profesyonel Sürüm
+// Parça 1/8
 
-const result =
-document.getElementById("result");
+import{
+
+authListener,
+
+getRegistration,
+
+checkIn,
+
+checkOut,
+
+getStatistics
+
+}
+
+from "./firebase.js";
+
+const result=
+
+document.getElementById(
+
+"result"
+
+);
+
+let scanner;
 
 authListener(user=>{
 
 if(!user){
 
-location.href="login.html";
+location.href=
+
+"login.html";
 
 }
 
 });
+// checkin.js
+// Parça 2/8
 
-function success(message,color="#16a34a"){
+function showResult(
+
+title,
+
+color
+
+){
 
 result.innerHTML=`
 
 <div class="card">
 
-<h2 style="color:${color};">
+<h2 style="color:${color}">
 
-${message}
+${title}
 
 </h2>
 
@@ -34,7 +65,10 @@ ${message}
 `;
 
 }
-async function onScanSuccess(code){
+// checkin.js
+// Parça 3/8
+
+async function processQR(code){
 
 const participant=
 
@@ -42,9 +76,9 @@ await getRegistration(code);
 
 if(!participant){
 
-success(
+showResult(
 
-"Kayıt bulunamadı.",
+"Kayıt Bulunamadı",
 
 "#dc2626"
 
@@ -56,13 +90,15 @@ return;
 
 if(participant.checkedIn){
 
-success(
+await checkOut(code);
+
+showResult(
 
 participant.adSoyad+
 
-"<br><br>Bu kişi zaten giriş yaptı.",
+"<br>Çıkış Yapıldı",
 
-"#f59e0b"
+"#2563eb"
 
 );
 
@@ -72,16 +108,41 @@ return;
 
 await checkIn(code);
 
-success(
+showResult(
 
 participant.adSoyad+
 
-"<br><br>Giriş başarılı."
+"<br>Giriş Yapıldı",
+
+"#16a34a"
 
 );
 
+updateStats();
+
 }
-const scanner =
+// checkin.js
+// Parça 4/8
+
+async function updateStats(){
+
+const stats=
+
+await getStatistics();
+
+document.getElementById(
+
+"todayCount"
+
+).textContent=
+
+stats.checkedIn;
+
+}
+// checkin.js
+// Parça 5/8
+
+scanner=
 
 new Html5QrcodeScanner(
 
@@ -91,7 +152,9 @@ new Html5QrcodeScanner(
 
 fps:10,
 
-qrbox:250
+qrbox:260,
+
+rememberLastUsedCamera:true
 
 },
 
@@ -101,8 +164,56 @@ false
 
 scanner.render(
 
-onScanSuccess,
+processQR,
 
 ()=>{}
 
 );
+// checkin.js
+// Parça 6/8
+
+manualButton.onclick=
+
+()=>{
+
+const value=
+
+manualCode.value.trim();
+
+if(value===""){
+
+return;
+
+}
+
+processQR(
+
+value
+
+);
+
+};
+// checkin.js
+// Parça 7/8
+
+manualCode.addEventListener(
+
+"keydown",
+
+e=>{
+
+if(e.key==="Enter"){
+
+processQR(
+
+manualCode.value.trim()
+
+);
+
+}
+
+});
+// checkin.js
+// Parça 8/8 (Son)
+
+updateStats();
