@@ -1,456 +1,75 @@
-// ===============================
-// admin.js
-// Bölüm 1
-// ===============================
-
 import {
-    login,
-    logout,
-    authListener,
-    realtimeParticipants,
-    updateParticipant,
-    deleteParticipant
+
+    getAllRegistrations,
+
+    searchRegistrations,
+
+    updateSeat,
+
+    updateCheckIn,
+
+    deleteRegistration,
+
+    getStatistics
+
 } from "./firebase.js";
 
-import {
-    showToast,
-    showLoading,
-    hideLoading
-} from "./validation.js";
+const ADMIN = {
 
-// ===============================
-// ELEMENTLER
-// ===============================
+    registrations: [],
 
-const loginPage = document.getElementById("loginPage");
-const adminPanel = document.getElementById("adminPanel");
+    filtered: [],
 
-const loginForm = document.getElementById("loginForm");
+    current: null,
 
-const emailInput = document.getElementById("email");
-const passwordInput = document.getElementById("password");
+    scanner: null,
 
-const logoutButton = document.getElementById("logoutButton");
+    dom: {}
 
-const tableBody = document.getElementById("participantTable");
+};
 
-const totalCount = document.getElementById("totalCount");
-const adultCount = document.getElementById("adultCount");
-const childCount = document.getElementById("childCount");
-const assignedCount = document.getElementById("assignedCount");
+function cacheDOM() {
 
-const searchInput = document.getElementById("searchInput");
-const filterBus = document.getElementById("filterBus");
+    ADMIN.dom = {
 
-const editModal = document.getElementById("editModal");
+        tableBody: document.getElementById("registrationTable"),
 
-const editId = document.getElementById("editId");
-const editBus = document.getElementById("editBus");
-const editSeat = document.getElementById("editSeat");
+        search: document.getElementById("searchInput"),
 
-const saveButton = document.getElementById("saveButton");
-const cancelButton = document.getElementById("cancelButton");
+        total: document.getElementById("statTotal"),
 
-let participants = [];
+        checked: document.getElementById("statChecked"),
 
-// ===============================
-// AUTH
-// ===============================
+        absent: document.getElementById("statAbsent"),
 
-authListener(user => {
+        remaining: document.getElementById("statRemaining"),
 
-    hideLoading();
+        qrReader: document.getElementById("qr-reader"),
 
-    if (user) {
+        qrResult: document.getElementById("qrResult"),
 
-        loginPage.classList.add("hidden");
-        adminPanel.classList.remove("hidden");
+        refresh: document.getElementById("refreshButton")
 
-        loadParticipants();
+    };
 
-    } else {
-
-        loginPage.classList.remove("hidden");
-        adminPanel.classList.add("hidden");
-
-    }
-
-});
-
-// ===============================
-// LOGIN
-// ===============================
-
-loginForm.addEventListener("submit", async e => {
-
-    e.preventDefault();
-
-    showLoading();
+}
+async function loadRegistrations() {
 
     try {
 
-        await login(
+        ADMIN.registrations =
 
-            emailInput.value.trim(),
+            await getAllRegistrations();
 
-            passwordInput.value
+        ADMIN.filtered = [
 
-        );
+            ...ADMIN.registrations
 
-        showToast("Giriş başarılı.");
+        ];
 
-    }
+        renderTable();
 
-    catch (err) {
-
-        console.error(err);
-
-        showToast(
-
-            "E-Posta veya şifre hatalı.",
-
-            "error"
-
-        );
-
-    }
-
-    finally {
-
-        hideLoading();
-
-    }
-
-});
-
-// ===============================
-// LOGOUT
-// ===============================
-
-logoutButton.addEventListener("click", async () => {
-
-    await logout();
-
-});
-
-// ===============================
-// REALTIME
-// ===============================
-
-function loadParticipants() {
-
-    realtimeParticipants(list => {
-
-        participants = list;
-
-        renderTable(list);
-
-        updateStatistics(list);
-
-    });
-
-}
-
-// ===============================
-// İSTATİSTİKLER
-// ===============================
-
-function updateStatistics(list) {
-
-    totalCount.textContent = list.length;
-
-    adultCount.textContent = list.filter(
-
-        p => p.age >= 18
-
-    ).length;
-
-    childCount.textContent = list.filter(
-
-        p => p.age < 18
-
-    ).length;
-
-    assignedCount.textContent = list.filter(
-
-        p => p.busNumber && p.seatNumber
-
-    ).length;
-
-}
-// ===============================
-// admin.js
-// Bölüm 2
-// ===============================
-
-// ===============================
-// TABLOYU OLUŞTUR
-// ===============================
-
-function renderTable(list) {
-
-    tableBody.innerHTML = "";
-
-    if (list.length === 0) {
-
-        tableBody.innerHTML = `
-            <tr>
-                <td colspan="8" style="text-align:center;padding:40px;">
-                    Kayıt bulunamadı.
-                </td>
-            </tr>
-        `;
-
-        return;
-
-    }
-
-    list.forEach(participant => {
-
-        const row = document.createElement("tr");
-
-        row.innerHTML = `
-
-        <td>${participant.registrationCode}</td>
-
-        <td>
-
-            ${participant.firstName}
-            ${participant.lastName}
-
-        </td>
-
-        <td>${participant.tc}</td>
-
-        <td>${participant.phone}</td>
-
-        <td>${participant.age}</td>
-
-        <td>
-
-            ${participant.busNumber || "-"}
-
-        </td>
-
-        <td>
-
-            ${participant.seatNumber || "-"}
-
-        </td>
-
-        <td>
-
-            <div class="actionButtons">
-
-                <button
-                    class="iconButton editButton"
-                    data-id="${participant.id}">
-
-                    <i class="fa-solid fa-pen"></i>
-
-                </button>
-
-                <button
-                    class="iconButton qrButton"
-                    data-id="${participant.id}">
-
-                    <i class="fa-solid fa-qrcode"></i>
-
-                </button>
-
-                <button
-                    class="iconButton deleteButton"
-                    data-id="${participant.id}">
-
-                    <i class="fa-solid fa-trash"></i>
-
-                </button>
-
-            </div>
-
-        </td>
-
-        `;
-
-        tableBody.appendChild(row);
-
-    });
-
-}
-
-// ===============================
-// ARAMA
-// ===============================
-
-searchInput.addEventListener("input", () => {
-
-    const value = searchInput.value
-        .trim()
-        .toLocaleLowerCase("tr");
-
-    const filtered = participants.filter(item => {
-
-        return (
-
-            `${item.firstName} ${item.lastName}`
-
-                .toLocaleLowerCase("tr")
-
-                .includes(value)
-
-            ||
-
-            item.tc.includes(value)
-
-        );
-
-    });
-
-    renderTable(filtered);
-
-});
-
-// ===============================
-// OTOBÜS FİLTRESİ
-// ===============================
-
-filterBus.addEventListener("change", () => {
-
-    if (filterBus.value === "") {
-
-        renderTable(participants);
-
-        return;
-
-    }
-
-    renderTable(
-
-        participants.filter(item =>
-
-            item.busNumber == filterBus.value
-
-        )
-
-    );
-
-});
-
-// ===============================
-// TABLO TIKLAMA
-// ===============================
-
-tableBody.addEventListener("click", e => {
-
-    const button = e.target.closest("button");
-
-    if (!button) return;
-
-    const id = button.dataset.id;
-
-    if (button.classList.contains("editButton")) {
-
-        openEditModal(id);
-
-        return;
-
-    }
-
-    if (button.classList.contains("deleteButton")) {
-
-        removeParticipant(id);
-
-        return;
-
-    }
-
-    if (button.classList.contains("qrButton")) {
-
-        showQRCode(id);
-
-        return;
-
-    }
-
-});
-
-// ===============================
-// MODAL AÇ
-// ===============================
-
-function openEditModal(id) {
-
-    const participant = participants.find(
-
-        item => item.id === id
-
-    );
-
-    if (!participant) return;
-
-    editId.value = participant.id;
-
-    editBus.value = participant.busNumber || "";
-
-    editSeat.value = participant.seatNumber || "";
-
-    editModal.classList.remove("hidden");
-
-}
-
-// ===============================
-// MODAL KAPAT
-// ===============================
-
-cancelButton.addEventListener("click", () => {
-
-    editModal.classList.add("hidden");
-
-});
-
-window.addEventListener("click", e => {
-
-    if (e.target === editModal) {
-
-        editModal.classList.add("hidden");
-
-    }
-
-});
-// ===============================
-// admin.js
-// Bölüm 3
-// ===============================
-
-// ===============================
-// KAYDET
-// ===============================
-
-saveButton.addEventListener("click", async () => {
-
-    const id = editId.value;
-
-    if (!id) return;
-
-    try {
-
-        showLoading();
-
-        await updateParticipant(id, {
-
-            busNumber: editBus.value.trim(),
-
-            seatNumber: editSeat.value.trim()
-
-        });
-
-        editModal.classList.add("hidden");
-
-        showToast(
-
-            "Otobüs ve koltuk bilgileri güncellendi."
-
-        );
+        await loadStatistics();
 
     }
 
@@ -458,266 +77,401 @@ saveButton.addEventListener("click", async () => {
 
         console.error(error);
 
-        showToast(
-
-            "Güncelleme sırasında hata oluştu.",
-
-            "error"
-
-        );
-
-    }
-
-    finally {
-
-        hideLoading();
-
-    }
-
-});
-
-// ===============================
-// KATILIMCI SİL
-// ===============================
-
-async function removeParticipant(id) {
-
-    const approve = confirm(
-
-        "Bu kayıt kalıcı olarak silinsin mi?"
-
-    );
-
-    if (!approve) return;
-
-    try {
-
-        showLoading();
-
-        await deleteParticipant(id);
-
-        showToast(
-
-            "Kayıt başarıyla silindi."
-
-        );
-
-    }
-
-    catch (error) {
-
-        console.error(error);
-
-        showToast(
-
-            "Silme işlemi başarısız.",
-
-            "error"
-
-        );
-
-    }
-
-    finally {
-
-        hideLoading();
-
     }
 
 }
 
-// ===============================
-// QR BİLGİLERİNİ GÖSTER
-// ===============================
+async function loadStatistics() {
 
-function showQRCode(id) {
+    const stats =
 
-    const participant = participants.find(
+        await getStatistics();
 
-        item => item.id === id
+    ADMIN.dom.total.textContent =
+
+        stats.total;
+
+    ADMIN.dom.checked.textContent =
+
+        stats.checkedIn;
+
+    ADMIN.dom.absent.textContent =
+
+        stats.absent;
+
+    ADMIN.dom.remaining.textContent =
+
+        stats.remaining;
+
+}
+function renderTable() {
+
+    ADMIN.dom.tableBody.innerHTML = "";
+
+    ADMIN.filtered.forEach(item => {
+
+        const tr = document.createElement("tr");
+
+        tr.innerHTML = `
+
+        <td>${item.registerNumber}</td>
+
+        <td>${item.name}</td>
+
+        <td>${item.phone}</td>
+
+        <td>${item.school}</td>
+
+        <td>${item.class}</td>
+
+        <td>${item.seat || "-"}</td>
+
+        <td>
+
+            ${item.checkedIn
+
+                ? '<span class="badge bg-success">Geldi</span>'
+
+                : '<span class="badge bg-danger">Gelmedi</span>'}
+
+        </td>
+
+        <td>
+
+            <button
+
+                class="btn btn-sm btn-primary edit-btn"
+
+                data-id="${item.id}"
+
+            >
+
+                Düzenle
+
+            </button>
+
+        </td>
+
+        `;
+
+        ADMIN.dom.tableBody.appendChild(tr);
+
+    });
+
+}
+async function search(value) {
+
+    ADMIN.filtered =
+
+        await searchRegistrations(value);
+
+    renderTable();
+
+}
+
+function bindSearch() {
+
+    ADMIN.dom.search.addEventListener(
+
+        "input",
+
+        event => {
+
+            search(
+
+                event.target.value
+
+            );
+
+        }
 
     );
 
-    if (!participant) return;
+}
+function bindRefresh() {
 
-    alert(
+    ADMIN.dom.refresh.addEventListener(
 
-`Kayıt Kodu : ${participant.registrationCode}
+        "click",
 
-Ad Soyad : ${participant.firstName} ${participant.lastName}
-
-Otobüs : ${participant.busNumber || "Atanmadı"}
-
-Koltuk : ${participant.seatNumber || "Atanmadı"}
-
-Bu bilgiler QR okutulduğunda görüntülenir.`
+        loadRegistrations
 
     );
 
 }
 
-// ===============================
-// SAYI GİRİŞİ
-// ===============================
+async function init() {
 
-editSeat.addEventListener("input", () => {
+    cacheDOM();
 
-    editSeat.value = editSeat.value.replace(/\D/g, "");
+    bindSearch();
 
-    if (
+    bindRefresh();
 
-        Number(editSeat.value) > 60
-
-    ) {
-
-        editSeat.value = 60;
-
-    }
-
-});
-
-// ===============================
-// YENİLE
-// ===============================
-
-document
-
-.getElementById("refreshButton")
-
-.addEventListener(
-
-"click",
-
-() => {
-
-renderTable(participants);
-
-updateStatistics(participants);
-
-showToast(
-
-"Liste yenilendi."
-
-);
+    await loadRegistrations();
 
 }
-
-);
-
-// ===============================
-// ESC İLE MODAL KAPAT
-// ===============================
 
 document.addEventListener(
 
-"keydown",
+    "DOMContentLoaded",
 
-event => {
-
-if (
-
-event.key === "Escape"
-
-) {
-
-editModal.classList.add(
-
-"hidden"
+    init
 
 );
+let html5Qr = null;
+
+function stopScanner() {
+
+    if (!html5Qr) {
+
+        return;
+
+    }
+
+    html5Qr.stop()
+
+        .catch(() => {});
 
 }
 
-}
+async function startScanner() {
 
-);
+    stopScanner();
 
-// ===============================
-// TABLO SATIRINI BUL
-// ===============================
+    html5Qr = new Html5Qrcode("qr-reader");
 
-function findParticipant(id){
+    const cameras =
 
-return participants.find(
+        await Html5Qrcode.getCameras();
 
-item=>item.id===id
+    if (!cameras.length) {
 
-);
+        alert("Kamera bulunamadı.");
 
-}
+        return;
 
-// ===============================
-// OTOBÜS DOLULUK
-// ===============================
+    }
 
-function getBusSeatCount(busNumber){
+    await html5Qr.start(
 
-return participants.filter(
+        {
 
-item=>item.busNumber==busNumber
+            facingMode: "environment"
 
-).length;
+        },
 
-}
+        {
 
-// ===============================
-// KOLTUK DOLU MU
-// ===============================
+            fps: 10,
 
-function seatIsUsed(bus,seat,currentId=null){
+            qrbox: 250
 
-return participants.some(item=>
+        },
 
-item.id!==currentId &&
+        onQRCodeSuccess
 
-item.busNumber==bus &&
-
-String(item.seatNumber)===String(seat)
-
-);
+    );
 
 }
+async function onQRCodeSuccess(text) {
 
-// ===============================
-// KAYDET ÖNCESİ KONTROL
-// ===============================
+    stopScanner();
 
-saveButton.addEventListener(
+    const qr = parseQRCode(text);
 
-"click",
+    if (!qr) {
 
-event=>{
+        showQRMessage(
 
-const bus=editBus.value;
+            "Geçersiz QR",
 
-const seat=editSeat.value;
+            false
 
-const id=editId.value;
+        );
 
-if(bus && seat){
+        return;
 
-if(seatIsUsed(bus,seat,id)){
+    }
 
-event.stopImmediatePropagation();
+    const person =
 
-showToast(
+        ADMIN.registrations.find(
 
-"Bu koltuk dolu.",
+            x => x.id === qr.id
 
-"error"
+        );
 
-);
+    if (!person) {
+
+        showQRMessage(
+
+            "Kayıt bulunamadı",
+
+            false
+
+        );
+
+        return;
+
+    }
+
+    ADMIN.current = person;
+
+    showPerson(person);
 
 }
+function showPerson(person) {
+
+    ADMIN.dom.qrResult.innerHTML = `
+${renderSeatEditor(person)}
+document
+    .getElementById("saveSeatButton")
+    .onclick = saveSeat;
+<div class="card">
+
+<h3>${person.name}</h3>
+
+<p>Kayıt No : ${person.registerNumber}</p>
+
+<p>Koltuk : ${person.seat || "-"}</p>
+
+<p>Telefon : ${person.phone}</p>
+
+<p>Durum :
+
+${person.checkedIn
+
+? "✅ Giriş Yapmış"
+
+: "❌ Giriş Yapmamış"}
+
+</p>
+
+<button
+
+id="checkButton"
+
+class="btn btn-success"
+
+>
+
+Giriş Yapıldı
+
+</button>
+
+</div>
+
+`;
+
+    document
+
+        .getElementById("checkButton")
+
+        .onclick = checkPerson;
 
 }
+async function checkPerson() {
 
-},
+    if (!ADMIN.current) {
 
-true
+        return;
 
-);
+    }
 
-// ===============================
-// BİTİŞ
-// ===============================
+    if (ADMIN.current.checkedIn) {
+
+        alert(
+
+            "Bu öğrenci zaten giriş yapmış."
+
+        );
+
+        return;
+
+    }
+
+    await updateCheckIn(
+
+        ADMIN.current.id,
+
+        true
+
+    );
+
+    await loadRegistrations();
+
+    alert("Yoklama kaydedildi.");
+
+}
+function renderSeatEditor(person) {
+
+    return `
+
+    <div class="seat-editor">
+
+        <input
+
+            id="seatInput"
+
+            class="form-control"
+
+            placeholder="Koltuk No"
+
+            value="${person.seat || ""}"
+
+        >
+
+        <button
+
+            id="saveSeatButton"
+
+            class="btn btn-warning"
+
+        >
+
+            Koltuğu Güncelle
+
+        </button>
+
+    </div>
+
+    `;
+
+}
+async function saveSeat() {
+
+    if (!ADMIN.current) {
+
+        return;
+
+    }
+
+    const seat =
+
+        document
+
+        .getElementById("seatInput")
+
+        .value
+
+        .trim();
+
+    await updateSeat(
+
+        ADMIN.current.id,
+
+        seat
+
+    );
+
+    ADMIN.current.seat = seat;
+
+    await loadRegistrations();
+
+    showPerson(ADMIN.current);
+
+    alert("Koltuk güncellendi.");
+
+}
+<td>${item.seat || "-"}</td>
