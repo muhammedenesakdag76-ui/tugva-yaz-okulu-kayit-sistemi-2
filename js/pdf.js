@@ -1,13 +1,251 @@
 // ===============================
-// PDF Generator
+// PDF Module
 // ===============================
 
-export async function downloadPDF(registration) {
+import { getQRImage } from "./qr.js";
 
-    if (!registration)
+const { jsPDF } = window;
+
+
+// ===============================
+// Draw Header
+// ===============================
+
+function drawHeader(pdf) {
+
+    pdf.setFillColor(16, 24, 40);
+    pdf.rect(0, 0, 210, 28, "F");
+
+    pdf.setTextColor(255, 255, 255);
+    pdf.setFont("helvetica", "bold");
+    pdf.setFontSize(22);
+
+    pdf.text(
+        "TÜGVA YAZ OKULU",
+        105,
+        15,
+        {
+            align: "center"
+        }
+    );
+
+    pdf.setFontSize(11);
+
+    pdf.text(
+        "Katılımcı Kayıt Belgesi",
+        105,
+        22,
+        {
+            align: "center"
+        }
+    );
+
+}
+
+
+// ===============================
+// Draw Participant Information
+// ===============================
+
+function drawParticipant(pdf, data) {
+
+    pdf.setTextColor(0);
+
+    pdf.setFontSize(12);
+
+    pdf.setFont("helvetica", "bold");
+
+    pdf.text("Katılımcı Bilgileri", 15, 40);
+
+    pdf.setFont("helvetica", "normal");
+
+    let y = 50;
+
+    const rows = [
+
+        ["Kayıt No", data.kayitNo],
+
+        ["Ad Soyad", data.adSoyad],
+
+        ["TC Kimlik", data.tc],
+
+        ["Telefon", data.telefon],
+
+        ["Doğum Tarihi", data.dogumTarihi],
+
+        ["Cinsiyet", data.cinsiyet],
+
+        ["Okul", data.okul],
+
+        ["Sınıf", data.sinif],
+
+        ["Veli", data.veliAdi],
+
+        ["Veli Telefon", data.veliTelefon]
+
+    ];
+
+    rows.forEach(row => {
+
+        pdf.setFont("helvetica", "bold");
+
+        pdf.text(row[0] + " :", 15, y);
+
+        pdf.setFont("helvetica", "normal");
+
+        pdf.text(String(row[1]), 55, y);
+
+        y += 8;
+
+    });
+
+}
+// ===============================
+// Draw QR
+// ===============================
+
+function drawQR(pdf) {
+
+    const image = getQRImage();
+
+    if (!image)
         return;
 
-    const { jsPDF } = window.jspdf;
+    pdf.addImage(
+
+        image,
+
+        "PNG",
+
+        145,
+
+        45,
+
+        45,
+
+        45
+
+    );
+
+}
+
+
+// ===============================
+// Draw Address
+// ===============================
+
+function drawAddress(pdf, data) {
+
+    pdf.setFont("helvetica", "bold");
+
+    pdf.text(
+
+        "Adres",
+
+        15,
+
+        145
+
+    );
+
+    pdf.setFont("helvetica", "normal");
+
+    pdf.setFontSize(11);
+
+    pdf.text(
+
+        data.adres || "-",
+
+        15,
+
+        153,
+
+        {
+
+            maxWidth: 170
+
+        }
+
+    );
+
+}
+
+
+// ===============================
+// Draw Note
+// ===============================
+
+function drawNote(pdf, data) {
+
+    pdf.setFont("helvetica", "bold");
+
+    pdf.text(
+
+        "Not",
+
+        15,
+
+        175
+
+    );
+
+    pdf.setFont("helvetica", "normal");
+
+    pdf.text(
+
+        data.not || "-",
+
+        15,
+
+        183,
+
+        {
+
+            maxWidth: 170
+
+        }
+
+    );
+
+}
+// ===============================
+// Footer
+// ===============================
+
+function drawFooter(pdf) {
+
+    pdf.setDrawColor(180);
+
+    pdf.line(15, 260, 195, 260);
+
+    pdf.setFontSize(10);
+
+    pdf.setTextColor(100);
+
+    pdf.text(
+
+        "Bu belge TÜGVA Yaz Okulu Kayıt Sistemi tarafından otomatik oluşturulmuştur.",
+
+        105,
+
+        268,
+
+        {
+
+            align: "center"
+
+        }
+
+    );
+
+}
+
+
+// ===============================
+// Export PDF
+// ===============================
+
+export function downloadPDF(data) {
 
     const pdf = new jsPDF({
 
@@ -19,319 +257,22 @@ export async function downloadPDF(registration) {
 
     });
 
-    pdf.setFont("helvetica");
+    drawHeader(pdf);
 
-    pdf.setFontSize(22);
+    drawParticipant(pdf, data);
 
-    pdf.text(
-        "TÜGVA Yaz Okulu",
-        105,
-        20,
-        {
-            align: "center"
-        }
-    );
+    drawQR(pdf);
 
-    pdf.setFontSize(15);
+    drawAddress(pdf, data);
 
-    pdf.text(
-        "Kayıt Belgesi",
-        105,
-        30,
-        {
-            align: "center"
-        }
-    );
+    drawNote(pdf, data);
 
-    pdf.setDrawColor(0);
+    drawFooter(pdf);
 
-    pdf.line(20, 36, 190, 36);
+    pdf.save(
 
-    pdf.setFontSize(12);
-
-    let y = 50;
-
-    const row = (title, value) => {
-
-        pdf.setFont(undefined, "bold");
-
-        pdf.text(title, 20, y);
-
-        pdf.setFont(undefined, "normal");
-
-        pdf.text(String(value ?? "-"), 75, y);
-
-        y += 9;
-
-    };
-
-    row("Kayıt No", registration.kayitNo);
-
-    row("Ad Soyad", registration.adSoyad);
-
-    row("TC Kimlik", registration.tc);
-
-    row("Telefon", registration.telefon);
-
-    row("E-Posta", registration.email);
-
-    row("Doğum Tarihi", registration.dogumTarihi);
-
-    row("Okul", registration.okul);
-
-    row("Sınıf", registration.sinif);
-
-    row("Veli", registration.veliAdi);
-
-    row("Veli Telefon", registration.veliTelefon);
-
-    row(
-        "Koltuk",
-        registration.seat || "Henüz atanmadı"
-    );
-
-    y += 10;
-        // ===============================
-    // QR Code
-    // ===============================
-
-    const qrCanvas =
-        document.querySelector("#qrcode canvas");
-
-    if (qrCanvas) {
-
-        const qrImage =
-            qrCanvas.toDataURL("image/png");
-
-        pdf.addImage(
-
-            qrImage,
-
-            "PNG",
-
-            135,
-
-            45,
-
-            45,
-
-            45
-
-        );
-
-        pdf.setFontSize(10);
-
-        pdf.text(
-
-            "QR Kodunu girişte görevliye gösteriniz.",
-
-            157.5,
-
-            95,
-
-            {
-
-                align: "center"
-
-            }
-
-        );
-
-    }
-
-
-    // ===============================
-    // Information Box
-    // ===============================
-
-    y += 10;
-
-    pdf.setFillColor(245, 245, 245);
-
-    pdf.roundedRect(
-
-        20,
-
-        y,
-
-        170,
-
-        45,
-
-        3,
-
-        3,
-
-        "F"
+        `${data.kayitNo}.pdf`
 
     );
-
-    pdf.setFontSize(11);
-
-    pdf.setFont(undefined, "bold");
-
-    pdf.text(
-
-        "Bilgilendirme",
-
-        25,
-
-        y + 8
-
-    );
-
-    pdf.setFont(undefined, "normal");
-
-    pdf.text(
-
-        "• Etkinlik günü bu belgeyi yanınızda bulundurunuz.",
-
-        28,
-
-        y + 18
-
-    );
-
-    pdf.text(
-
-        "• QR kod giriş sırasında okutulacaktır.",
-
-        28,
-
-        y + 26
-
-    );
-
-    pdf.text(
-
-        "• Koltuk numarası yönetici tarafından atanacaktır.",
-
-        28,
-
-        y + 34
-
-    );
-
-
-    // ===============================
-    // Footer
-    // ===============================
-
-    pdf.setDrawColor(180);
-
-    pdf.line(
-
-        20,
-
-        275,
-
-        190,
-
-        275
-
-    );
-
-    pdf.setFontSize(10);
-
-    pdf.text(
-
-        "TÜGVA Yaz Okulu Kayıt Sistemi",
-
-        105,
-
-        282,
-
-        {
-
-            align: "center"
-
-        }
-
-    );
-
-    pdf.text(
-
-        new Date().toLocaleString("tr-TR"),
-
-        105,
-
-        288,
-
-        {
-
-            align: "center"
-
-        }
-
-    );
-        // ===============================
-    // Signature Area
-    // ===============================
-
-    pdf.setDrawColor(120);
-
-    pdf.line(20, 245, 80, 245);
-    pdf.line(130, 245, 190, 245);
-
-    pdf.setFontSize(10);
-
-    pdf.text(
-        "Katılımcı İmzası",
-        50,
-        251,
-        {
-            align: "center"
-        }
-    );
-
-    pdf.text(
-        "Yetkili İmzası",
-        160,
-        251,
-        {
-            align: "center"
-        }
-    );
-
-
-    // ===============================
-    // Watermark
-    // ===============================
-
-    pdf.setTextColor(235);
-
-    pdf.setFontSize(48);
-
-    pdf.text(
-        "TÜGVA",
-        105,
-        170,
-        {
-            angle: 45,
-            align: "center"
-        }
-    );
-
-    pdf.setTextColor(0);
-
-
-    // ===============================
-    // File Name
-    // ===============================
-
-    const safeName =
-        (registration.adSoyad || "Katilimci")
-            .replace(/[^\w\s]/g, "")
-            .replace(/\s+/g, "_");
-
-    const fileName =
-        `${registration.kayitNo}_${safeName}.pdf`;
-
-
-    // ===============================
-    // Download
-    // ===============================
-
-    pdf.save(fileName);
 
 }
