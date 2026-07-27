@@ -262,3 +262,28 @@ function resetApplication() {
 newRegister.removeEventListener?.("click", resetApplication);
 
 newRegister.addEventListener("click", resetApplication);
+// Başlangıç
+
+window.addEventListener("DOMContentLoaded", async () => {
+
+    try {
+
+        clearForm();
+
+        successCard.style.display = "none";
+
+        formSection.style.display = "block";
+
+        currentParticipant = null;
+
+        await updateCapacity();
+
+    } catch (err) {
+
+        console.error("Başlatma Hatası:", err);
+
+        alert("Uygulama başlatılırken bir hata oluştu.");
+
+    }
+
+});
