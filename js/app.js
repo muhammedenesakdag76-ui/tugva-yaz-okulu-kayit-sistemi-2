@@ -199,13 +199,25 @@ await generateRegisterNumber();
 
 try {
 
+    try {
+
     await addRegistration(data);
 
-    console.log("Kayıt başarıyla eklendi.");
+    console.log("Kayıt Firestore'a yazıldı.");
 
     currentParticipant = data;
 
     showSuccess();
+
+} catch (err) {
+
+    console.error(err);
+
+    alert("Firebase Hatası:\n" + err.message);
+
+    return;
+
+}
 
 } catch (err) {
 
