@@ -1,527 +1,527 @@
-// ===============================
-// Firebase Imports
-// ===============================
-
-import { initializeApp } from "https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
+// firebase.js
+// Profesyonel Sürüm
+// Parça 1/10
 
 import {
-    getFirestore,
-    collection,
-    doc,
-    getDoc,
-    getDocs,
-    setDoc,
-    updateDoc,
-    deleteDoc,
-    query,
-    where,
-    orderBy,
-    limit,
-    onSnapshot,
-    serverTimestamp
-} from "https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+initializeApp
+}
+from
+"https://www.gstatic.com/firebasejs/12.2.1/firebase-app.js";
 
-import {
-    getAuth,
-    signInWithEmailAndPassword,
-    signOut,
-    onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+import{
 
+getFirestore,
 
-// ===============================
-// Firebase Config
-// ===============================
+collection,
 
-const firebaseConfig = {
+doc,
 
-    apiKey: "BURAYA_API_KEY",
+getDoc,
 
-    authDomain: "BURAYA.firebaseapp.com",
+getDocs,
 
-    projectId: "BURAYA",
+setDoc,
 
-    storageBucket: "BURAYA.appspot.com",
+updateDoc,
 
-    messagingSenderId: "000000000000",
+deleteDoc,
 
-    appId: "1:000000000000:web:xxxxxxxx"
+query,
+
+orderBy,
+
+onSnapshot,
+
+serverTimestamp,
+
+writeBatch
+
+}
+from
+"https://www.gstatic.com/firebasejs/12.2.1/firebase-firestore.js";
+
+import{
+
+getAuth,
+
+signInWithEmailAndPassword,
+
+signOut,
+
+onAuthStateChanged
+
+}
+from
+"https://www.gstatic.com/firebasejs/12.2.1/firebase-auth.js";
+
+const firebaseConfig={
+
+apiKey:"",
+
+authDomain:"",
+
+projectId:"",
+
+storageBucket:"",
+
+messagingSenderId:"",
+
+appId:""
 
 };
 
+const app=
 
-// ===============================
-// Initialize
-// ===============================
+initializeApp(firebaseConfig);
 
-const app = initializeApp(firebaseConfig);
+export const db=
 
-export const db = getFirestore(app);
+getFirestore(app);
 
-export const auth = getAuth(app);
+export const auth=
 
+getAuth(app);
 
-// ===============================
-// Constants
-// ===============================
+export const COLLECTION=
 
-export const COLLECTION = "kayitlar";
+"kayitlar";
 
-export const MAX_CAPACITY = 45;
+export const LOG_COLLECTION=
 
-export const PREFIX = "TYG26";
+"loglar";
 
+export const MAX_CAPACITY=
 
-// ===============================
-// Collection Reference
-// ===============================
+45;
+// firebase.js
+// Parça 2/10
 
-const registrationsRef =
-    collection(db, COLLECTION);
+export function authListener(callback){
 
+onAuthStateChanged(
 
-// ===============================
-// Register Number Generator
-// ===============================
+auth,
 
-export async function generateRegisterNumber() {
+callback
 
-    const snapshot = await getDocs(
-        query(
-            registrationsRef,
-            orderBy("kayitNo", "desc"),
-            limit(1)
-        )
-    );
-
-    if (snapshot.empty) {
-
-        return `${PREFIX}-0001`;
-
-    }
-
-    const last =
-        snapshot.docs[0].data().kayitNo;
-
-    const number =
-        parseInt(last.split("-")[1]) + 1;
-
-    return `${PREFIX}-${String(number).padStart(4, "0")}`;
+);
 
 }
 
+export function login(
 
-// ===============================
-// Total Registrations
-// ===============================
+email,
 
-export async function getTotalRegistrations() {
+password
 
-    const snapshot =
-        await getDocs(registrationsRef);
+){
 
-    return snapshot.size;
+return signInWithEmailAndPassword(
 
-}
+auth,
 
+email,
 
-// ===============================
-// Remaining Capacity
-// ===============================
+password
 
-export async function getRemainingCapacity() {
-
-    const total =
-        await getTotalRegistrations();
-
-    return MAX_CAPACITY - total;
-
-}
-// ===============================
-// Capacity Control
-// ===============================
-
-export async function isFull() {
-
-    const remaining = await getRemainingCapacity();
-
-    return remaining <= 0;
+);
 
 }
 
+export function logout(){
 
-// ===============================
-// TC Exists
-// ===============================
+return signOut(auth);
 
-export async function tcExists(tc) {
+}
+// firebase.js
+// Parça 3/10
 
-    const q = query(
-        registrationsRef,
-        where("tc", "==", tc)
-    );
+export async function getAllRegistrations(){
 
-    const snapshot = await getDocs(q);
+const q=query(
 
-    return !snapshot.empty;
+collection(db,COLLECTION),
+
+orderBy(
+
+"createdAt",
+
+"desc"
+
+)
+
+);
+
+const snap=
+
+await getDocs(q);
+
+return snap.docs.map(doc=>({
+
+...doc.data()
+
+}));
 
 }
 
+export function listenRegistrations(
 
-// ===============================
-// Phone Exists
-// ===============================
+callback
 
-export async function phoneExists(phone) {
+){
 
-    const q = query(
-        registrationsRef,
-        where("telefon", "==", phone)
-    );
+const q=query(
 
-    const snapshot = await getDocs(q);
+collection(db,COLLECTION),
 
-    return !snapshot.empty;
+orderBy(
+
+"createdAt",
+
+"desc"
+
+)
+
+);
+
+return onSnapshot(
+
+q,
+
+snapshot=>{
+
+callback(
+
+snapshot.docs.map(
+
+d=>d.data()
+
+)
+
+);
+
+}
+
+);
+
+}
+// firebase.js
+// Parça 4/10
+
+export async function getRegistration(id){
+
+const ref=
+
+doc(
+
+db,
+
+COLLECTION,
+
+id
+
+);
+
+const snap=
+
+await getDoc(ref);
+
+if(!snap.exists()){
+
+return null;
 
 }
 
-
-// ===============================
-// Email Exists
-// ===============================
-
-export async function emailExists(email) {
-
-    if (!email) return false;
-
-    const q = query(
-        registrationsRef,
-        where("email", "==", email)
-    );
-
-    const snapshot = await getDocs(q);
-
-    return !snapshot.empty;
+return snap.data();
 
 }
 
+export async function updateSeat(
 
-// ===============================
-// Create Registration
-// ===============================
+id,
 
-export async function createRegistration(data) {
+seat
 
-    if (await isFull()) {
+){
 
-        throw new Error("Kontenjan dolmuştur.");
+await updateDoc(
 
-    }
+doc(db,COLLECTION,id),
 
-    if (await tcExists(data.tc)) {
+{
 
-        throw new Error("Bu TC Kimlik Numarası ile kayıt yapılmış.");
-
-    }
-
-    if (await phoneExists(data.telefon)) {
-
-        throw new Error("Bu telefon numarası kayıtlı.");
-
-    }
-
-    if (data.email) {
-
-        if (await emailExists(data.email)) {
-
-            throw new Error("Bu e-posta kayıtlı.");
-
-        }
-
-    }
-
-    const kayitNo = await generateRegisterNumber();
-
-    const registration = {
-
-        kayitNo,
-
-        adSoyad: data.adSoyad,
-
-        tc: data.tc,
-
-        telefon: data.telefon,
-
-        email: data.email || "",
-
-        dogumTarihi: data.dogumTarihi,
-
-        cinsiyet: data.cinsiyet,
-
-        okul: data.okul,
-
-        sinif: data.sinif,
-
-        veliAdi: data.veliAdi,
-
-        veliTelefon: data.veliTelefon,
-
-        adres: data.adres,
-
-        not: data.not || "",
-
-        seat: "",
-
-        checkedIn: false,
-
-        checkinTime: null,
-
-        createdAt: serverTimestamp()
-
-    };
-
-    await setDoc(
-
-        doc(db, COLLECTION, kayitNo),
-
-        registration
-
-    );
-
-    return registration;
-
-}
-// ===============================
-// Get Registration
-// ===============================
-
-export async function getRegistration(kayitNo) {
-
-    const ref = doc(db, COLLECTION, kayitNo);
-
-    const snapshot = await getDoc(ref);
-
-    if (!snapshot.exists()) {
-
-        return null;
-
-    }
-
-    return snapshot.data();
+seat
 
 }
 
+);
 
-// ===============================
-// Get All Registrations
-// ===============================
+}
+// firebase.js
+// Parça 5/10
 
-export async function getAllRegistrations() {
+export async function checkIn(id){
 
-    const snapshot = await getDocs(
+await updateDoc(
 
-        query(
+doc(db,COLLECTION,id),
 
-            registrationsRef,
+{
 
-            orderBy("createdAt", "desc")
+checkedIn:true,
 
-        )
+checkinTime:
 
-    );
-
-    return snapshot.docs.map(doc => doc.data());
+serverTimestamp()
 
 }
 
+);
 
-// ===============================
-// Delete Registration
-// ===============================
+await addLog(
 
-export async function deleteRegistration(kayitNo) {
+"Giriş",
 
-    await deleteDoc(
+id
 
-        doc(db, COLLECTION, kayitNo)
-
-    );
+);
 
 }
 
+export async function checkOut(id){
 
-// ===============================
-// Seat Assignment
-// ===============================
+await updateDoc(
 
-export async function updateSeat(kayitNo, seat) {
+doc(db,COLLECTION,id),
 
-    await updateDoc(
+{
 
-        doc(db, COLLECTION, kayitNo),
-
-        {
-
-            seat
-
-        }
-
-    );
+checkedIn:false
 
 }
 
+);
 
-// ===============================
-// Check In
-// ===============================
+await addLog(
 
-export async function checkIn(kayitNo) {
+"Çıkış",
 
-    await updateDoc(
+id
 
-        doc(db, COLLECTION, kayitNo),
+);
 
-        {
+}
+// firebase.js
+// Parça 6/10
 
-            checkedIn: true,
+export async function deleteRegistration(id){
 
-            checkinTime: serverTimestamp()
+await deleteDoc(
 
-        }
+doc(db,COLLECTION,id)
 
-    );
+);
+
+await addLog(
+
+"Kayıt Silindi",
+
+id
+
+);
 
 }
 
+export async function getStatistics(){
 
-// ===============================
-// Check Out
-// ===============================
+const list=
 
-export async function checkOut(kayitNo) {
+await getAllRegistrations();
 
-    await updateDoc(
+const total=
 
-        doc(db, COLLECTION, kayitNo),
+list.length;
 
-        {
+const checkedIn=
 
-            checkedIn: false,
+list.filter(
 
-            checkinTime: null
+x=>x.checkedIn
 
-        }
+).length;
 
-    );
+const waiting=
 
-}
-// ===============================
-// Search
-// ===============================
+total-
 
-export async function searchParticipants(text) {
+checkedIn;
 
-    const all = await getAllRegistrations();
+const remaining=
 
-    const q = text.toLowerCase();
+MAX_CAPACITY-
 
-    return all.filter(item =>
+total;
 
-        item.adSoyad.toLowerCase().includes(q) ||
+return{
 
-        item.kayitNo.toLowerCase().includes(q) ||
+total,
 
-        item.tc.includes(q) ||
+checkedIn,
 
-        item.telefon.includes(q)
+waiting,
 
-    );
+remaining
+
+};
 
 }
+// firebase.js
+// Parça 7/10
 
+export async function addLog(
 
-// ===============================
-// Statistics
-// ===============================
+action,
 
-export async function getStatistics() {
+id
 
-    const list = await getAllRegistrations();
+){
 
-    return {
+const ref=
 
-        total: list.length,
+doc(
 
-        checkedIn: list.filter(x => x.checkedIn).length,
+collection(
 
-        remaining: MAX_CAPACITY - list.length
+db,
 
-    };
+LOG_COLLECTION
 
-}
+)
 
+);
 
-// ===============================
-// Live Listener
-// ===============================
+await setDoc(
 
-export function listenRegistrations(callback) {
+ref,
 
-    return onSnapshot(
+{
 
-        registrationsRef,
+action,
 
-        snapshot => {
+participant:id,
 
-            callback(
+time:
 
-                snapshot.docs.map(doc => doc.data())
-
-            );
-
-        }
-
-    );
+serverTimestamp()
 
 }
 
+);
 
-// ===============================
-// Login
-// ===============================
+}
+// firebase.js
+// Parça 8/10
 
-export async function login(email, password) {
+export async function batchDelete(ids){
 
-    return await signInWithEmailAndPassword(
+const batch=
 
-        auth,
+writeBatch(db);
 
-        email,
+ids.forEach(id=>{
 
-        password
+batch.delete(
 
-    );
+doc(
+
+db,
+
+COLLECTION,
+
+id
+
+)
+
+);
+
+});
+
+await batch.commit();
+
+}
+// firebase.js
+// Parça 9/10
+
+export async function batchCheckIn(ids){
+
+const batch=
+
+writeBatch(db);
+
+ids.forEach(id=>{
+
+batch.update(
+
+doc(
+
+db,
+
+COLLECTION,
+
+id
+
+),
+
+{
+
+checkedIn:true,
+
+checkinTime:
+
+serverTimestamp()
 
 }
 
+);
 
-// ===============================
-// Logout
-// ===============================
+});
 
-export async function logout() {
+await batch.commit();
 
-    await signOut(auth);
+}
+// firebase.js
+// Parça 10/10 (Son)
+
+export async function batchCheckOut(ids){
+
+const batch=
+
+writeBatch(db);
+
+ids.forEach(id=>{
+
+batch.update(
+
+doc(
+
+db,
+
+COLLECTION,
+
+id
+
+),
+
+{
+
+checkedIn:false
 
 }
 
+);
 
-// ===============================
-// Auth Listener
-// ===============================
+});
 
-export function authListener(callback) {
-
-    onAuthStateChanged(auth, callback);
+await batch.commit();
 
 }
