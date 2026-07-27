@@ -53,7 +53,7 @@ export const ETKINLIK_BILGISI = {
 
     tarih:"31 Temmuz 2026",
 
-    kontenjan:40
+    kontenjan:45
 
 };
 
