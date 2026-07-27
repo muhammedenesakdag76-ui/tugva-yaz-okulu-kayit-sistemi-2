@@ -1,319 +1,515 @@
-// validation.js
-// Profesyonel Sürüm
-// Parça 1/8
+const NAME_REGEX =
+/^[A-Za-zÇĞİIÖŞÜçğıöşü\s'-]{3,100}$/;
 
-export function isEmpty(value){
+const PHONE_REGEX =
+/^05\d{9}$/;
 
-return value
-===undefined||
+const TC_REGEX =
+/^\d{11}$/;
 
-value===null||
-
-value.toString().trim()==="";
-
-}
-
-export function validateName(name){
-
-if(isEmpty(name)){
-
-return "Ad Soyad boş bırakılamaz.";
-
-}
-
-const regex=
-
-/^[a-zA-ZÇçĞğİıÖöŞşÜü\s]{3,60}$/;
-
-if(!regex.test(name)){
-
-return "Geçerli bir ad soyad giriniz.";
-
-}
-
-return "";
-
-}
-// validation.js
-// Parça 2/8
-
-export function validateTC(tc){
-
-if(!/^[0-9]{11}$/.test(tc))
-
-return "TC Kimlik No 11 haneli olmalıdır.";
-
-const digits=
-
-tc.split("").map(Number);
-
-if(digits[0]===0)
-
-return "TC Kimlik No geçersiz.";
-
-let odd=0;
-
-let even=0;
-
-for(let i=0;i<9;i++){
-
-if(i%2===0){
-
-odd+=digits[i];
-
-}else{
-
-even+=digits[i];
-
-}
-
-}
-
-const digit10=
-
-((odd*7)-even)%10;
-
-if(digit10!==digits[9])
-
-return "TC Kimlik No geçersiz.";
-
-const total=
-
-digits.slice(0,10)
-
-.reduce((a,b)=>a+b,0);
-
-if(total%10!==digits[10])
-
-return "TC Kimlik No geçersiz.";
-
-return "";
-
-}
-// validation.js
-// Parça 3/8
-
-export function validatePhone(phone){
-
-if(!/^0\d{10}$/.test(phone)){
-
-return "Telefon numarası hatalı.";
-
-}
-
-return "";
-
-}
-
-export function validateEmail(email){
-
-if(email==="")
-
-return "";
-
-const regex=
-
+const EMAIL_REGEX =
 /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-if(!regex.test(email))
+export function cleanText(text = "") {
 
-return "E-Posta adresi hatalı.";
-
-return "";
-
-}
-// validation.js
-// Parça 4/8
-
-export function validateBirth(date){
-
-if(date===""){
-
-return "Doğum tarihi seçiniz.";
+    return String(text)
+        .trim()
+        .replace(/\s+/g, " ");
 
 }
 
-const birth=
+export function cleanPhone(phone = "") {
 
-new Date(date);
-
-const today=
-
-new Date();
-
-let age=
-
-today.getFullYear()
-
--
-
-birth.getFullYear();
-
-const m=
-
-today.getMonth()
-
--
-
-birth.getMonth();
-
-if(m<0||
-
-(m===0&&today.getDate()<birth.getDate()))
-
-age--;
-
-if(age<6||age>18)
-
-return "Yaş aralığı uygun değil.";
-
-return "";
-
-}
-// validation.js
-// Parça 5/8
-
-export function validateRequired(form){
-
-const fields=[
-
-"adSoyad",
-
-"tc",
-
-"telefon",
-
-"dogumTarihi",
-
-"cinsiyet",
-
-"okul",
-
-"sinif",
-
-"veliAdi",
-
-"veliTelefon",
-
-"adres"
-
-];
-
-for(const field of fields){
-
-if(isEmpty(form[field])){
-
-return "Lütfen tüm zorunlu alanları doldurunuz.";
+    return String(phone)
+        .replace(/\D/g, "")
+        .replace(/^90/, "0");
 
 }
 
-}
+export function cleanTc(tc = "") {
 
-return "";
-
-}
-// validation.js
-// Parça 6/8
-
-export function validateCheckboxes(){
-
-const kvkk=
-
-document.getElementById("kvkk");
-
-const parent=
-
-document.getElementById("parent");
-
-if(!kvkk.checked)
-
-return "KVKK onayı gereklidir.";
-
-if(!parent.checked)
-
-return "Veli onayı gereklidir.";
-
-return "";
+    return String(tc)
+        .replace(/\D/g, "");
 
 }
-// validation.js
-// Parça 7/8
 
-export function validateForm(data){
+export function isEmpty(value) {
 
-    let error = "";
+    return cleanText(value) === "";
 
-    if(isEmpty(data.name)) return "Ad Soyad boş bırakılamaz.";
-    if(isEmpty(data.tc)) return "TC Kimlik boş bırakılamaz.";
-    if(isEmpty(data.phone)) return "Telefon boş bırakılamaz.";
-    if(isEmpty(data.birth)) return "Doğum tarihi seçiniz.";
-    if(isEmpty(data.gender)) return "Cinsiyet seçiniz.";
-    if(isEmpty(data.school)) return "Okul boş bırakılamaz.";
-    if(isEmpty(data.class)) return "Sınıf boş bırakılamaz.";
-    if(isEmpty(data.parent)) return "Veli adı boş bırakılamaz.";
-    if(isEmpty(data.parentPhone)) return "Veli telefonu boş bırakılamaz.";
-    if(isEmpty(data.address)) return "Adres boş bırakılamaz.";
+}
 
-    error = validateName(data.name);
-    if(error) return error;
+export function validateName(name) {
 
-    error = validateTC(data.tc);
-    if(error) return error;
+    name = cleanText(name);
 
-    error = validatePhone(data.phone);
-    if(error) return error;
+    if (isEmpty(name)) {
 
-    error = validatePhone(data.parentPhone);
-    if(error) return error;
+        return "Ad Soyad zorunludur.";
 
-    error = validateEmail(data.email);
-    if(error) return error;
+    }
 
-    error = validateBirth(data.birth);
-    if(error) return error;
+    if (!NAME_REGEX.test(name)) {
 
-    error = validateCheckboxes();
-    if(error) return error;
+        return "Geçerli bir ad soyad giriniz.";
+
+    }
 
     return "";
-}
-// validation.js
-// Parça 8/8 (Son)
-
-export function onlyNumber(event){
-
-const key=
-
-event.key;
-
-if(
-
-!/[0-9]/.test(key)
-
-&&
-
-key!=="Backspace"
-
-&&
-
-key!=="Delete"
-
-&&
-
-key!=="ArrowLeft"
-
-&&
-
-key!=="ArrowRight"
-
-&&
-
-key!=="Tab"
-
-){
-
-event.preventDefault();
 
 }
 
+export function validatePhone(phone) {
+
+    phone = cleanPhone(phone);
+
+    if (!PHONE_REGEX.test(phone)) {
+
+        return "Telefon numarası hatalı.";
+
+    }
+
+    return "";
+
 }
+
+export function validateEmail(email) {
+
+    email = cleanText(email);
+
+    if (!email) return "";
+
+    if (!EMAIL_REGEX.test(email)) {
+
+        return "E-posta adresi hatalı.";
+
+    }
+
+    return "";
+
+}
+const MIN_AGE = 7;
+const MAX_AGE = 90;
+
+export function validateTc(tc) {
+
+    tc = cleanTc(tc);
+
+    if (!TC_REGEX.test(tc)) {
+        return "T.C. Kimlik Numarası 11 haneli olmalıdır.";
+    }
+
+    if (tc[0] === "0") {
+        return "T.C. Kimlik Numarası 0 ile başlayamaz.";
+    }
+
+    const digits = tc.split("").map(Number);
+
+    const odd =
+        digits[0] +
+        digits[2] +
+        digits[4] +
+        digits[6] +
+        digits[8];
+
+    const even =
+        digits[1] +
+        digits[3] +
+        digits[5] +
+        digits[7];
+
+    const digit10 = ((odd * 7) - even) % 10;
+
+    if (digit10 !== digits[9]) {
+        return "Geçersiz T.C. Kimlik Numarası.";
+    }
+
+    const total =
+        digits.slice(0, 10).reduce((a, b) => a + b, 0);
+
+    if (total % 10 !== digits[10]) {
+        return "Geçersiz T.C. Kimlik Numarası.";
+    }
+
+    return "";
+
+}
+
+export function calculateAge(birth) {
+
+    const today = new Date();
+
+    const date = new Date(birth);
+
+    let age = today.getFullYear() - date.getFullYear();
+
+    const month = today.getMonth() - date.getMonth();
+
+    if (
+        month < 0 ||
+        (month === 0 && today.getDate() < date.getDate())
+    ) {
+        age--;
+    }
+
+    return age;
+
+}
+
+export function validateBirth(birth) {
+
+    if (!birth) {
+        return "Doğum tarihi zorunludur.";
+    }
+
+    const date = new Date(birth);
+
+    if (Number.isNaN(date.getTime())) {
+        return "Geçersiz doğum tarihi.";
+    }
+
+    const age = calculateAge(birth);
+
+    if (age < MIN_AGE || age > MAX_AGE) {
+        return `Yaş ${MIN_AGE}-${MAX_AGE} arasında olmalıdır.`;
+    }
+
+    return "";
+
+}
+
+export function validateGender(gender) {
+
+    const allowed = [
+        "Erkek",
+        "Kız"
+    ];
+
+    if (!allowed.includes(gender)) {
+        return "Cinsiyet seçiniz.";
+    }
+
+    return "";
+
+}
+export function validateSchool(school) {
+
+    school = cleanText(school);
+
+    if (!school) {
+        return "Okul bilgisi zorunludur.";
+    }
+
+    if (school.length < 2) {
+        return "Geçerli bir okul adı giriniz.";
+    }
+
+    return "";
+
+}
+
+export function validateClass(className) {
+
+    className = cleanText(className);
+
+    if (!className) {
+        return "Sınıf bilgisi zorunludur.";
+    }
+
+    if (className.length > 20) {
+        return "Sınıf bilgisi çok uzun.";
+    }
+
+    return "";
+
+}
+
+export function validateParent(parent) {
+
+    parent = cleanText(parent);
+
+    if (!parent) {
+        return "Veli adı zorunludur.";
+    }
+
+    if (!NAME_REGEX.test(parent)) {
+        return "Geçerli bir veli adı giriniz.";
+    }
+
+    return "";
+
+}
+
+export function validateParentPhone(phone) {
+
+    phone = cleanPhone(phone);
+
+    if (!PHONE_REGEX.test(phone)) {
+        return "Veli telefon numarası hatalı.";
+    }
+
+    return "";
+
+}
+
+export function validateAddress(address) {
+
+    address = cleanText(address);
+
+    if (!address) {
+        return "Adres zorunludur.";
+    }
+
+    if (address.length < 10) {
+        return "Adres çok kısa.";
+    }
+
+    if (address.length > 500) {
+        return "Adres çok uzun.";
+    }
+
+    return "";
+
+}
+
+export function validateNote(note) {
+
+    note = cleanText(note);
+
+    if (note.length > 500) {
+        return "Not en fazla 500 karakter olabilir.";
+    }
+
+    return "";
+
+}
+export function validateRegistration(data) {
+
+    const errors = {};
+
+    const nameError = validateName(data.name);
+    if (nameError) errors.name = nameError;
+
+    const tcError = validateTc(data.tc);
+    if (tcError) errors.tc = tcError;
+
+    const phoneError = validatePhone(data.phone);
+    if (phoneError) errors.phone = phoneError;
+
+    const emailError = validateEmail(data.email);
+    if (emailError) errors.email = emailError;
+
+    const birthError = validateBirth(data.birth);
+    if (birthError) errors.birth = birthError;
+
+    const genderError = validateGender(data.gender);
+    if (genderError) errors.gender = genderError;
+
+    const schoolError = validateSchool(data.school);
+    if (schoolError) errors.school = schoolError;
+
+    const classError = validateClass(data.class);
+    if (classError) errors.class = classError;
+
+    const parentError = validateParent(data.parent);
+    if (parentError) errors.parent = parentError;
+
+    const parentPhoneError = validateParentPhone(data.parentPhone);
+    if (parentPhoneError) errors.parentPhone = parentPhoneError;
+
+    const addressError = validateAddress(data.address);
+    if (addressError) errors.address = addressError;
+
+    const noteError = validateNote(data.note);
+    if (noteError) errors.note = noteError;
+
+    return {
+
+        valid: Object.keys(errors).length === 0,
+
+        errors
+
+    };
+
+}
+
+export function hasErrors(result) {
+
+    return !result.valid;
+
+}
+
+export function firstError(result) {
+
+    const key = Object.keys(result.errors)[0];
+
+    return key ? result.errors[key] : "";
+
+}
+
+export function clearErrors() {
+
+    document.querySelectorAll(".input-error").forEach(el => {
+
+        el.classList.remove("input-error");
+
+    });
+
+    document.querySelectorAll(".error-message").forEach(el => {
+
+        el.textContent = "";
+
+    });
+
+}
+
+export function showErrors(result) {
+
+    clearErrors();
+
+    Object.entries(result.errors).forEach(([field, message]) => {
+
+        const input = document.querySelector(`[name="${field}"]`);
+
+        if (input) {
+
+            input.classList.add("input-error");
+
+        }
+
+        const error = document.getElementById(`${field}Error`);
+
+        if (error) {
+
+            error.textContent = message;
+
+        }
+
+    });
+
+}
+export function capitalizeName(text = "") {
+
+    return cleanText(text)
+        .toLocaleLowerCase("tr-TR")
+        .split(" ")
+        .map(word => {
+
+            if (!word) return "";
+
+            return word[0].toLocaleUpperCase("tr-TR") + word.slice(1);
+
+        })
+        .join(" ");
+
+}
+
+export function normalizeRegistration(data) {
+
+    return {
+
+        registerNumber: data.registerNumber || "",
+
+        name: capitalizeName(data.name),
+
+        tc: cleanTc(data.tc),
+
+        phone: cleanPhone(data.phone),
+
+        email: cleanText(data.email).toLowerCase(),
+
+        birth: data.birth,
+
+        gender: data.gender,
+
+        school: capitalizeName(data.school),
+
+        class: cleanText(data.class).toUpperCase(),
+
+        parent: capitalizeName(data.parent),
+
+        parentPhone: cleanPhone(data.parentPhone),
+
+        address: cleanText(data.address),
+
+        note: cleanText(data.note),
+
+        seat: data.seat || "",
+
+        checkedIn: Boolean(data.checkedIn)
+
+    };
+
+}
+
+export function prepareRegistrationData(data) {
+
+    return normalizeRegistration(data);
+
+}
+
+export function validateAndPrepare(data) {
+
+    const result = validateRegistration(data);
+
+    if (!result.valid) {
+
+        return {
+
+            valid: false,
+
+            errors: result.errors,
+
+            data: null
+
+        };
+
+    }
+
+    return {
+
+        valid: true,
+
+        errors: {},
+
+        data: prepareRegistrationData(data)
+
+    };
+
+}
+
+export default {
+
+    validateRegistration,
+
+    validateAndPrepare,
+
+    prepareRegistrationData,
+
+    normalizeRegistration,
+
+    validateName,
+
+    validateTc,
+
+    validatePhone,
+
+    validateEmail,
+
+    validateBirth,
+
+    validateGender,
+
+    validateSchool,
+
+    validateClass,
+
+    validateParent,
+
+    validateParentPhone,
+
+    validateAddress,
+
+    validateNote
+
+};
