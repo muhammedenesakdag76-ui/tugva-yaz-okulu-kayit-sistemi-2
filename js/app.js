@@ -142,46 +142,61 @@ form.reset();
 
 async function register(){
 
-if(await isFull()){
+    console.log("1 - register başladı");
 
-alert(
+    if(await isFull()){
 
-"Kontenjan dolmuştur."
+        console.log("2 - isFull çalıştı");
 
-);
+        alert("Kontenjan dolmuştur.");
 
-return;
+        return;
+
+    }
+
+    const data = getFormData();
+
+    console.log("3 - Veri:", data);
+
+    const error = validateForm(data);
+
+    console.log("4 - Validation:", error);
+
+    if(error){
+
+        alert(error);
+
+        return;
+
+    }
+
+    if(await registrationExists(data.tc)){
+
+        alert("Bu TC Kimlik Numarası ile kayıt bulunmaktadır.");
+
+        return;
+
+    }
+
+    if(await phoneExists(data.phone)){
+
+        alert("Bu telefon numarası ile kayıt bulunmaktadır.");
+
+        return;
+
+    }
+
+    console.log("5 - addRegistration çağrılıyor");
+
+    await addRegistration(data);
+
+    console.log("6 - addRegistration tamamlandı");
+
+    currentParticipant = data;
+
+    showSuccess();
 
 }
-
-const data=
-
-getFormData();
-
-const error=
-
-validateForm(data);
-
-if(error){
-
-alert(error);
-
-return;
-
-}
-
-if(await registrationExists(data.tc)){
-
-alert(
-
-"Bu TC Kimlik Numarası ile kayıt bulunmaktadır."
-
-);
-
-return;
-
-}
-
 if(await phoneExists(data.phone)){
 
 alert(
