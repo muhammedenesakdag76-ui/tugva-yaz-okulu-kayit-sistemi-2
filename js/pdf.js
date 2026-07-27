@@ -1,278 +1,383 @@
-// ===============================
-// PDF Module
-// ===============================
+// pdf.js
+// Profesyonel Sürüm
+// Parça 1/8
 
-import { getQRImage } from "./qr.js";
+import {
 
-const { jsPDF } = window;
-
-
-// ===============================
-// Draw Header
-// ===============================
-
-function drawHeader(pdf) {
-
-    pdf.setFillColor(16, 24, 40);
-    pdf.rect(0, 0, 210, 28, "F");
-
-    pdf.setTextColor(255, 255, 255);
-    pdf.setFont("helvetica", "bold");
-    pdf.setFontSize(22);
-
-    pdf.text(
-        "TÜGVA YAZ OKULU",
-        105,
-        15,
-        {
-            align: "center"
-        }
-    );
-
-    pdf.setFontSize(11);
-
-    pdf.text(
-        "Katılımcı Kayıt Belgesi",
-        105,
-        22,
-        {
-            align: "center"
-        }
-    );
+getQRImage
 
 }
 
+from "./qr.js";
 
-// ===============================
-// Draw Participant Information
-// ===============================
+const {
 
-function drawParticipant(pdf, data) {
+jsPDF
 
-    pdf.setTextColor(0);
+}=window;
 
-    pdf.setFontSize(12);
+export function createPDF(
 
-    pdf.setFont("helvetica", "bold");
+participant
 
-    pdf.text("Katılımcı Bilgileri", 15, 40);
+){
 
-    pdf.setFont("helvetica", "normal");
+const pdf=
 
-    let y = 50;
+new jsPDF({
 
-    const rows = [
+orientation:"portrait",
 
-        ["Kayıt No", data.kayitNo],
+unit:"mm",
 
-        ["Ad Soyad", data.adSoyad],
+format:"a4"
 
-        ["TC Kimlik", data.tc],
+});
 
-        ["Telefon", data.telefon],
+drawHeader(
 
-        ["Doğum Tarihi", data.dogumTarihi],
+pdf
 
-        ["Cinsiyet", data.cinsiyet],
+);
 
-        ["Okul", data.okul],
+drawParticipant(
 
-        ["Sınıf", data.sinif],
+pdf,
 
-        ["Veli", data.veliAdi],
+participant
 
-        ["Veli Telefon", data.veliTelefon]
+);
 
-    ];
+drawQR(
 
-    rows.forEach(row => {
+pdf
 
-        pdf.setFont("helvetica", "bold");
+);
 
-        pdf.text(row[0] + " :", 15, y);
+drawFooter(
 
-        pdf.setFont("helvetica", "normal");
+pdf
 
-        pdf.text(String(row[1]), 55, y);
+);
 
-        y += 8;
-
-    });
+return pdf;
 
 }
-// ===============================
-// Draw QR
-// ===============================
+// pdf.js
+// Parça 2/8
 
-function drawQR(pdf) {
+function drawHeader(pdf){
 
-    const image = getQRImage();
+pdf.setFont(
 
-    if (!image)
-        return;
+"helvetica",
 
-    pdf.addImage(
+"bold"
 
-        image,
+);
 
-        "PNG",
+pdf.setFontSize(22);
 
-        145,
+pdf.text(
 
-        45,
+"TÜGVA Yaz Okulu",
 
-        45,
+105,
 
-        45
+20,
 
-    );
+{
+
+align:"center"
 
 }
 
+);
 
-// ===============================
-// Draw Address
-// ===============================
+pdf.setFontSize(14);
 
-function drawAddress(pdf, data) {
+pdf.setFont(
 
-    pdf.setFont("helvetica", "bold");
+"helvetica",
 
-    pdf.text(
+"normal"
 
-        "Adres",
+);
 
-        15,
+pdf.text(
 
-        145
+"Kayıt Belgesi",
 
-    );
+105,
 
-    pdf.setFont("helvetica", "normal");
+29,
 
-    pdf.setFontSize(11);
+{
 
-    pdf.text(
-
-        data.adres || "-",
-
-        15,
-
-        153,
-
-        {
-
-            maxWidth: 170
-
-        }
-
-    );
+align:"center"
 
 }
 
+);
 
-// ===============================
-// Draw Note
-// ===============================
+pdf.line(
 
-function drawNote(pdf, data) {
+15,
 
-    pdf.setFont("helvetica", "bold");
+35,
 
-    pdf.text(
+195,
 
-        "Not",
+35
 
-        15,
-
-        175
-
-    );
-
-    pdf.setFont("helvetica", "normal");
-
-    pdf.text(
-
-        data.not || "-",
-
-        15,
-
-        183,
-
-        {
-
-            maxWidth: 170
-
-        }
-
-    );
+);
 
 }
-// ===============================
-// Footer
-// ===============================
+// pdf.js
+// Parça 3/8
 
-function drawFooter(pdf) {
+function drawParticipant(
 
-    pdf.setDrawColor(180);
+pdf,
 
-    pdf.line(15, 260, 195, 260);
+p
 
-    pdf.setFontSize(10);
+){
 
-    pdf.setTextColor(100);
+let y=48;
 
-    pdf.text(
+const rows=[
 
-        "Bu belge TÜGVA Yaz Okulu Kayıt Sistemi tarafından otomatik oluşturulmuştur.",
+["Kayıt No",p.kayitNo],
 
-        105,
+["Ad Soyad",p.adSoyad],
 
-        268,
+["TC Kimlik",p.tc],
 
-        {
+["Telefon",p.telefon],
 
-            align: "center"
+["Okul",p.okul],
 
-        }
+["Sınıf",p.sinif],
 
-    );
+["Veli",p.veliAdi],
+
+["Veli Telefon",p.veliTelefon],
+
+["Adres",p.adres]
+
+];
+
+rows.forEach(r=>{
+
+pdf.setFont(
+
+"helvetica",
+
+"bold"
+
+);
+
+pdf.text(
+
+r[0]+":",
+
+20,
+
+y
+
+);
+
+pdf.setFont(
+
+"helvetica",
+
+"normal"
+
+);
+
+pdf.text(
+
+String(r[1]||""),
+
+70,
+
+y
+
+);
+
+y+=10;
+
+});
+
+}
+// pdf.js
+// Parça 4/8
+
+function drawQR(pdf){
+
+const img=
+
+getQRImage();
+
+if(!img){
+
+return;
 
 }
 
+pdf.addImage(
 
-// ===============================
-// Export PDF
-// ===============================
+img,
 
-export function downloadPDF(data) {
+"PNG",
 
-    const pdf = new jsPDF({
+145,
 
-        orientation: "portrait",
+45,
 
-        unit: "mm",
+45,
 
-        format: "a4"
+45
 
-    });
+);
 
-    drawHeader(pdf);
+}
+// pdf.js
+// Parça 5/8
 
-    drawParticipant(pdf, data);
+function drawFooter(pdf){
 
-    drawQR(pdf);
+pdf.setDrawColor(
 
-    drawAddress(pdf, data);
+180
 
-    drawNote(pdf, data);
+);
 
-    drawFooter(pdf);
+pdf.line(
 
-    pdf.save(
+15,
 
-        `${data.kayitNo}.pdf`
+275,
 
-    );
+195,
+
+275
+
+);
+
+pdf.setFontSize(
+
+10
+
+);
+
+pdf.text(
+
+"TÜGVA Yaz Okulu Kayıt Sistemi",
+
+105,
+
+283,
+
+{
+
+align:"center"
+
+}
+
+);
+
+}
+// pdf.js
+// Parça 6/8
+
+export function downloadPDF(
+
+participant
+
+){
+
+const pdf=
+
+createPDF(
+
+participant
+
+);
+
+pdf.save(
+
+`${participant.kayitNo}.pdf`
+
+);
+
+}
+// pdf.js
+// Parça 7/8
+
+export function previewPDF(
+
+participant
+
+){
+
+const pdf=
+
+createPDF(
+
+participant
+
+);
+
+window.open(
+
+pdf.output(
+
+"bloburl"
+
+),
+
+"_blank"
+
+);
+
+}
+// pdf.js
+// Parça 8/8 (Son)
+
+export function printPDF(
+
+participant
+
+){
+
+const pdf=
+
+createPDF(
+
+participant
+
+);
+
+const url=
+
+pdf.output(
+
+"bloburl"
+
+);
+
+const win=
+
+window.open(
+
+url
+
+);
+
+win.onload=
+
+()=>win.print();
 
 }
