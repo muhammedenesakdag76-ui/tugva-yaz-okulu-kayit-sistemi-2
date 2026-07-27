@@ -1,148 +1,101 @@
-// app.js
-// Düzeltme Paketi
-// Parça 1/8
-alert("app.js çalıştı");
-import{
-addRegistration,
-generateRegisterNumber,
-getRemainingCapacity,
-registrationExists,
-phoneExists,
-isFull
-}from"./firebase.js";
+import {
+    addRegistration,
+    generateRegisterNumber,
+    getRemainingCapacity,
+    registrationExists,
+    phoneExists,
+    isFull
+} from "./firebase.js";
 
-import{
-validateForm,
-onlyNumber
-}from"./validation.js";
+import {
+    validateForm,
+    onlyNumber
+} from "./validation.js";
 
-import{
-generateQR
-}from"./qr.js";
+import {
+    generateQR
+} from "./qr.js";
 
-import{
-downloadPDF
-}from"./pdf.js";
+import {
+    downloadPDF
+} from "./pdf.js";
 
-const form=document.getElementById("registerForm");
+const form = document.getElementById("registerForm");
+const formSection = document.getElementById("formSection");
+const successCard = document.getElementById("successCard");
+const registerNumber = document.getElementById("registerNumber");
+const remainingCapacity = document.getElementById("remainingCapacity");
+const downloadPdf = document.getElementById("downloadPdf");
+const newRegister = document.getElementById("newRegister");
 
-const formSection=document.getElementById("formSection");
+const adSoyad = document.getElementById("adSoyad");
+const tc = document.getElementById("tc");
+const telefon = document.getElementById("telefon");
+const email = document.getElementById("email");
+const dogumTarihi = document.getElementById("dogumTarihi");
+const cinsiyet = document.getElementById("cinsiyet");
+const okul = document.getElementById("okul");
+const sinif = document.getElementById("sinif");
+const veliAdi = document.getElementById("veliAdi");
+const veliTelefon = document.getElementById("veliTelefon");
+const adres = document.getElementById("adres");
+const note = document.getElementById("note");
 
-const successCard=document.getElementById("successCard");
+let currentParticipant = null;
+async function updateCapacity() {
 
-const registerNumber=document.getElementById("registerNumber");
+    const remaining = await getRemainingCapacity();
 
-const remainingCapacity=document.getElementById("remainingCapacity");
-
-const downloadPdf=document.getElementById("downloadPdf");
-
-const newRegister=document.getElementById("newRegister");
-
-/* ======== Eksik olan tüm inputlar ======== */
-
-const adSoyad=document.getElementById("adSoyad");
-
-const tc=document.getElementById("tc");
-
-const telefon=document.getElementById("telefon");
-
-const email=document.getElementById("email");
-
-const dogumTarihi=document.getElementById("dogumTarihi");
-
-const cinsiyet=document.getElementById("cinsiyet");
-
-const okul=document.getElementById("okul");
-
-const sinif=document.getElementById("sinif");
-
-const veliAdi=document.getElementById("veliAdi");
-
-const veliTelefon=document.getElementById("veliTelefon");
-
-const adres=document.getElementById("adres");
-
-const note=document.getElementById("note");
-
-let currentParticipant=null;
-// app.js
-// Düzeltme Paketi
-// Parça 2/8
-
-async function updateCapacity(){
-
-const remaining=
-
-await getRemainingCapacity();
-
-remainingCapacity.textContent=
-
-remaining;
+    remainingCapacity.textContent = remaining;
 
 }
 
-function getFormData(){
+function getFormData() {
 
-    return{
+    return {
 
-        registerNumber:"",
+        registerNumber: "",
 
-        name:
-        adSoyad.value.trim(),
+        name: adSoyad.value.trim(),
 
-        tc:
-        tc.value.trim(),
+        tc: tc.value.trim(),
 
-        phone:
-        telefon.value.trim(),
+        phone: telefon.value.trim(),
 
-        email:
-        email.value.trim(),
+        email: email.value.trim(),
 
-        birth:
-        dogumTarihi.value,
+        birth: dogumTarihi.value,
 
-        gender:
-        cinsiyet.value,
+        gender: cinsiyet.value,
 
-        school:
-        okul.value.trim(),
+        school: okul.value.trim(),
 
-        class:
-        sinif.value.trim(),
+        class: sinif.value.trim(),
 
-        parent:
-        veliAdi.value.trim(),
+        parent: veliAdi.value.trim(),
 
-        parentPhone:
-        veliTelefon.value.trim(),
+        parentPhone: veliTelefon.value.trim(),
 
-        address:
-        adres.value.trim(),
+        address: adres.value.trim(),
 
-        note:
-        note.value.trim(),
+        note: note.value.trim(),
 
-        seat:"",
+        seat: "",
 
-        checkedIn:false
+        checkedIn: false
 
     };
 
 }
 
-function clearForm(){
+function clearForm() {
 
-form.reset();
+    form.reset();
 
 }
-// app.js
-// Düzeltme Paketi
-// Parça 3/8
+async function register() {
 
-async function register(){
-
-    if(await isFull()){
+    if (await isFull()) {
         alert("Kontenjan dolmuştur.");
         return;
     }
@@ -151,17 +104,17 @@ async function register(){
 
     const error = validateForm(data);
 
-    if(error){
+    if (error) {
         alert(error);
         return;
     }
 
-    if(await registrationExists(data.tc)){
+    if (await registrationExists(data.tc)) {
         alert("Bu TC Kimlik Numarası ile kayıt bulunmaktadır.");
         return;
     }
 
-    if(await phoneExists(data.phone)){
+    if (await phoneExists(data.phone)) {
         alert("Bu telefon numarası ile kayıt bulunmaktadır.");
         return;
     }
@@ -173,173 +126,139 @@ async function register(){
     currentParticipant = data;
 
     showSuccess();
-}
-
-function showSuccess(){
-
-formSection.style.display=
-
-"none";
-
-successCard.style.display=
-
-"block";
-
-registerNumber.textContent =
-currentParticipant.registerNumber;
-
-generateQR(
-currentParticipant.registerNumber
-);
-
-updateCapacity();
-
-}
-// app.js
-// Düzeltme Paketi
-// Parça 5/8
-
-downloadPdf.addEventListener(
-
-"click",
-
-()=>{
-
-if(!currentParticipant){
-
-return;
 
 }
 
-downloadPDF(
+function showSuccess() {
 
-currentParticipant
+    formSection.style.display = "none";
 
-);
+    successCard.style.display = "block";
 
-}
+    registerNumber.textContent = currentParticipant.registerNumber;
 
-);
+    generateQR(currentParticipant.registerNumber);
 
-newRegister.addEventListener(
-
-"click",
-
-()=>{
-
-clearForm();
-
-successCard.style.display=
-
-"none";
-
-formSection.style.display=
-
-"block";
-
-updateCapacity();
-
-currentParticipant=null;
+    updateCapacity();
 
 }
-);
-// app.js
-// Düzeltme Paketi
-// Parça 6/8
+downloadPdf.addEventListener("click", () => {
 
-form.addEventListener(
+    if (!currentParticipant) return;
 
-"submit",
-
-async e=>{
-
-e.preventDefault();
-
-await register();
-
-}
-
-);
-
-[
-
-tc,
-
-telefon,
-
-veliTelefon
-
-].forEach(input=>{
-
-input.addEventListener(
-
-"keydown",
-
-onlyNumber
-
-);
+    downloadPDF(currentParticipant);
 
 });
-// app.js
-// Düzeltme Paketi
-// Parça 7/8
 
-function capitalize(input){
 
-input.value=
+form.addEventListener("submit", async (e) => {
 
-input.value
+    e.preventDefault();
 
-.toLowerCase()
-
-.replace(
-
-/(^|\s)\S/g,
-
-l=>l.toUpperCase()
-
-);
-
-}
-
-[
-
-adSoyad,
-
-veliAdi
-
-].forEach(input=>{
-
-input.addEventListener(
-
-"blur",
-
-()=>capitalize(input)
-
-);
+    await safeRegister();
 
 });
-// app.js
-// Düzeltme Paketi
-// Parça 8/8 (Son)
 
-window.addEventListener(
+[tc, telefon, veliTelefon].forEach(input => {
 
-"DOMContentLoaded",
+    input.addEventListener("keydown", onlyNumber);
 
-()=>{
+});
+function capitalize(input) {
 
-updateCapacity();
-
-form.reset();
-
-successCard.style.display=
-
-"none";
-
-formSection.style.display=
-
-"block";
+    input.value = input.value
+        .toLowerCase()
+        .replace(/(^|\s)\S/g, l => l.toUpperCase());
 
 }
-);
+
+[adSoyad, veliAdi].forEach(input => {
+
+    input.addEventListener("blur", () => {
+
+        capitalize(input);
+
+    });
+
+});
+
+window.addEventListener("DOMContentLoaded", () => {
+
+    form.reset();
+
+    successCard.style.display = "none";
+
+    formSection.style.display = "block";
+
+    updateCapacity();
+
+});
+function setLoading(isLoading) {
+
+    const btn = form.querySelector('button[type="submit"]');
+
+    if (!btn) return;
+
+    btn.disabled = isLoading;
+
+    if (isLoading) {
+        btn.dataset.oldText = btn.textContent;
+        btn.textContent = "Kaydediliyor...";
+    } else {
+        btn.textContent = btn.dataset.oldText || "Kaydı Tamamla";
+    }
+
+}
+
+async function safeRegister() {
+
+    try {
+
+        setLoading(true);
+
+        await register();
+
+    } catch (err) {
+
+        console.error(err);
+
+        alert("Bir hata oluştu:\n\n" + (err.message || err));
+
+    } finally {
+
+        setLoading(false);
+
+    }
+
+}
+function resetSuccessScreen() {
+
+    successCard.style.display = "none";
+
+    formSection.style.display = "block";
+
+    registerNumber.textContent = "";
+
+    const qr = document.getElementById("qrcode");
+
+    if (qr) {
+        qr.innerHTML = "";
+    }
+
+}
+
+function resetApplication() {
+
+    clearForm();
+
+    currentParticipant = null;
+
+    resetSuccessScreen();
+
+    updateCapacity();
+
+}
+
+newRegister.removeEventListener?.("click", resetApplication);
+
+newRegister.addEventListener("click", resetApplication);
