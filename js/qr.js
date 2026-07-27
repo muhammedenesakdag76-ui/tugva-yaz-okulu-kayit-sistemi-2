@@ -1,138 +1,173 @@
-import QRCode from "https://cdn.jsdelivr.net/npm/qrcode@1.5.3/+esm";
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 
-function createPayload(registration) {
+<script src="https://unpkg.com/html5-qrcode"></script>
 
-    return JSON.stringify({
+/* ==========================================
+   QR OLUŞTUR
+========================================== */
 
-        id: registration.id,
+export function createQR(text, elementId = "qr") {
 
-        registerNumber: registration.registerNumber,
+    const container = document.getElementById(elementId);
 
-        name: registration.name,
+    if (!container) return;
 
-        tc: registration.tc
+    container.innerHTML = "";
 
+    new QRCode(container, {
+        text: String(text),
+        width: 220,
+        height: 220,
+        correctLevel: QRCode.CorrectLevel.H
     });
 
 }
+/* ==========================================
+   QR TEMİZLE
+========================================== */
 
-export async function generateQRCode(target, registration) {
+export function clearQR(elementId = "qr") {
 
-    if (!target) {
+    const container = document.getElementById(elementId);
+
+    if (container) {
+
+        container.innerHTML = "";
+
+    }
+
+}
+/* ==========================================
+   QR OKUYUCU
+========================================== */
+
+let scanner = null;
+
+export async function startScanner(onSuccess) {
+
+    if (scanner) {
 
         return;
 
     }
 
-    target.innerHTML = "";
+    scanner = new Html5Qrcode("qr-reader");
 
-    const canvas = document.createElement("canvas");
-
-    await QRCode.toCanvas(
-
-        canvas,
-
-        createPayload(registration),
+    await scanner.start(
 
         {
-
-            width: 240,
-
-            margin: 2,
-
-            errorCorrectionLevel: "H"
-
-        }
-
-    );
-
-    target.appendChild(canvas);
-
-}
-export async function createQRCodeDataURL(registration) {
-
-    return await QRCode.toDataURL(
-
-        createPayload(registration),
+            facingMode: "environment"
+        },
 
         {
+            fps: 10,
+            qrbox: 250
+        },
 
-            width: 600,
+        decodedText => {
 
-            margin: 2,
+            if (typeof onSuccess === "function") {
 
-            errorCorrectionLevel: "H"
+                onSuccess(decodedText);
+
+            }
 
         }
 
     );
 
 }
+/* ==========================================
+   DURDUR
+========================================== */
 
-export async function downloadQRCode(registration) {
+export async function stopScanner() {
 
-    const url = await createQRCodeDataURL(
+    if (!scanner) return;
 
-        registration
+    await scanner.stop();
 
-    );
+    await scanner.clear();
 
-    const link = document.createElement("a");
-
-    link.href = url;
-
-    link.download =
-
-        `${registration.registerNumber}.png`;
-
-    link.click();
+    scanner = null;
 
 }
-export function parseQRCode(text) {
+/* ==========================================
+   QR VERİSİNİ AYRIŞTIR
+========================================== */
 
-    try {
+export function parseQR(text){
 
-        return JSON.parse(text);
-
-    }
-
-    catch {
+    if(!text){
 
         return null;
 
     }
 
+    return String(text).trim();
+
 }
+/* ==========================================
+   TEK OKUMA
+========================================== */
 
-export function isQRCodeValid(text) {
+export async function scanOnce(callback){
 
-    const qr = parseQRCode(text);
+    await startScanner(async result=>{
 
-    if (!qr) {
+        try{
+
+            await stopScanner();
+
+        }catch(e){}
+
+        if(typeof callback==="function"){
+
+            callback(parseQR(result));
+
+        }
+
+    });
+
+}
+/* ==========================================
+   GEÇERLİ QR
+========================================== */
+
+export function isValidQR(text){
+
+    if(!text){
 
         return false;
 
     }
 
-    return Boolean(
+    const value=String(text).trim();
 
-        qr.registerNumber &&
-
-        qr.id
-
-    );
+    return value.length>0;
 
 }
-export default {
+/* ==========================================
+   DURUM
+========================================== */
 
-    generateQRCode,
+export function scannerRunning(){
 
-    createQRCodeDataURL,
+    return scanner!==null;
 
-    downloadQRCode,
+}
+/* ==========================================
+   RESTART
+========================================== */
 
-    parseQRCode,
+export async function restartScanner(callback){
 
-    isQRCodeValid
+    if(scanner){
 
-};
+        await stopScanner();
+
+    }
+
+    await startScanner(callback);
+
+}
