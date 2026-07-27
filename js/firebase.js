@@ -1,13 +1,11 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
+import { db, MAX_CAPACITY } from "./config.js";
 
 import {
-    getFirestore,
     collection,
     doc,
-    addDoc,
     getDoc,
     getDocs,
-    setDoc,
+    addDoc,
     updateDoc,
     deleteDoc,
     query,
@@ -15,129 +13,152 @@ import {
     orderBy,
     limit,
     serverTimestamp,
-    runTransaction
+    onSnapshot,
+    runTransaction,
+    increment
 } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
-const firebaseConfig = {
-  apiKey: "AIzaSyA1PwF_MonQVMQ2zXnCJZbQWYkRgHpxxb8",
-  authDomain: "tugva-kayit-sistemi.firebaseapp.com",
-  projectId: "tugva-kayit-sistemi",
-  storageBucket: "tugva-kayit-sistemi.firebasestorage.app",
-  messagingSenderId: "497137562254",
-  appId: "1:497137562254:web:0dae95a054ac7e21424fdf"
-};
 
-import { db } from "./config.js";
-);
+const REGISTRATION_COLLECTION = "registrations";
+const COUNTER_DOCUMENT = "system/registerCounter";
 
-export const MAX_CAPACITY = 500;
-const counterRef = doc(db, "system", "counter");
+const registrationRef = collection(db, REGISTRATION_COLLECTION);
+
+/* ===========================================================
+   KONTENJAN
+=========================================================== */
+
+export async function getRegistrationCount() {
+
+    const snap = await getDocs(registrationRef);
+
+    return snap.size;
+
+}
+
+export async function getRemainingCapacity() {
+
+    const count = await getRegistrationCount();
+
+    return Math.max(MAX_CAPACITY - count, 0);
+
+}
+
+export async function isCapacityFull() {
+
+    const remain = await getRemainingCapacity();
+
+    return remain <= 0;
+
+}
+
+/* ===========================================================
+   TC KONTROL
+=========================================================== */
+
+export async function tcExists(tc) {
+
+    const q = query(
+        registrationRef,
+        where("tc", "==", tc),
+        limit(1)
+    );
+
+    const snap = await getDocs(q);
+
+    return !snap.empty;
+
+}
+
+/* ===========================================================
+   TELEFON KONTROL
+=========================================================== */
+
+export async function phoneExists(phone) {
+
+    const q = query(
+        registrationRef,
+        where("phone", "==", phone),
+        limit(1)
+    );
+
+    const snap = await getDocs(q);
+
+    return !snap.empty;
+
+}
+/* ===========================================================
+   KAYIT NUMARASI (TRANSACTION)
+=========================================================== */
 
 async function generateRegisterNumber() {
 
-    return await runTransaction(db, async (transaction) => {
+    const counterRef = doc(db, COUNTER_DOCUMENT);
 
-        const counterDoc = await transaction.get(counterRef);
+    const result = await runTransaction(db, async (transaction) => {
 
-        let lastNumber = 0;
+        const counterSnap = await transaction.get(counterRef);
 
-        if (counterDoc.exists()) {
+        let nextNumber = 1;
 
-            lastNumber = counterDoc.data().lastNumber || 0;
+        if (!counterSnap.exists()) {
+
+            transaction.set(counterRef, {
+                value: 1
+            });
+
+        } else {
+
+            nextNumber = counterSnap.data().value + 1;
+
+            if (nextNumber > MAX_CAPACITY) {
+                throw new Error("Kontenjan doldu.");
+            }
+
+            transaction.update(counterRef, {
+                value: increment(1)
+            });
 
         }
 
-        const nextNumber = lastNumber + 1;
-
-        transaction.set(
-            counterRef,
-            { lastNumber: nextNumber },
-            { merge: true }
-        );
-
-        return `TYO-${String(nextNumber).padStart(6, "0")}`;
+        return nextNumber;
 
     });
 
-}
-
-async function existsByTC(tc) {
-
-    const q = query(
-
-        registrationsRef,
-
-        where("tc", "==", tc),
-
-        limit(1)
-
-    );
-
-    const snapshot = await getDocs(q);
-
-    return !snapshot.empty;
+    return `TYO-${String(result).padStart(3, "0")}`;
 
 }
 
-async function existsByPhone(phone) {
+/* ===========================================================
+   KAYIT EKLE
+=========================================================== */
 
-    const q = query(
-
-        registrationsRef,
-
-        where("phone", "==", phone),
-
-        limit(1)
-
-    );
-
-    const snapshot = await getDocs(q);
-
-    return !snapshot.empty;
-
-}
-
-async function checkDuplicate(data) {
-
-    if (await existsByTC(data.tc)) {
-
-        throw new Error(
-
-            "Bu T.C. Kimlik Numarası ile daha önce kayıt yapılmış."
-
-        );
-
-    }
-
-    if (await existsByPhone(data.phone)) {
-
-        throw new Error(
-
-            "Bu telefon numarası ile daha önce kayıt yapılmış."
-
-        );
-
-    }
-
-}
 export async function addRegistration(data) {
 
-    await checkDuplicate(data);
+    if (await isCapacityFull()) {
+        throw new Error("Kontenjan dolmuştur.");
+    }
 
-    const registerNumber =
+    if (await tcExists(data.tc)) {
+        throw new Error("Bu TC Kimlik No ile kayıt bulunmaktadır.");
+    }
 
-        await generateRegisterNumber();
+    if (await phoneExists(data.phone)) {
+        throw new Error("Bu telefon numarası ile kayıt bulunmaktadır.");
+    }
 
-    const registration = {
+    const registerNumber = await generateRegisterNumber();
+
+    const document = {
 
         registerNumber,
 
-        name: data.name,
+        name: data.name.trim(),
 
-        tc: data.tc,
+        tc: data.tc.trim(),
 
-        phone: data.phone,
+        phone: data.phone.trim(),
 
-        email: data.email,
+        email: data.email || "",
 
         birth: data.birth,
 
@@ -153,9 +174,9 @@ export async function addRegistration(data) {
 
         address: data.address,
 
-        note: data.note,
+        note: data.note || "",
 
-        seat: null,
+        seat: "",
 
         checkedIn: false,
 
@@ -163,208 +184,216 @@ export async function addRegistration(data) {
 
     };
 
-    const docRef = await addDoc(
-
-        registrationsRef,
-
-        registration
-
-    );
+    const ref = await addDoc(registrationRef, document);
 
     return {
 
-        id: docRef.id,
+        id: ref.id,
 
-        ...registration
+        ...document
 
     };
 
 }
-export async function getRegistrationCount() {
+/* ===========================================================
+   TÜM KAYITLARI GETİR
+=========================================================== */
 
-    const snapshot = await getDocs(
-
-        registrationsRef
-
-    );
-
-    return snapshot.size;
-
-}
-export async function getRemainingCapacity() {
-
-    const count =
-
-        await getRegistrationCount();
-
-    return Math.max(
-
-        0,
-
-        MAX_CAPACITY - count
-
-    );
-
-}
-export async function isCapacityFull() {
-
-    const remaining =
-
-        await getRemainingCapacity();
-
-    return remaining <= 0;
-
-}
 export async function getRegistrations() {
 
     const q = query(
-        registrationsRef,
+        registrationRef,
         orderBy("createdAt", "desc")
     );
 
-    const snapshot = await getDocs(q);
+    const snap = await getDocs(q);
 
-    return snapshot.docs.map(docItem => ({
-        id: docItem.id,
-        ...docItem.data()
+    return snap.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
     }));
 
 }
 
+/* ===========================================================
+   TEK KAYIT
+=========================================================== */
+
 export async function getRegistration(id) {
 
-    const ref = doc(
-        db,
-        "registrations",
-        id
-    );
+    const ref = doc(db, REGISTRATION_COLLECTION, id);
 
-    const snapshot = await getDoc(ref);
+    const snap = await getDoc(ref);
 
-    if (!snapshot.exists()) {
-
-        return null;
-
-    }
+    if (!snap.exists()) return null;
 
     return {
-
-        id: snapshot.id,
-
-        ...snapshot.data()
-
+        id: snap.id,
+        ...snap.data()
     };
 
 }
-export async function updateSeat(id, seat) {
 
-    const ref = doc(
-        db,
-        "registrations",
-        id
-    );
+/* ===========================================================
+   GÜNCELLE
+=========================================================== */
 
-    await updateDoc(ref, {
+export async function updateRegistration(id, data) {
 
-        seat
+    const ref = doc(db, REGISTRATION_COLLECTION, id);
 
-    });
+    await updateDoc(ref, data);
 
 }
-export async function updateCheckIn(id, checkedIn = true) {
 
-    const ref = doc(
-        db,
-        "registrations",
-        id
-    );
+/* ===========================================================
+   SİL
+=========================================================== */
 
-    await updateDoc(ref, {
-
-        checkedIn
-
-    });
-
-}
 export async function deleteRegistration(id) {
 
-    const ref = doc(
-        db,
-        "registrations",
-        id
+    await deleteDoc(
+        doc(db, REGISTRATION_COLLECTION, id)
     );
 
-    await deleteDoc(ref);
+}
+
+/* ===========================================================
+   KOLTUK KONTROLÜ
+=========================================================== */
+
+export async function seatExists(seat) {
+
+    const q = query(
+        registrationRef,
+        where("seat", "==", String(seat)),
+        limit(1)
+    );
+
+    const snap = await getDocs(q);
+
+    return !snap.empty;
 
 }
-export async function searchRegistrations(searchText) {
 
-    const registrations = await getRegistrations();
+/* ===========================================================
+   KOLTUK VER
+=========================================================== */
 
-    if (!searchText) {
+export async function assignSeat(id, seat) {
 
-        return registrations;
+    seat = Number(seat);
 
+    if (seat < 1 || seat > MAX_CAPACITY) {
+        throw new Error(`Koltuk numarası 1-${MAX_CAPACITY} arasında olmalıdır.`);
     }
 
-    const keyword = searchText
-        .toLowerCase()
-        .trim();
+    if (await seatExists(String(seat))) {
+        throw new Error("Bu koltuk başka bir öğrenciye verilmiş.");
+    }
+
+    await updateDoc(
+        doc(db, REGISTRATION_COLLECTION, id),
+        {
+            seat: String(seat)
+        }
+    );
+
+}
+
+/* ===========================================================
+   QR GİRİŞ
+=========================================================== */
+
+export async function toggleCheckIn(id) {
+
+    const ref = doc(db, REGISTRATION_COLLECTION, id);
+
+    const snap = await getDoc(ref);
+
+    if (!snap.exists()) {
+        throw new Error("Kayıt bulunamadı.");
+    }
+
+    const current = snap.data().checkedIn === true;
+
+    await updateDoc(ref, {
+        checkedIn: !current
+    });
+
+}
+/* ===========================================================
+   CANLI DİNLEME
+=========================================================== */
+
+export function listenRegistrations(callback) {
+
+    const q = query(
+        registrationRef,
+        orderBy("createdAt", "desc")
+    );
+
+    return onSnapshot(q, (snapshot) => {
+
+        const list = snapshot.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+
+        callback(list);
+
+    });
+
+}
+
+/* ===========================================================
+   ARAMA
+=========================================================== */
+
+export async function searchRegistrations(keyword) {
+
+    keyword = keyword.toLowerCase().trim();
+
+    const registrations = await getRegistrations();
 
     return registrations.filter(item => {
 
         return (
-
-            (item.name || "")
-                .toLowerCase()
-                .includes(keyword)
-
-            ||
-
-            (item.tc || "")
-                .includes(keyword)
-
-            ||
-
-            (item.phone || "")
-                .includes(keyword)
-
-            ||
-
-            (item.registerNumber || "")
-                .toLowerCase()
-                .includes(keyword)
-
+            (item.name || "").toLowerCase().includes(keyword) ||
+            (item.registerNumber || "").toLowerCase().includes(keyword) ||
+            (item.tc || "").includes(keyword) ||
+            (item.phone || "").includes(keyword) ||
+            (item.parent || "").toLowerCase().includes(keyword)
         );
 
     });
 
 }
+
+/* ===========================================================
+   İSTATİSTİKLER
+=========================================================== */
+
 export async function getStatistics() {
 
     const registrations = await getRegistrations();
 
     const total = registrations.length;
 
-    const checkedIn = registrations.filter(
+    const checkedIn = registrations.filter(r => r.checkedIn).length;
 
-        item => item.checkedIn
+    const remaining = Math.max(MAX_CAPACITY - total, 0);
 
-    ).length;
+    const occupiedSeats = registrations.filter(r => r.seat).length;
 
-    const seated = registrations.filter(
+    const emptySeats = MAX_CAPACITY - occupiedSeats;
 
-        item => item.seat !== null &&
-                item.seat !== ""
+    const male = registrations.filter(r => r.gender === "Erkek").length;
 
-    ).length;
+    const female = registrations.filter(r => r.gender === "Kız").length;
 
-    const remaining = Math.max(
-
-        0,
-
-        MAX_CAPACITY - total
-
+    const percent = Number(
+        ((total / MAX_CAPACITY) * 100).toFixed(1)
     );
 
     return {
@@ -373,31 +402,86 @@ export async function getStatistics() {
 
         checkedIn,
 
-        seated,
+        remaining,
 
-        remaining
+        occupiedSeats,
+
+        emptySeats,
+
+        male,
+
+        female,
+
+        percent,
+
+        full: total >= MAX_CAPACITY
 
     };
 
 }
-export async function updateRegistration(id, data) {
 
-    const ref = doc(
+/* ===========================================================
+   KAYIT NUMARASI İLE BUL
+=========================================================== */
 
-        db,
+export async function findByRegisterNumber(registerNumber) {
 
-        "registrations",
-
-        id
-
+    const q = query(
+        registrationRef,
+        where("registerNumber", "==", registerNumber),
+        limit(1)
     );
+
+    const snap = await getDocs(q);
+
+    if (snap.empty) return null;
+
+    const document = snap.docs[0];
+
+    return {
+
+        id: document.id,
+
+        ...document.data()
+
+    };
+
+}
+
+/* ===========================================================
+   ID İLE CHECK-IN
+=========================================================== */
+
+export async function checkInByRegisterNumber(registerNumber) {
+
+    const registration = await findByRegisterNumber(registerNumber);
+
+    if (!registration) {
+        throw new Error("Kayıt bulunamadı.");
+    }
 
     await updateDoc(
-
-        ref,
-
-        data
-
+        doc(db, REGISTRATION_COLLECTION, registration.id),
+        {
+            checkedIn: true
+        }
     );
+
+    return registration;
+
+}
+
+/* ===========================================================
+   KOLTUK LİSTESİ
+=========================================================== */
+
+export async function getUsedSeats() {
+
+    const registrations = await getRegistrations();
+
+    return registrations
+        .filter(r => r.seat)
+        .map(r => Number(r.seat))
+        .sort((a, b) => a - b);
 
 }
