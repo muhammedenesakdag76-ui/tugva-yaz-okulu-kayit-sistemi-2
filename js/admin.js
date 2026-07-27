@@ -334,17 +334,34 @@ function setupRefreshButton() {
     );
 
 }
+
+function protectPage() {
+
+    checkAuth(user => {
+
+        if (!user) {
+
+            window.location.href = "login.html";
+
+        }
+
+    });
+
+}
+
 async function init() {
 
-    setupSearch();
+    protectPage();
+
+setupSearch();
 
 setupRefreshButton();
 
 setupQrButtons();
 
-autoRefresh();
-
 setupExportButtons();
+
+autoRefresh();
 
 await loadRegistrations();
 
