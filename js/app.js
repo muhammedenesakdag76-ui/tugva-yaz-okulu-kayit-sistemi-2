@@ -2,68 +2,53 @@ document.addEventListener('DOMContentLoaded', () => {
   const form = document.getElementById('registrationForm');
 
   if (!form) {
-    console.error("Hata: 'registrationForm' id'li form bulunamadı!");
+    console.error("Hata: 'registrationForm' bulunamadı.");
     return;
   }
 
   form.addEventListener('submit', async (e) => {
     e.preventDefault();
 
-    const submitBtn = form.querySelector('button[type="submit"]');
+    const submitBtn = document.getElementById('submitBtn');
 
-    // 1. Form Verilerini Toplama
-    const formData = {
-      tcNo: document.getElementById('tcNo')?.value?.trim() || '',
-      adSoyad: document.getElementById('adSoyad')?.value?.trim() || '',
-      dogumTarihi: document.getElementById('dogumTarihi')?.value || '',
-      okul: document.getElementById('okul')?.value?.trim() || '',
-      sinif: document.getElementById('sinif')?.value || '',
-      veliAdSoyad: document.getElementById('veliAdSoyad')?.value?.trim() || '',
-      veliTelefon: document.getElementById('veliTelefon')?.value?.trim() || '',
-      kanGrubu: document.getElementById('kanGrubu')?.value || '',
-      adres: document.getElementById('adres')?.value?.trim() || '',
-      createdAt: new Date().toISOString(),
+    // Form Değerlerini Alma
+    const studentData = {
+      tcNo: document.getElementById('tcNo').value.trim(),
+      adSoyad: document.getElementById('adSoyad').value.trim(),
+      dogumTarihi: document.getElementById('dogumTarihi').value,
+      okul: document.getElementById('okul').value.trim(),
+      sinif: document.getElementById('sinif').value,
+      veliAdSoyad: document.getElementById('veliAdSoyad').value.trim(),
+      veliTelefon: document.getElementById('veliTelefon').value.trim(),
+      kanGrubu: document.getElementById('kanGrubu').value,
+      adres: document.getElementById('adres').value.trim(),
       status: 'Aktif'
     };
 
-    // 2. Temel Alan Kontrolü
-    if (!formData.tcNo || !formData.adSoyad || !formData.veliTelefon) {
-      alert('Lütfen T.C. Kimlik No, Ad Soyad ve Veli Telefon alanlarını doldurunuz.');
+    // Temel Doğrulama
+    if (studentData.tcNo.length !== 11) {
+      alert('T.C. Kimlik Numarası 11 haneli olmalıdır.');
       return;
     }
 
-    // Button Durumunu Güncelle
+    // Butonu Kilitle
     if (submitBtn) {
       submitBtn.disabled = true;
       submitBtn.innerText = 'Kayıt Yapılıyor...';
     }
 
     try {
-      // 3. Firestore Veritabanına Kayıt
-      // 'db' nesnesi firebase.js üzerinden geliyor
-      let docRef;
-      if (typeof db !== 'undefined') {
-        docRef = await db.collection('students').add({
-          ...formData,
-          createdAt: firebase.firestore.FieldValue.serverTimestamp()
-        });
-      } else {
-        throw new Error("Firebase veritabanı bağlantısı (db) bulunamadı!");
+      // Firebase Kontrolü ve Kayıt
+      if (typeof db === 'undefined') {
+        throw new Error("Firebase bağlantısı kurulamadı. firebase.js dosyanızı kontrol edin.");
       }
 
-      const studentId = docRef.id;
+      await db.collection('students').add({
+        ...studentData,
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+      });
 
-      // 4. QR Kod Üretimi (Opsiyonel - Tanımlıysa çalışır)
-      if (typeof generateQRCode === 'function') {
-        try { await generateQRCode(studentId); } catch (e) { console.warn("QR oluşturulamadı:", e); }
-      }
-
-      // 5. PDF Üretimi (Opsiyonel - Tanımlıysa çalışır)
-      if (typeof generatePDF === 'function') {
-        try { generatePDF({ ...formData, id: studentId }); } catch (e) { console.warn("PDF oluşturulamadı:", e); }
-      }
-
-      alert('Kayıt başarıyla tamamlandı!');
+      alert('Öğrenci kaydı başarıyla oluşturuldu!');
       form.reset();
 
     } catch (error) {
