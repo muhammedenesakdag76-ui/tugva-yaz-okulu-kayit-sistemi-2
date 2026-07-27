@@ -1,62 +1,62 @@
 import {
-
     addRegistration,
-
     getRemainingCapacity,
-
     isCapacityFull
-
 } from "./firebase.js";
 
 import {
-
     validateAndNormalize
-
 } from "./validation.js";
 
 import {
-
     generateQRCode
-
 } from "./qr.js";
 
 import {
-
     downloadRegistrationPDF
-
 } from "./pdf.js";
 
-const form =
-    document.getElementById("registrationForm");
+const APP = {
 
-const submitButton =
-    document.getElementById("submitButton");
+    MAX_CAPACITY: 500,
 
-const resetButton =
-    document.getElementById("resetButton");
+    registration: null,
 
-const remainingCapacityElement =
-    document.getElementById("remainingCapacity");
+    loading: false,
 
-const remainingCapacityText =
-    document.getElementById("remainingCapacityText");
+    dom: {}
 
-const capacityBar =
-    document.getElementById("capacityBar");
+};
 
-const loadingOverlay =
-    document.getElementById("loadingOverlay");
+function cacheDOM() {
 
-const successModal =
-    document.getElementById("successModal");
+    APP.dom = {
 
-const downloadPdfButton =
-    document.getElementById("downloadPdf");
+        form: document.getElementById("registrationForm"),
 
-const newRegistrationButton =
-    document.getElementById("newRegistration");
+        submit: document.getElementById("submitButton"),
 
-let currentRegistration = null;
+        reset: document.getElementById("resetButton"),
+
+        loading: document.getElementById("loadingOverlay"),
+
+        success: document.getElementById("successModal"),
+
+        qr: document.getElementById("successQr"),
+
+        pdf: document.getElementById("downloadPdf"),
+
+        again: document.getElementById("newRegistration"),
+
+        remaining: document.getElementById("remainingCapacity"),
+
+        remainingText: document.getElementById("remainingCapacityText"),
+
+        capacityBar: document.getElementById("capacityBar")
+
+    };
+
+}
 
 function $(id) {
 
@@ -64,95 +64,235 @@ function $(id) {
 
 }
 
-function showLoading() {
+function value(id) {
 
-    loadingOverlay.classList.remove("hidden");
+    const element = $(id);
 
-}
-
-function hideLoading() {
-
-    loadingOverlay.classList.add("hidden");
+    return element ? element.value.trim() : "";
 
 }
-async function updateCapacity() {
 
-    const remaining = await getRemainingCapacity();
+function setValue(id, value) {
 
-    remainingCapacityElement.textContent = remaining;
+    const element = $(id);
 
-    if (remainingCapacityText) {
+    if (element) {
 
-        remainingCapacityText.textContent = remaining;
-
-    }
-
-    const percentage =
-        ((500 - remaining) / 500) * 100;
-
-    if (capacityBar) {
-
-        capacityBar.style.width = `${percentage}%`;
-
-    }
-
-    if (submitButton) {
-
-        submitButton.disabled = remaining <= 0;
+        element.value = value;
 
     }
 
 }
 
+function setText(id, text) {
+
+    const element = $(id);
+
+    if (element) {
+
+        element.textContent = text;
+
+    }
+
+}
+
+function show(element) {
+
+    if (element) {
+
+        element.classList.remove("hidden");
+
+    }
+
+}
+
+function hide(element) {
+
+    if (element) {
+
+        element.classList.add("hidden");
+
+    }
+
+}
+
+function setLoading(status) {
+
+    APP.loading = status;
+
+    if (APP.dom.submit) {
+
+        APP.dom.submit.disabled = status;
+
+    }
+
+    if (APP.dom.reset) {
+
+        APP.dom.reset.disabled = status;
+
+    }
+
+    if (status) {
+
+        show(APP.dom.loading);
+
+    } else {
+
+        hide(APP.dom.loading);
+
+    }
+
+}
 function getFormData() {
 
     return {
 
-        id: "",
+        name: value("name"),
 
-        registerNumber: "",
+        tc: value("tc"),
 
-        name: $("name").value,
+        phone: value("phone"),
 
-        tc: $("tc").value,
+        email: value("email"),
 
-        phone: $("phone").value,
+        birth: value("birth"),
 
-        email: $("email").value,
+        gender: value("gender"),
 
-        birth: $("birth").value,
+        school: value("school"),
 
-        gender: $("gender").value,
+        class: value("class"),
 
-        school: $("school").value,
+        parent: value("parent"),
 
-        class: $("class").value,
+        parentPhone: value("parentPhone"),
 
-        parent: $("parent").value,
+        address: value("address"),
 
-        parentPhone: $("parentPhone").value,
-
-        address: $("address").value,
-
-        note: $("note").value,
-
-        seat: "",
-
-        checkedIn: false,
-
-        createdAt: null
+        note: value("note")
 
     };
 
 }
 
+function fillForm(data = {}) {
+
+    Object.keys(data).forEach(key => {
+
+        const input = $(key);
+
+        if (input) {
+
+            input.value = data[key] ?? "";
+
+        }
+
+    });
+
+}
+
+function clearForm() {
+
+    APP.dom.form.reset();
+
+    APP.registration = null;
+
+}
+
+function saveDraft() {
+
+    try {
+
+        localStorage.setItem(
+
+            "tyo-registration-draft",
+
+            JSON.stringify(getFormData())
+
+        );
+
+    }
+
+    catch (error) {
+
+        console.error(error);
+
+    }
+
+}
+
+function loadDraft() {
+
+    try {
+
+        const json = localStorage.getItem(
+
+            "tyo-registration-draft"
+
+        );
+
+        if (!json) {
+
+            return;
+
+        }
+
+        fillForm(JSON.parse(json));
+
+    }
+
+    catch (error) {
+
+        console.error(error);
+
+    }
+
+}
+
+function clearDraft() {
+
+    localStorage.removeItem(
+
+        "tyo-registration-draft"
+
+    );
+
+}
+
+function bindDraftEvents() {
+
+    APP.dom.form
+        .querySelectorAll(
+            "input, select, textarea"
+        )
+        .forEach(input => {
+
+            input.addEventListener(
+
+                "input",
+
+                saveDraft
+
+            );
+
+        });
+
+}
 function clearErrors() {
 
-    document.querySelectorAll(".error-text")
-
+    document
+        .querySelectorAll(".is-invalid")
         .forEach(element => {
 
-            element.textContent = "";
+            element.classList.remove("is-invalid");
+
+        });
+
+    document
+        .querySelectorAll(".invalid-feedback")
+        .forEach(element => {
+
+            element.remove();
 
         });
 
@@ -162,27 +302,41 @@ function showErrors(errors) {
 
     clearErrors();
 
-    Object.entries(errors)
+    Object.entries(errors).forEach(
 
-        .forEach(([field, message]) => {
+        ([field, message]) => {
 
-            const errorElement =
-                document.getElementById(`${field}Error`);
+            const input = $(field);
 
-            if (errorElement) {
+            if (!input) {
 
-                errorElement.textContent = message;
+                return;
 
             }
 
-        });
+            input.classList.add("is-invalid");
+
+            const div = document.createElement("div");
+
+            div.className = "invalid-feedback";
+
+            div.textContent = message;
+
+            input.insertAdjacentElement(
+
+                "afterend",
+
+                div
+
+            );
+
+        }
+
+    );
 
 }
-async function register(event) {
 
-    event.preventDefault();
-
-    clearErrors();
+function validateForm() {
 
     const result = validateAndNormalize(
 
@@ -194,11 +348,70 @@ async function register(event) {
 
         showErrors(result.errors);
 
+        return null;
+
+    }
+
+    clearErrors();
+
+    return result.data;
+
+}
+
+async function updateCapacity() {
+
+    try {
+
+        const remaining =
+
+            await getRemainingCapacity();
+
+        const used =
+
+            APP.MAX_CAPACITY - remaining;
+
+        const percent =
+
+            Math.min(
+
+                (used / APP.MAX_CAPACITY) * 100,
+
+                100
+
+            );
+
+        APP.dom.remaining.textContent = remaining;
+
+        APP.dom.remainingText.textContent =
+
+            `${used} / ${APP.MAX_CAPACITY}`;
+
+        APP.dom.capacityBar.style.width =
+
+            `${percent}%`;
+
+    }
+
+    catch (error) {
+
+        console.error(error);
+
+    }
+
+}
+async function handleSubmit(event) {
+
+    event.preventDefault();
+
+    if (APP.loading) {
+
         return;
 
     }
 
-    if (await isCapacityFull()) {
+    const full = await isCapacityFull();
+
+    if (full) {
 
         alert("Kontenjan dolmuştur.");
 
@@ -208,514 +421,243 @@ async function register(event) {
 
     }
 
+    const registration = validateForm();
+
+    if (!registration) {
+
+        return;
+
+    }
+
     try {
 
-        showLoading();
+        setLoading(true);
 
-        const registration = await addRegistration(
-
-            result.data
-
-        );
-
-        currentRegistration = registration;
-
-        await generateQRCode(
+        const savedRegistration = await addRegistration(
 
             registration
 
         );
 
-        showSuccess(registration);
+        APP.registration = savedRegistration;
+
+        clearDraft();
 
         await updateCapacity();
 
-    } catch (error) {
+        await showSuccess(savedRegistration);
+
+    }
+
+    catch (error) {
+
+        console.error(error);
 
         alert(
 
             error.message ||
 
-            "Kayıt sırasında hata oluştu."
+            "Kayıt oluşturulurken hata meydana geldi."
 
         );
 
-    } finally {
+    }
 
-        hideLoading();
+    finally {
+
+        setLoading(false);
 
     }
 
 }
+async function showSuccess(registration) {
 
-function clearForm() {
+    setText(
 
-    form.reset();
+        "successName",
 
-    clearErrors();
+        registration.name
 
-}
+    );
 
-function showSuccess(registration) {
+    setText(
 
-    successModal.classList.add("show");
+        "successRegisterNumber",
 
-    const number =
+        registration.registerNumber
 
-        document.getElementById(
+    );
 
-            "successRegisterNumber"
+    setText(
+
+        "successSeat",
+
+        registration.seat || "-"
+
+    );
+
+    if (
+
+        APP.dom.qr &&
+
+        typeof generateQRCode === "function"
+
+    ) {
+
+        await generateQRCode(
+
+            APP.dom.qr,
+
+            registration
 
         );
 
-    if (number) {
-
-        number.textContent =
-
-            registration.registerNumber;
-
     }
+
+    show(APP.dom.success);
 
 }
 
 function hideSuccess() {
 
-    successModal.classList.remove("show");
-
-}
-function bindEvents() {
-
-    form.addEventListener(
-
-        "submit",
-
-        register
-
-    );
-
-    resetButton.addEventListener(
-
-        "click",
-
-        () => {
-
-            clearForm();
-
-        }
-
-    );
-
-    downloadPdfButton.addEventListener(
-
-        "click",
-
-        async () => {
-
-            if (!currentRegistration) {
-
-                return;
-
-            }
-
-            await downloadRegistrationPDF(
-
-                currentRegistration
-
-            );
-
-        }
-
-    );
-
-    newRegistrationButton.addEventListener(
-
-        "click",
-
-        () => {
-
-            hideSuccess();
-
-            clearForm();
-
-            currentRegistration = null;
-
-            $("name").focus();
-
-        }
-
-    );
+    hide(APP.dom.success);
 
 }
 
-function setupFormatting() {
+async function downloadCurrentPDF() {
 
-    $("tc").addEventListener(
-
-        "input",
-
-        event => {
-
-            event.target.value =
-
-                event.target.value
-
-                    .replace(/\D/g, "")
-
-                    .slice(0, 11);
-
-        }
-
-    );
-
-    $("phone").addEventListener(
-
-        "input",
-
-        event => {
-
-            event.target.value =
-
-                event.target.value
-
-                    .replace(/\D/g, "")
-
-                    .slice(0, 11);
-
-        }
-
-    );
-
-    $("parentPhone").addEventListener(
-
-        "input",
-
-        event => {
-
-            event.target.value =
-
-                event.target.value
-
-                    .replace(/\D/g, "")
-
-                    .slice(0, 11);
-
-        }
-
-    );
-
-}
-function setupRealtimeValidation() {
-
-    const validators = {
-
-        name: "nameError",
-
-        tc: "tcError",
-
-        phone: "phoneError",
-
-        email: "emailError",
-
-        birth: "birthError",
-
-        gender: "genderError",
-
-        school: "schoolError",
-
-        class: "classError",
-
-        parent: "parentError",
-
-        parentPhone: "parentPhoneError",
-
-        address: "addressError",
-
-        note: "noteError"
-
-    };
-
-    Object.keys(validators).forEach(field => {
-
-        const element = $(field);
-
-        if (!element) return;
-
-        element.addEventListener("blur", () => {
-
-            const result = validateAndNormalize(
-
-                getFormData()
-
-            );
-
-            const errorElement = $(validators[field]);
-
-            if (errorElement) {
-
-                errorElement.textContent =
-
-                    result.errors[field] || "";
-
-            }
-
-        });
-
-    });
-
-}
-
-async function init() {
-
-    await updateCapacity();
-
-    bindEvents();
-
-    setupFormatting();
-
-    setupRealtimeValidation();
-
-    $("name").focus();
-
-}
-
-document.addEventListener(
-
-    "DOMContentLoaded",
-
-    init
-
-);
-
-window.addEventListener(
-
-    "pageshow",
-
-    () => {
-
-        hideLoading();
-
-    }
-
-);
-function setupRealtimeValidation() {
-
-    const validators = {
-
-        name: "nameError",
-
-        tc: "tcError",
-
-        phone: "phoneError",
-
-        email: "emailError",
-
-        birth: "birthError",
-
-        gender: "genderError",
-
-        school: "schoolError",
-
-        class: "classError",
-
-        parent: "parentError",
-
-        parentPhone: "parentPhoneError",
-
-        address: "addressError",
-
-        note: "noteError"
-
-    };
-
-    Object.keys(validators).forEach(field => {
-
-        const input = $(field);
-
-        if (!input) return;
-
-        input.addEventListener("blur", () => {
-
-            const result = validateAndNormalize(
-
-                getFormData()
-
-            );
-
-            const errorElement =
-
-                document.getElementById(
-
-                    validators[field]
-
-                );
-
-            if (!errorElement) return;
-
-            errorElement.textContent =
-
-                result.errors[field] || "";
-
-        });
-
-    });
-
-}
-
-async function initialize() {
-
-    await updateCapacity();
-
-    bindEvents();
-
-    setupFormatting();
-
-    setupRealtimeValidation();
-
-    $("name").focus();
-
-}
-
-document.addEventListener(
-
-    "DOMContentLoaded",
-
-    initialize
-
-);
-
-export {
-
-    initialize,
-
-    register,
-
-    clearForm,
-
-    updateCapacity
-
-};
-function setupRealtimeValidation() {
-
-    const fields = [
-
-        "name",
-
-        "tc",
-
-        "phone",
-
-        "email",
-
-        "birth",
-
-        "gender",
-
-        "school",
-
-        "class",
-
-        "parent",
-
-        "parentPhone",
-
-        "address",
-
-        "note"
-
-    ];
-
-    fields.forEach(id => {
-
-        const input = $(id);
-
-        if (!input) {
-
-            return;
-
-        }
-
-        input.addEventListener(
-
-            "input",
-
-            () => {
-
-                const result = validateAndNormalize(
-
-                    getFormData()
-
-                );
-
-                const errorElement = document.getElementById(
-
-                    `${id}Error`
-
-                );
-
-                if (!errorElement) {
-
-                    return;
-
-                }
-
-                errorElement.textContent =
-
-                    result.errors[id] || "";
-
-            }
-
-        );
-
-    });
-
-}
-
-async function initialize() {
-
-    await updateCapacity();
-
-    bindEvents();
-
-    setupFormatting();
-
-    setupRealtimeValidation();
-
-    $("name").focus();
-
-}
-
-document.addEventListener(
-
-    "DOMContentLoaded",
-
-    () => {
-
-        initialize()
-
-            .catch(error => {
-
-                console.error(error);
-
-                alert(
-
-                    "Sistem başlatılamadı."
-
-                );
-
-            });
-
-    }
-
-);
-function showToast(message, type = "success") {
-
-    const container = document.getElementById("toastContainer");
-
-    if (!container) {
+    if (!APP.registration) {
 
         return;
 
     }
+
+    await downloadRegistrationPDF(
+
+        APP.registration
+
+    );
+
+}
+
+function startNewRegistration() {
+
+    hideSuccess();
+
+    clearErrors();
+
+    clearForm();
+
+    window.scrollTo({
+
+        top: 0,
+
+        behavior: "smooth"
+
+    });
+
+}
+function bindEvents() {
+
+    APP.dom.form.addEventListener(
+
+        "submit",
+
+        handleSubmit
+
+    );
+
+    APP.dom.reset.addEventListener(
+
+        "click",
+
+        () => {
+
+            clearErrors();
+
+            clearDraft();
+
+        }
+
+    );
+
+    APP.dom.pdf.addEventListener(
+
+        "click",
+
+        downloadCurrentPDF
+
+    );
+
+    APP.dom.again.addEventListener(
+
+        "click",
+
+        startNewRegistration
+
+    );
+
+    bindDraftEvents();
+
+}
+function onlyDigits(value) {
+
+    return value.replace(/\D/g, "");
+
+}
+
+function setupInputFormatting() {
+
+    const tc = $("tc");
+
+    if (tc) {
+
+        tc.addEventListener("input", e => {
+
+            e.target.value = onlyDigits(
+
+                e.target.value
+
+            ).substring(0, 11);
+
+        });
+
+    }
+
+    const phone = $("phone");
+
+    if (phone) {
+
+        phone.addEventListener("input", e => {
+
+            e.target.value = onlyDigits(
+
+                e.target.value
+
+            ).substring(0, 10);
+
+        });
+
+    }
+
+    const parentPhone = $("parentPhone");
+
+    if (parentPhone) {
+
+        parentPhone.addEventListener("input", e => {
+
+            e.target.value = onlyDigits(
+
+                e.target.value
+
+            ).substring(0, 10);
+
+        });
+
+    }
+
+}
+function showToast(message, type = "success") {
 
     const toast = document.createElement("div");
 
@@ -723,7 +665,7 @@ function showToast(message, type = "success") {
 
     toast.textContent = message;
 
-    container.appendChild(toast);
+    document.body.appendChild(toast);
 
     requestAnimationFrame(() => {
 
@@ -744,671 +686,63 @@ function showToast(message, type = "success") {
     }, 3000);
 
 }
+function setupConnectionEvents() {
 
-function setButtonLoading(loading) {
+    window.addEventListener(
 
-    submitButton.disabled = loading;
+        "online",
 
-    if (loading) {
+        () => {
 
-        submitButton.dataset.originalText = submitButton.textContent;
+            showToast(
 
-        submitButton.textContent = "Kaydediliyor...";
+                "İnternet bağlantısı sağlandı."
 
-    } else {
-
-        submitButton.textContent =
-            submitButton.dataset.originalText ||
-            "Kaydı Tamamla";
-
-    }
-
-}
-
-window.addEventListener("online", () => {
-
-    showToast(
-
-        "İnternet bağlantısı yeniden kuruldu."
-
-    );
-
-});
-
-window.addEventListener("offline", () => {
-
-    showToast(
-
-        "İnternet bağlantısı kesildi.",
-
-        "error"
-
-    );
-
-});
-
-document.addEventListener("keydown", event => {
-
-    if (
-
-        event.key === "Escape" &&
-
-        successModal.classList.contains("show")
-
-    ) {
-
-        hideSuccess();
-
-    }
-
-});
-function fillForm(data) {
-
-    $("name").value = data.name ?? "";
-
-    $("tc").value = data.tc ?? "";
-
-    $("phone").value = data.phone ?? "";
-
-    $("email").value = data.email ?? "";
-
-    $("birth").value = data.birth ?? "";
-
-    $("gender").value = data.gender ?? "";
-
-    $("school").value = data.school ?? "";
-
-    $("class").value = data.class ?? "";
-
-    $("parent").value = data.parent ?? "";
-
-    $("parentPhone").value = data.parentPhone ?? "";
-
-    $("address").value = data.address ?? "";
-
-    $("note").value = data.note ?? "";
-
-}
-
-function setFormEnabled(enabled) {
-
-    const elements = form.querySelectorAll(
-
-        "input, select, textarea, button"
-
-    );
-
-    elements.forEach(element => {
-
-        if (
-
-            element.id === "downloadPdf" ||
-
-            element.id === "newRegistration"
-
-        ) {
-
-            return;
+            );
 
         }
 
-        element.disabled = !enabled;
-
-    });
-
-}
-
-function scrollToFirstError() {
-
-    const firstError = document.querySelector(
-
-        ".error-text:not(:empty)"
-
     );
 
-    if (!firstError) {
+    window.addEventListener(
 
-        return;
+        "offline",
 
-    }
+        () => {
 
-    firstError.scrollIntoView({
+            showToast(
 
-        behavior: "smooth",
+                "İnternet bağlantısı kesildi.",
 
-        block: "center"
+                "error"
 
-    });
-
-}
-
-function resetApplication() {
-
-    currentRegistration = null;
-
-    clearForm();
-
-    hideSuccess();
-
-    setFormEnabled(true);
-
-    $("name").focus();
-
-}
-function saveRegistration(registration) {
-
-    try {
-
-        localStorage.setItem(
-
-            "lastRegistration",
-
-            JSON.stringify(registration)
-
-        );
-
-    } catch {
-
-        console.warn(
-
-            "Kayıt yerel depolamaya kaydedilemedi."
-
-        );
-
-    }
-
-}
-
-function loadLastRegistration() {
-
-    try {
-
-        const data = localStorage.getItem(
-
-            "lastRegistration"
-
-        );
-
-        if (!data) {
-
-            return null;
+            );
 
         }
 
-        return JSON.parse(data);
-
-    } catch {
-
-        return null;
-
-    }
-
-}
-
-function clearLastRegistration() {
-
-    localStorage.removeItem(
-
-        "lastRegistration"
-
     );
 
 }
+async function init() {
 
-function disableForm() {
+    cacheDOM();
 
-    setFormEnabled(false);
-
-}
-
-function enableForm() {
-
-    setFormEnabled(true);
-
-}
-
-async function afterSuccessfulRegistration(registration) {
-
-    currentRegistration = registration;
-
-    saveRegistration(registration);
-
-    await updateCapacity();
-
-    showSuccess(registration);
-
-    disableForm();
-
-    showToast(
-
-        "Kayıt başarıyla oluşturuldu."
-
-    );
-
-}
-function restoreLastRegistration() {
-
-    const registration = loadLastRegistration();
-
-    if (!registration) {
-
-        return;
-
-    }
-
-    currentRegistration = registration;
-
-}
-
-function setupAutoSave() {
-
-    const fields = form.querySelectorAll(
-
-        "input, select, textarea"
-
-    );
-
-    fields.forEach(field => {
-
-        field.addEventListener(
-
-            "change",
-
-            () => {
-
-                const data = getFormData();
-
-                localStorage.setItem(
-
-                    "registrationDraft",
-
-                    JSON.stringify(data)
-
-                );
-
-            }
-
-        );
-
-    });
-
-}
-
-function restoreDraft() {
-
-    const draft = localStorage.getItem(
-
-        "registrationDraft"
-
-    );
-
-    if (!draft) {
-
-        return;
-
-    }
-
-    try {
-
-        fillForm(
-
-            JSON.parse(draft)
-
-        );
-
-    } catch {
-
-        localStorage.removeItem(
-
-            "registrationDraft"
-
-        );
-
-    }
-
-}
-
-function clearDraft() {
-
-    localStorage.removeItem(
-
-        "registrationDraft"
-
-    );
-
-}
-
-async function initializeApplication() {
-
-    await updateCapacity();
+    setupInputFormatting();
 
     bindEvents();
 
-    setupFormatting();
+    loadDraft();
 
-    setupRealtimeValidation();
+    setupConnectionEvents();
 
-    setupAutoSave();
-
-    restoreDraft();
-
-    restoreLastRegistration();
-
-    $("name").focus();
-
-}
-function setupCharacterCounters() {
-
-    const configs = [
-
-        {
-
-            field: "address",
-
-            counter: "addressCounter",
-
-            max: 300
-
-        },
-
-        {
-
-            field: "note",
-
-            counter: "noteCounter",
-
-            max: 500
-
-        }
-
-    ];
-
-    configs.forEach(item => {
-
-        const input = $(item.field);
-
-        const counter = $(item.counter);
-
-        if (!input || !counter) {
-
-            return;
-
-        }
-
-        const update = () => {
-
-            counter.textContent =
-
-                `${input.value.length}/${item.max}`;
-
-        };
-
-        input.addEventListener(
-
-            "input",
-
-            update
-
-        );
-
-        update();
-
-    });
+    await updateCapacity();
 
 }
 
-function clearApplication() {
+document.addEventListener(
 
-    clearDraft();
+    "DOMContentLoaded",
 
-    clearLastRegistration();
-
-    currentRegistration = null;
-
-    clearForm();
-
-    hideSuccess();
-
-    enableForm();
-
-    $("name").focus();
-
-}
-
-newRegistrationButton.addEventListener(
-
-    "click",
-
-    () => {
-
-        clearApplication();
-
-    }
+    init
 
 );
-
-downloadPdfButton.addEventListener(
-
-    "click",
-
-    async () => {
-
-        if (!currentRegistration) {
-
-            return;
-
-        }
-
-        await downloadRegistrationPDF(
-
-            currentRegistration
-
-        );
-
-    }
-
-);
-function initializeConnectionWatcher() {
-
-    const offlineBanner =
-        document.getElementById("offlineBanner");
-
-    const onlineBanner =
-        document.getElementById("onlineBanner");
-
-    window.addEventListener("offline", () => {
-
-        if (offlineBanner) {
-
-            offlineBanner.classList.remove("hidden");
-
-        }
-
-        if (onlineBanner) {
-
-            onlineBanner.classList.add("hidden");
-
-        }
-
-    });
-
-    window.addEventListener("online", () => {
-
-        if (offlineBanner) {
-
-            offlineBanner.classList.add("hidden");
-
-        }
-
-        if (onlineBanner) {
-
-            onlineBanner.classList.remove("hidden");
-
-            setTimeout(() => {
-
-                onlineBanner.classList.add("hidden");
-
-            }, 3000);
-
-        }
-
-        updateCapacity();
-
-    });
-
-}
-
-function initializeScrollButton() {
-
-    const button = document.getElementById("pageTop");
-
-    if (!button) {
-
-        return;
-
-    }
-
-    window.addEventListener("scroll", () => {
-
-        if (window.scrollY > 300) {
-
-            button.classList.add("show");
-
-        } else {
-
-            button.classList.remove("show");
-
-        }
-
-    });
-
-    button.addEventListener("click", () => {
-
-        window.scrollTo({
-
-            top: 0,
-
-            behavior: "smooth"
-
-        });
-
-    });
-
-}
-
-async function startApplication() {
-
-    await initializeApplication();
-
-    setupCharacterCounters();
-
-    initializeConnectionWatcher();
-
-    initializeScrollButton();
-
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-
-    startApplication().catch(error => {
-
-        console.error(error);
-
-        alert("Sistem başlatılırken beklenmeyen bir hata oluştu.");
-
-    });
-
-});
-function initializeKeyboardShortcuts() {
-
-    document.addEventListener("keydown", event => {
-
-        if (event.ctrlKey && event.key.toLowerCase() === "s") {
-
-            event.preventDefault();
-
-            form.requestSubmit();
-
-        }
-
-        if (event.key === "Escape") {
-
-            hideSuccess();
-
-        }
-
-    });
-
-}
-
-function initializeBeforeUnload() {
-
-    window.addEventListener("beforeunload", event => {
-
-        const data = getFormData();
-
-        const hasData = Object.values(data).some(value => {
-
-            return String(value).trim() !== "";
-
-        });
-
-        if (!hasData) {
-
-            return;
-
-        }
-
-        event.preventDefault();
-
-        event.returnValue = "";
-
-    });
-
-}
-
-function initializeVisibilityEvents() {
-
-    document.addEventListener("visibilitychange", () => {
-
-        if (document.hidden) {
-
-            return;
-
-        }
-
-        updateCapacity();
-
-    });
-
-}
-
-function initializeResizeEvents() {
-
-    window.addEventListener("resize", () => {
-
-        document.documentElement.style.setProperty(
-
-            "--window-height",
-
-            `${window.innerHeight}px`
-
-        );
-
-    });
-
-}
-
-async function boot() {
-
-    await startApplication();
-
-    initializeKeyboardShortcuts();
-
-    initializeBeforeUnload();
-
-    initializeVisibilityEvents();
-
-    initializeResizeEvents();
-
-}
