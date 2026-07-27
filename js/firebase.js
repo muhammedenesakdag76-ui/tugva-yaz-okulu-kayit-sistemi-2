@@ -100,27 +100,27 @@ async function generateRegisterNumber() {
 
         let nextNumber = 1;
 
-        if (!counterSnap.exists()) {
+        let nextNumber;
 
-            transaction.set(counterRef, {
-                value: 1
-            });
+if (!counterSnap.exists()) {
 
-        } else {
+    nextNumber = 1;
 
-            nextNumber = counterSnap.data().value + 1;
+    transaction.set(counterRef,{
+        value:1
+    });
 
-            if (nextNumber > MAX_CAPACITY) {
-                throw new Error("Kontenjan doldu.");
-            }
+}else{
 
-            transaction.update(counterRef, {
-                value: increment(1)
-            });
+    nextNumber = counterSnap.data().value + 1;
 
-        }
+    transaction.update(counterRef,{
+        value:nextNumber
+    });
 
-        return nextNumber;
+}
+
+return nextNumber;
 
     });
 
