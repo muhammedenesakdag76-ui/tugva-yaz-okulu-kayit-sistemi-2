@@ -577,29 +577,17 @@ return remaining<=0;
 
 export async function registrationExists(tc){
 
-const list=
+    const list = await getAllRegistrations();
 
-await getAllRegistrations();
-
-return list.some(
-
-item=>item.tc===tc
-
-);
+    return list.some(item => item.tc === tc);
 
 }
 
 export async function phoneExists(phone){
 
-const list=
+    const list = await getAllRegistrations();
 
-await getAllRegistrations();
-
-return list.some(
-
-item=>item.telefon===phone
-
-);
+    return list.some(item => item.phone === phone);
 
 }
 // firebase.js
