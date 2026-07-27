@@ -1,152 +1,332 @@
+// ===============================
+// app.js
+// TÜGVA İstanbul Final Gezisi
+// Bölüm 1
+// ===============================
+
 import {
-    addRegistration,
-    generateRegisterNumber,
-    registrationExists,
-    phoneExists,
-    isFull,
-    getRemainingCapacity
+    createParticipant,
+    uploadParticipantPhoto,
+    generateRegistrationCode
 } from "./firebase.js";
 
 import {
-    validateAndPrepare,
-    showErrors,
-    clearErrors
+    calculateAge,
+    isAdult,
+    validateForm,
+    capitalizeWords,
+    onlyNumber,
+    showToast,
+    showLoading,
+    hideLoading
 } from "./validation.js";
 
 import {
-    downloadRegistrationPDF
+    generateQRCode
+} from "./qr.js";
+
+import {
+    downloadParticipantPDF
 } from "./pdf.js";
 
-const form = document.getElementById("registrationForm");
+// ===============================
+// ELEMENTLER
+// ===============================
 
-const submitButton = document.getElementById("submitButton");
+const form = document.getElementById("registerForm");
 
-const remainingElement = document.getElementById("remainingCapacity");
+const successPage = document.getElementById("successPage");
 
-const successModal = document.getElementById("successModal");
+const parentCard = document.getElementById("parentCard");
+
+const birthDate = document.getElementById("birthDate");
+
+const ageInput = document.getElementById("age");
+
+const tcInput = document.getElementById("tc");
+
+const phoneInput = document.getElementById("phone");
+
+const parentPhoneInput = document.getElementById("parentPhone");
+
+const firstNameInput = document.getElementById("firstName");
+
+const lastNameInput = document.getElementById("lastName");
+
+const parentNameInput = document.getElementById("parentName");
+
+const photoInput = document.getElementById("photo");
 
 const pdfButton = document.getElementById("downloadPdf");
 
-const newButton = document.getElementById("newRegistration");
+const newButton = document.getElementById("newRegister");
 
-let lastRegistration = null;
+let createdParticipant = null;
 
-async function updateCapacity() {
+// ===============================
+// SAYFA BAŞLANGICI
+// ===============================
 
-    if (!remainingElement) return;
+window.addEventListener("load", () => {
 
-    const remaining = await getRemainingCapacity();
+    hideLoading();
 
-    remainingElement.textContent = remaining;
+});
+
+// ===============================
+// SADECE RAKAM
+// ===============================
+
+tcInput.addEventListener("input", onlyNumber);
+
+phoneInput.addEventListener("input", onlyNumber);
+
+if(parentPhoneInput){
+
+    parentPhoneInput.addEventListener("input", onlyNumber);
 
 }
 
-function getFormData() {
+// ===============================
+// İSİMLERİ DÜZELT
+// ===============================
 
-    const formData = new FormData(form);
+firstNameInput.addEventListener("blur", () => {
 
-    return {
+    firstNameInput.value = capitalizeWords(
 
-        name: formData.get("name"),
+        firstNameInput.value
 
-        tc: formData.get("tc"),
+    );
 
-        phone: formData.get("phone"),
+});
 
-        email: formData.get("email"),
+lastNameInput.addEventListener("blur", () => {
 
-        birth: formData.get("birth"),
+    lastNameInput.value = capitalizeWords(
 
-        gender: formData.get("gender"),
+        lastNameInput.value
 
-        school: formData.get("school"),
+    );
 
-        class: formData.get("class"),
+});
 
-        parent: formData.get("parent"),
+parentNameInput.addEventListener("blur", () => {
 
-        parentPhone: formData.get("parentPhone"),
+    parentNameInput.value = capitalizeWords(
 
-        address: formData.get("address"),
+        parentNameInput.value
 
-        note: formData.get("note")
+    );
+
+});
+
+// ===============================
+// YAŞ HESABI
+// ===============================
+
+birthDate.addEventListener("change", () => {
+
+    const age = calculateAge(
+
+        birthDate.value
+
+    );
+
+    ageInput.value = age;
+
+    if(isAdult(age)){
+
+        parentCard.classList.add("hidden");
+
+        parentNameInput.required = false;
+
+        parentPhoneInput.required = false;
+
+    }
+
+    else{
+
+        parentCard.classList.remove("hidden");
+
+        parentNameInput.required = true;
+
+        parentPhoneInput.required = true;
+
+    }
+
+});
+
+// ===============================
+// FOTOĞRAF ÖNİZLEME
+// ===============================
+
+photoInput.addEventListener("change", () => {
+
+    const file = photoInput.files[0];
+
+    if(!file) return;
+
+    const reader = new FileReader();
+
+    reader.onload = e => {
+
+        let preview = document.getElementById("photoPreview");
+
+        if(!preview){
+
+            preview = document.createElement("img");
+
+            preview.id = "photoPreview";
+
+            preview.style.width = "180px";
+
+            preview.style.marginTop = "20px";
+
+            preview.style.borderRadius = "12px";
+
+            photoInput.after(preview);
+
+        }
+
+        preview.src = e.target.result;
+
+    };
+
+    reader.readAsDataURL(file);
+
+});
+
+// ===============================
+// VERİYİ TOPLA
+// ===============================
+
+function collectData(){
+
+    return{
+
+        registrationCode:generateRegistrationCode(),
+
+        firstName:firstNameInput.value.trim(),
+
+        lastName:lastNameInput.value.trim(),
+
+        tc:tcInput.value.trim(),
+
+        birthDate:birthDate.value,
+
+        age:Number(ageInput.value),
+
+        phone:phoneInput.value.trim(),
+
+        parentName:parentNameInput.value.trim(),
+
+        parentPhone:parentPhoneInput.value.trim(),
+
+        health:document.getElementById("health").value.trim(),
+
+        kvkk:document.getElementById("kvkk").checked,
+
+        tripApproval:document.getElementById("tripApproval").checked,
+
+        accuracy:document.getElementById("accuracy").checked
 
     };
 
 }
+// ===============================
+// app.js
+// TÜGVA İstanbul Final Gezisi
+// Bölüm 2
+// ===============================
 
-function setLoading(status) {
+// ===============================
+// FORM GÖNDER
+// ===============================
 
-    submitButton.disabled = status;
+form.addEventListener("submit", async (event) => {
 
-    submitButton.textContent = status
+    event.preventDefault();
 
-        ? "Kaydediliyor..."
-
-        : "Kaydı Tamamla";
-
-}
-async function register() {
-
-    clearErrors();
-
-    const rawData = getFormData();
-
-    const result = validateAndPrepare(rawData);
-
-    if (!result.valid) {
-
-        showErrors(result);
-
-        return;
-
-    }
-
-    const data = result.data;
-
-    setLoading(true);
+    showLoading();
 
     try {
 
-        if (await isFull()) {
+        const participant = collectData();
 
-            alert("Kontenjan dolmuştur.");
+        const validation = validateForm(participant);
 
-            return;
+        if (!validation.valid) {
 
-        }
+            hideLoading();
 
-        if (await registrationExists(data.tc)) {
-
-            alert("Bu T.C. Kimlik Numarası ile daha önce kayıt yapılmış.");
+            showToast(validation.errors[0], "error");
 
             return;
 
         }
 
-        if (await phoneExists(data.phone)) {
+        // ---------------------------
+        // Firestore Kaydı
+        // ---------------------------
 
-            alert("Bu telefon numarası ile daha önce kayıt yapılmış.");
+        const documentRef = await createParticipant(participant);
 
-            return;
+        participant.id = documentRef.id;
+
+        // ---------------------------
+        // Fotoğraf
+        // ---------------------------
+
+        if (photoInput.files.length > 0) {
+
+            const url = await uploadParticipantPhoto(
+
+                photoInput.files[0],
+
+                documentRef.id
+
+            );
+
+            participant.photo = url;
 
         }
 
-        data.registerNumber = await generateRegisterNumber();
+        // ---------------------------
+        // QR
+        // ---------------------------
 
-        const id = await addRegistration(data);
+        await generateQRCode(
 
-        lastRegistration = {
+            documentRef.id,
 
-            id,
+            "qrArea"
 
-            ...data
+        );
 
-        };
+        createdParticipant = participant;
 
-        showSuccess();
+        // ---------------------------
+        // Form Gizle
+        // ---------------------------
 
-        await updateCapacity();
+        form.classList.add("hidden");
+
+        successPage.classList.remove("hidden");
+
+        window.scrollTo({
+
+            top: 0,
+
+            behavior: "smooth"
+
+        });
+
+        showToast(
+
+            "Başvurunuz başarıyla kaydedildi."
+
+        );
 
     }
 
@@ -154,290 +334,181 @@ async function register() {
 
         console.error(error);
 
-        alert("Kayıt sırasında bir hata oluştu.");
+        showToast(
+
+            "Kayıt sırasında hata oluştu.",
+
+            "error"
+
+        );
 
     }
 
     finally {
 
-        setLoading(false);
-
-    }
-
-}
-function clearForm() {
-
-    form.reset();
-
-    clearErrors();
-
-}
-
-function showSuccess() {
-
-    if (!successModal) {
-
-        alert("Kayıt başarıyla tamamlandı.");
-
-        return;
-
-    }
-
-    successModal.classList.add("show");
-
-}
-
-function hideSuccess() {
-
-    if (!successModal) return;
-
-    successModal.classList.remove("show");
-
-}
-
-pdfButton?.addEventListener("click", async () => {
-
-    if (!lastRegistration) return;
-
-    try {
-
-        await downloadRegistrationPDF(lastRegistration);
-
-    }
-
-    catch (error) {
-
-        console.error(error);
-
-        alert("PDF oluşturulamadı.");
+        hideLoading();
 
     }
 
 });
 
-newButton?.addEventListener("click", () => {
+// ===============================
+// PDF İNDİR
+// ===============================
 
-    hideSuccess();
+pdfButton.addEventListener(
 
-    clearForm();
+    "click",
 
-    lastRegistration = null;
+    async () => {
 
-});
-form?.addEventListener("submit", async (event) => {
+        if (!createdParticipant) return;
 
-    event.preventDefault();
+        await downloadParticipantPDF(
 
-    await register();
+            createdParticipant
 
-});
+        );
 
-form?.addEventListener("keydown", (event) => {
+    }
 
-    if (event.key === "Enter") {
+);
 
-        const tag = event.target.tagName;
+// ===============================
+// YENİ BAŞVURU
+// ===============================
 
-        if (tag !== "TEXTAREA") {
+newButton.addEventListener(
 
-            event.preventDefault();
+    "click",
 
-            register();
+    () => {
+
+        form.reset();
+
+        form.classList.remove("hidden");
+
+        successPage.classList.add("hidden");
+
+        createdParticipant = null;
+
+        ageInput.value = "";
+
+        parentCard.classList.remove("hidden");
+
+        const preview = document.getElementById(
+
+            "photoPreview"
+
+        );
+
+        if (preview) {
+
+            preview.remove();
+
+        }
+
+        const qrArea = document.getElementById(
+
+            "qrArea"
+
+        );
+
+        qrArea.innerHTML = "";
+
+        window.scrollTo({
+
+            top: 0,
+
+            behavior: "smooth"
+
+        });
+
+    }
+
+);
+
+// ===============================
+// T.C. UZUNLUK KONTROLÜ
+// ===============================
+
+tcInput.addEventListener(
+
+    "input",
+
+    () => {
+
+        if (tcInput.value.length > 11) {
+
+            tcInput.value = tcInput.value.substring(
+
+                0,
+
+                11
+
+            );
 
         }
 
     }
 
-});
+);
 
-document
-.querySelector('input[name="tc"]')
-?.addEventListener("input", function () {
+// ===============================
+// TELEFON UZUNLUK
+// ===============================
 
-    this.value = this.value
-        .replace(/\D/g, "")
-        .slice(0, 11);
+phoneInput.addEventListener(
 
-});
+    "input",
 
-document
-.querySelector('input[name="phone"]')
-?.addEventListener("input", function () {
+    () => {
 
-    this.value = this.value
-        .replace(/\D/g, "")
-        .slice(0, 11);
+        if (phoneInput.value.length > 11) {
 
-});
+            phoneInput.value = phoneInput.value.substring(
 
-document
-.querySelector('input[name="parentPhone"]')
-?.addEventListener("input", function () {
+                0,
 
-    this.value = this.value
-        .replace(/\D/g, "")
-        .slice(0, 11);
+                11
 
-});
-
-[
-    'input[name="name"]',
-    'input[name="parent"]',
-    'input[name="school"]'
-].forEach(selector => {
-
-    document.querySelector(selector)
-    ?.addEventListener("blur", function () {
-
-        this.value = this.value
-            .toLocaleLowerCase("tr-TR")
-            .replace(/\b\w/g, c =>
-                c.toLocaleUpperCase("tr-TR")
             );
 
-    });
-
-});
-function setFieldError(input, message = "") {
-
-    if (!input) return;
-
-    input.classList.toggle("input-error", Boolean(message));
-
-    const error = document.getElementById(`${input.name}Error`);
-
-    if (error) {
-
-        error.textContent = message;
+        }
 
     }
 
-}
+);
 
-async function validateField(input) {
+if (parentPhoneInput) {
 
-    const data = getFormData();
+    parentPhoneInput.addEventListener(
 
-    const result = validateAndPrepare(data);
+        "input",
 
-    setFieldError(
+        () => {
 
-        input,
+            if (parentPhoneInput.value.length > 11) {
 
-        result.errors[input.name] || ""
+                parentPhoneInput.value = parentPhoneInput.value.substring(
+
+                    0,
+
+                    11
+
+                );
+
+            }
+
+        }
 
     );
 
 }
 
-form?.querySelectorAll("input, select, textarea")
-.forEach(input => {
-
-    if (input.hasAttribute("required")) {
-
-        input.addEventListener("blur", () => {
-
-            validateField(input);
-
-        });
-
-        input.addEventListener("input", () => {
-
-            if (input.classList.contains("input-error")) {
-
-                validateField(input);
-
-            }
-
-        });
-
-    }
-
-});
-
-window.addEventListener("DOMContentLoaded", async () => {
-
-    await updateCapacity();
-
-    clearErrors();
-
-    form?.querySelectorAll("[required]").forEach(input => {
-
-        input.setAttribute(
-
-            "aria-required",
-
-            "true"
-
-        );
-
-    });
-
-});
-function lockForm(lock = true) {
-
-    form?.querySelectorAll(
-
-        "input, select, textarea, button"
-
-    ).forEach(element => {
-
-        if (element.id === "downloadPdf") return;
-        if (element.id === "newRegistration") return;
-
-        element.disabled = lock;
-
-    });
-
-}
-
-function unlockForm() {
-
-    lockForm(false);
-
-}
-
-function openSuccessModal() {
-
-    if (!successModal) return;
-
-    successModal.classList.add("show");
-
-    lockForm(true);
-
-}
-
-function closeSuccessModal() {
-
-    if (!successModal) return;
-
-    successModal.classList.remove("show");
-
-}
-
-function startNewRegistration() {
-
-    closeSuccessModal();
-
-    unlockForm();
-
-    clearForm();
-
-    lastRegistration = null;
-
-    document
-        .querySelector('input[name="name"]')
-        ?.focus();
-
-}
-
-newButton?.addEventListener(
-
-    "click",
-
-    startNewRegistration
-
-);
+// ===============================
+// ENTER ENGELLE
+// ===============================
 
 document.addEventListener(
 
@@ -447,13 +518,13 @@ document.addEventListener(
 
         if (
 
-            event.key === "Escape" &&
+            event.key === "Enter" &&
 
-            successModal?.classList.contains("show")
+            event.target.tagName !== "TEXTAREA"
 
         ) {
 
-            startNewRegistration();
+            event.preventDefault();
 
         }
 
@@ -461,201 +532,32 @@ document.addEventListener(
 
 );
 
-successModal?.addEventListener(
+// ===============================
+// SAYFA AYRILMADAN ÖNCE UYARI
+// ===============================
 
-    "click",
+window.addEventListener(
+
+    "beforeunload",
 
     event => {
 
-        if (event.target === successModal) {
+        if (
 
-            startNewRegistration();
+            !form.classList.contains("hidden")
+
+        ) {
+
+            event.preventDefault();
+
+            event.returnValue = "";
 
         }
 
     }
 
 );
-function formatPhoneInput(value) {
 
-    const digits = value
-        .replace(/\D/g, "")
-        .slice(0, 11);
-
-    if (digits.length <= 4) return digits;
-
-    if (digits.length <= 7) {
-        return `${digits.slice(0,4)} ${digits.slice(4)}`;
-    }
-
-    if (digits.length <= 9) {
-        return `${digits.slice(0,4)} ${digits.slice(4,7)} ${digits.slice(7)}`;
-    }
-
-    return `${digits.slice(0,4)} ${digits.slice(4,7)} ${digits.slice(7,9)} ${digits.slice(9,11)}`;
-
-}
-
-[
-    'input[name="phone"]',
-    'input[name="parentPhone"]'
-].forEach(selector => {
-
-    const input = document.querySelector(selector);
-
-    if (!input) return;
-
-    input.addEventListener("input", function () {
-
-        const cursor = this.selectionStart;
-
-        this.value = formatPhoneInput(this.value);
-
-        this.setSelectionRange(cursor, cursor);
-
-    });
-
-});
-
-const tcInput = document.querySelector('input[name="tc"]');
-
-tcInput?.addEventListener("paste", event => {
-
-    event.preventDefault();
-
-    const pasted = (
-        event.clipboardData ||
-        window.clipboardData
-    )
-    .getData("text")
-    .replace(/\D/g, "")
-    .slice(0, 11);
-
-    tcInput.value = pasted;
-
-});
-
-const birthInput = document.querySelector(
-    'input[name="birth"]'
-);
-
-if (birthInput) {
-
-    const today = new Date();
-
-    const min = new Date();
-
-    const max = new Date();
-
-    min.setFullYear(today.getFullYear() - 18);
-
-    max.setFullYear(today.getFullYear() - 7);
-
-    birthInput.min = min.toISOString().split("T")[0];
-
-    birthInput.max = max.toISOString().split("T")[0];
-
-}
-
-window.addEventListener("load", () => {
-
-    document
-        .querySelector('input[name="name"]')
-        ?.focus();
-
-});
-async function init() {
-
-    try {
-
-        await updateCapacity();
-
-        clearErrors();
-
-        unlockForm();
-
-        lastRegistration = null;
-
-        const firstInput = document.querySelector(
-            'input[name="name"]'
-        );
-
-        firstInput?.focus();
-
-        console.log(
-            "TÜGVA Yaz Okulu Kayıt Sistemi hazır."
-        );
-
-    }
-
-    catch (error) {
-
-        console.error(error);
-
-        alert(
-            "Sistem başlatılırken bir hata oluştu."
-        );
-
-    }
-
-}
-
-window.addEventListener(
-
-    "DOMContentLoaded",
-
-    init
-
-);
-
-window.addEventListener(
-
-    "error",
-
-    event => {
-
-        console.error(
-
-            "Beklenmeyen Hata:",
-
-            event.error
-
-        );
-
-    }
-
-);
-
-window.addEventListener(
-
-    "unhandledrejection",
-
-    event => {
-
-        console.error(
-
-            "Yakalanmayan Promise:",
-
-            event.reason
-
-        );
-
-    }
-
-);
-
-export {
-
-    register,
-
-    updateCapacity,
-
-    clearForm,
-
-    getFormData,
-
-    startNewRegistration,
-
-    init
-
-};
+// ===============================
+// BİTİŞ
+// ===============================
