@@ -1,20 +1,15 @@
-import { auth } from "./firebase.js";
-
 import {
-    signInWithEmailAndPassword,
-    onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
+    login,
+    authListener
+} from "./firebase.js";
 
 const form = document.getElementById("loginForm");
-const email = document.getElementById("email");
-const password = document.getElementById("password");
-const error = document.getElementById("error");
 
-onAuthStateChanged(auth, (user) => {
+authListener(user => {
 
     if (user) {
 
-        window.location.href = "admin.html";
+        location.href = "admin.html";
 
     }
 
@@ -24,86 +19,22 @@ form.addEventListener("submit", async (e) => {
 
     e.preventDefault();
 
-    error.style.display = "none";
+    const email =
+        document.getElementById("email").value.trim();
 
-    const button = form.querySelector("button");
-
-    button.disabled = true;
-
-    button.textContent = "Giriş Yapılıyor...";
+    const password =
+        document.getElementById("password").value;
 
     try {
 
-        await signInWithEmailAndPassword(
+        await login(email, password);
 
-            auth,
-            email.value.trim(),
-            password.value
-
-        );
-
-        localStorage.setItem(
-
-            "adminLoginTime",
-
-            Date.now()
-
-        );
-
-        window.location.href = "admin.html";
+        location.href = "admin.html";
 
     } catch (err) {
 
-        let mesaj = "Giriş başarısız.";
-
-        switch (err.code) {
-
-            case "auth/invalid-credential":
-            case "auth/wrong-password":
-            case "auth/user-not-found":
-            case "auth/invalid-email":
-
-                mesaj = "E-posta veya şifre hatalı.";
-                break;
-
-            case "auth/too-many-requests":
-
-                mesaj = "Çok fazla başarısız deneme yapıldı. Lütfen daha sonra tekrar deneyin.";
-                break;
-
-            case "auth/network-request-failed":
-
-                mesaj = "İnternet bağlantınızı kontrol edin.";
-                break;
-
-        }
-
-        error.textContent = mesaj;
-        error.style.display = "block";
-
-    } finally {
-
-        button.disabled = false;
-        button.textContent = "Giriş Yap";
+        alert("E-Posta veya şifre hatalı.");
 
     }
 
 });
-
-const loginTime = Number(localStorage.getItem("adminLoginTime"));
-
-if (loginTime) {
-
-    const gecenSure = Date.now() - loginTime;
-
-    const onIkiSaat = 12 * 60 * 60 * 1000;
-
-    if (gecenSure > onIkiSaat) {
-
-        auth.signOut();
-
-        localStorage.removeItem("adminLoginTime");
-
-    }
-
-}
