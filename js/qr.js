@@ -1,34 +1,24 @@
 import QRCode from "https://cdn.jsdelivr.net/npm/qrcode@1.5.4/+esm";
 
-export async function generateQRCode(text, canvas) {
+const QR_OPTIONS = {
 
-    if (!canvas) {
-        throw new Error("Canvas bulunamadı.");
+    width: 320,
+
+    margin: 2,
+
+    errorCorrectionLevel: "H",
+
+    color: {
+
+        dark: "#0b3d2e",
+
+        light: "#ffffff"
+
     }
 
-    await QRCode.toCanvas(canvas, text, {
+};
 
-        width: 300,
-
-        margin: 2,
-
-        errorCorrectionLevel: "H",
-
-        color: {
-
-            dark: "#000000",
-
-            light: "#FFFFFF"
-
-        }
-
-    });
-
-    return canvas;
-
-}
-
-export async function registrationQR(registration) {
+export function createQRPayload(registration) {
 
     return JSON.stringify({
 
@@ -38,123 +28,343 @@ export async function registrationQR(registration) {
 
         name: registration.name,
 
-        tc: registration.tc
+        tc: registration.tc,
+
+        seat: registration.seat,
+
+        checkedIn: registration.checkedIn
 
     });
 
 }
 
-export async function drawRegistrationQR(registration, canvas) {
+export async function generateQRCode(registration) {
 
-    const text = await registrationQR(registration);
+    const payload = createQRPayload(registration);
 
-    return await generateQRCode(text, canvas);
+    return await QRCode.toDataURL(
+
+        payload,
+
+        QR_OPTIONS
+
+    );
 
 }
-export function downloadQR(canvas, fileName = "qr.png") {
+
+export async function drawQRCode(canvas, registration) {
+
+    if (!(canvas instanceof HTMLCanvasElement)) {
+
+        throw new Error("Canvas bulunamadı.");
+
+    }
+
+    const payload = createQRPayload(registration);
+
+    await QRCode.toCanvas(
+
+        canvas,
+
+        payload,
+
+        QR_OPTIONS
+
+    );
+
+    return canvas;
+
+}
+
+export async function createQRCodeImage(registration) {
+
+    return await generateQRCode(registration);
+
+}
+export async function downloadQRCode(registration) {
+
+    const qr = await generateQRCode(registration);
 
     const link = document.createElement("a");
 
-    link.download = fileName;
+    link.href = qr;
 
-    link.href = canvas.toDataURL("image/png");
+    link.download = `${registration.registerNumber}.png`;
+
+    document.body.appendChild(link);
 
     link.click();
 
-}
-
-export function qrToImage(canvas) {
-
-    return canvas.toDataURL("image/png");
+    link.remove();
 
 }
 
-export function clearQR(canvas) {
+export async function qrToBlob(registration) {
 
-    const ctx = canvas.getContext("2d");
+    const qr = await generateQRCode(registration);
 
-    ctx.clearRect(
+    const response = await fetch(qr);
 
-        0,
-
-        0,
-
-        canvas.width,
-
-        canvas.height
-
-    );
+    return await response.blob();
 
 }
-export function parseQR(text) {
+
+export async function qrToImageElement(registration) {
+
+    const image = new Image();
+
+    image.src = await generateQRCode(registration);
+
+    await new Promise((resolve, reject) => {
+
+       export async function renderQRCode(imgElement, registration) {
+
+    if (!(imgElement instanceof HTMLImageElement)) {
+
+        throw new Error("QR görüntü alanı bulunamadı.");
+
+    }
+
+    const qrDataUrl = await generateQRCode(registration);
+
+    imgElement.src = qrDataUrl;
+
+    imgElement.alt = `${registration.registerNumber} QR`;
+
+    return qrDataUrl;
+
+}
+
+export async function downloadQRCode(registration) {
+
+    const qrDataUrl = await generateQRCode(registration);
+
+    const link = document.createElement("a");
+
+    link.href = qrDataUrl;
+
+    link.download = `${registration.registerNumber}.png`;
+
+    document.body.appendChild(link);
+
+    link.click();
+
+    document.body.removeChild(link);
+
+}
+
+export function clearQRCode(element) {
+
+    if (!element) {
+
+        return;
+
+    }
+
+    if (element instanceof HTMLImageElement) {
+
+        element.removeAttribute("src");
+
+    }
+
+    if (element instanceof HTMLCanvasElement) {
+
+        const context = element.getContext("2d");
+
+        context.clearRect(
+
+            0,
+
+            0,
+
+            element.width,
+
+            element.height
+
+        );
+
+    }
+
+}
+export function parseQRCode(qrContent) {
+
+    if (!qrContent) {
+
+        throw new Error("QR verisi boş.");
+
+    }
+
+    let data;
 
     try {
 
-        return JSON.parse(text);
+        data = JSON.parse(qrContent);
+
+    } catch {
+
+        throw new Error("QR verisi okunamadı.");
 
     }
-
-    catch {
-
-        return null;
-
-    }
-
-}
-
-export function isValidQR(data) {
-
-    if (!data) return false;
-
-    return (
-
-        data.id &&
-
-        data.registerNumber &&
-
-        data.name &&
-
-        data.tc
-
-    );
-
-}
-export async function createRegistrationQR(registration, canvas) {
-
-    await drawRegistrationQR(
-
-        registration,
-
-        canvas
-
-    );
 
     return {
 
-        image: qrToImage(canvas),
+        id: data.id ?? "",
 
-        canvas
+        registerNumber: data.registerNumber ?? "",
+
+        name: data.name ?? "",
+
+        tc: data.tc ?? "",
+
+        seat: data.seat ?? "",
+
+        checkedIn: Boolean(data.checkedIn)
 
     };
 
 }
 
+export function isValidQRCode(qrContent) {
+
+    try {
+
+        const data = parseQRCode(qrContent);
+
+        return (
+
+            data.id !== "" &&
+
+            data.registerNumber !== "" &&
+
+            data.name !== "" &&
+
+            data.tc.length === 11
+
+        );
+
+    } catch {
+
+        return false;
+
+    }
+
+}
+
+export function getQRCodeText(registration) {
+
+    return createQRPayload(registration);
+
+}
+
+export async function regenerateQRCode(registration) {
+
+    return await generateQRCode(registration);
+
+}
+export async function createRegistrationQR(registration) {
+
+    const qrImage = await generateQRCode(registration);
+
+    return {
+
+        registerNumber: registration.registerNumber,
+
+        qr: qrImage
+
+    };
+
+}
+
+export async function updateQRCode(target, registration) {
+
+    if (target instanceof HTMLImageElement) {
+
+        await renderQRCode(target, registration);
+
+        return;
+
+    }
+
+    if (target instanceof HTMLCanvasElement) {
+
+        await drawQRCode(target, registration);
+
+        return;
+
+    }
+
+    throw new Error("Geçersiz QR hedefi.");
+
+}
+
+export function getQRFileName(registration) {
+
+    return `${registration.registerNumber}_QR.png`;
+
+}
+
+export async function qrToBlob(registration) {
+
+    const dataUrl = await generateQRCode(registration);
+
+    const response = await fetch(dataUrl);
+
+    return await response.blob();
+
+}
+
+export async function qrToFile(registration) {
+
+    const blob = await qrToBlob(registration);
+
+    return new File(
+
+        [blob],
+
+        getQRFileName(registration),
+
+        {
+
+            type: "image/png"
+
+        }
+
+    );
+
+}
+
 export default {
+
+    createQRPayload,
 
     generateQRCode,
 
-    registrationQR,
+    drawQRCode,
 
-    drawRegistrationQR,
+    createQRCodeImage,
+
+    renderQRCode,
+
+    downloadQRCode,
+
+    clearQRCode,
+
+    parseQRCode,
+
+    isValidQRCode,
+
+    getQRCodeText,
+
+    regenerateQRCode,
 
     createRegistrationQR,
 
-    downloadQR,
+    updateQRCode,
 
-    parseQR,
+    getQRFileName,
 
-    isValidQR,
+    qrToBlob,
 
-    clearQR
+    qrToFile
 
 };
