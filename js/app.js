@@ -3,7 +3,7 @@
 // Parça 1/8
 alert("app.js çalıştı");
 import{
-createRegistration,
+addRegistration,
 generateRegisterNumber,
 getRemainingCapacity,
 registrationExists,
@@ -83,59 +83,51 @@ remaining;
 
 function getFormData(){
 
-return{
+    return{
 
-kayitNo:"",
+        registerNumber:"",
 
-adSoyad:
+        name:
+        adSoyad.value.trim(),
 
-adSoyad.value.trim(),
+        tc:
+        tc.value.trim(),
 
-tc:
+        phone:
+        telefon.value.trim(),
 
-tc.value.trim(),
+        email:
+        email.value.trim(),
 
-telefon:
+        birth:
+        dogumTarihi.value,
 
-telefon.value.trim(),
+        gender:
+        cinsiyet.value,
 
-email:
+        school:
+        okul.value.trim(),
 
-email.value.trim(),
+        class:
+        sinif.value.trim(),
 
-dogumTarihi:
+        parent:
+        veliAdi.value.trim(),
 
-dogumTarihi.value,
+        parentPhone:
+        veliTelefon.value.trim(),
 
-cinsiyet:
+        address:
+        adres.value.trim(),
 
-cinsiyet.value,
+        note:
+        note.value.trim(),
 
-okul:
+        seat:"",
 
-okul.value.trim(),
+        checkedIn:false
 
-sinif:
-
-sinif.value.trim(),
-
-veliAdi:
-
-veliAdi.value.trim(),
-
-veliTelefon:
-
-veliTelefon.value.trim(),
-
-adres:
-
-adres.value.trim(),
-
-not:
-
-note.value.trim()
-
-};
+    };
 
 }
 
@@ -202,11 +194,10 @@ return;
 
 }
 
-data.kayitNo=
-
+data.registerNumber =
 await generateRegisterNumber();
 
-await createRegistration(data);
+await addRegistration(data);
 
 currentParticipant=data;
 
@@ -227,14 +218,11 @@ successCard.style.display=
 
 "block";
 
-registerNumber.textContent=
-
-currentParticipant.kayitNo;
+registerNumber.textContent =
+currentParticipant.registerNumber;
 
 generateQR(
-
-currentParticipant.kayitNo
-
+currentParticipant.registerNumber
 );
 
 updateCapacity();
