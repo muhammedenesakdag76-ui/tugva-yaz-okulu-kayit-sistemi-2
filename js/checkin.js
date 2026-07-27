@@ -1,74 +1,88 @@
-// checkin.js
-// Profesyonel Sürüm
+// checkin.js Düzeltme Paketi
 // Parça 1/8
 
 import{
-
 authListener,
-
 getRegistration,
-
 checkIn,
-
-checkOut,
-
 getStatistics
+}from"./firebase.js";
 
-}
+const reader=document.getElementById("reader");
 
-from "./firebase.js";
+const result=document.getElementById("result");
 
-const result=
+const todayCount=document.getElementById("todayCount");
 
-document.getElementById(
+const remainingCount=document.getElementById("remainingCount");
 
-"result"
+const manualCode=document.getElementById("manualCode");
 
-);
+const manualButton=document.getElementById("manualButton");
 
-let scanner;
+let scanner=null;
+
+let lastCode="";
+// checkin.js Düzeltme Paketi
+// Parça 2/8
 
 authListener(user=>{
 
 if(!user){
 
-location.href=
+location.href="login.html";
 
-"login.html";
+return;
 
 }
 
 });
-// checkin.js
-// Parça 2/8
 
-function showResult(
+async function updateStats(){
 
-title,
+const stats=
 
-color
+await getStatistics();
 
-){
+todayCount.textContent=
 
-result.innerHTML=`
+stats.checked;
 
-<div class="card">
+remainingCount.textContent=
 
-<h2 style="color:${color}">
-
-${title}
-
-</h2>
-
-</div>
-
-`;
+stats.remaining;
 
 }
-// checkin.js
+// checkin.js Düzeltme Paketi
 // Parça 3/8
 
+function showResult(type,text){
+
+result.className="";
+
+result.classList.add(type);
+
+result.innerHTML=text;
+
+}
+// checkin.js Düzeltme Paketi
+// Parça 4/8
+
 async function processQR(code){
+
+if(code===lastCode){
+
+return;
+
+}
+
+lastCode=code;
+
+setTimeout(()=>{
+
+lastCode="";
+
+},2000);
 
 const participant=
 
@@ -78,9 +92,9 @@ if(!participant){
 
 showResult(
 
-"Kayıt Bulunamadı",
+"error",
 
-"#dc2626"
+"Kayıt bulunamadı."
 
 );
 
@@ -90,15 +104,11 @@ return;
 
 if(participant.checkedIn){
 
-await checkOut(code);
-
 showResult(
 
-participant.adSoyad+
+"warning",
 
-"<br>Çıkış Yapıldı",
-
-"#2563eb"
+`${participant.adSoyad}<br>Daha önce giriş yapmış.`
 
 );
 
@@ -106,95 +116,101 @@ return;
 
 }
 
-await checkIn(code);
+await checkIn(participant.id);
 
 showResult(
 
-participant.adSoyad+
+"success",
 
-"<br>Giriş Yapıldı",
-
-"#16a34a"
+`${participant.adSoyad}<br>Giriş yapıldı.`
 
 );
 
 updateStats();
 
 }
-// checkin.js
-// Parça 4/8
-
-async function updateStats(){
-
-const stats=
-
-await getStatistics();
-
-document.getElementById(
-
-"todayCount"
-
-).textContent=
-
-stats.checkedIn;
-
-}
-// checkin.js
+// checkin.js Düzeltme Paketi
 // Parça 5/8
 
-scanner=
+function startScanner(){
 
-new Html5QrcodeScanner(
+scanner=new Html5Qrcode("reader");
 
-"reader",
+scanner.start(
+
+{
+
+facingMode:{
+
+exact:"environment"
+
+}
+
+},
 
 {
 
 fps:10,
 
-qrbox:260,
-
-rememberLastUsedCamera:true
+qrbox:250
 
 },
 
-false
+decodedText=>{
 
-);
+processQR(decodedText);
 
-scanner.render(
-
-processQR,
+},
 
 ()=>{}
 
+).catch(()=>{
+
+showResult(
+
+"error",
+
+"Arka kamera açılamadı."
+
 );
-// checkin.js
+
+});
+
+}
+// checkin.js Düzeltme Paketi
 // Parça 6/8
 
-manualButton.onclick=
+manualButton.addEventListener(
 
-()=>{
+"click",
 
-const value=
+async()=>{
 
-manualCode.value.trim();
+const code=
 
-if(value===""){
+manualCode.value
+
+.trim()
+
+.toUpperCase();
+
+if(!code){
+
+manualCode.focus();
 
 return;
 
 }
 
-processQR(
+await processQR(code);
 
-value
+manualCode.value="";
+
+manualCode.focus();
+
+}
 
 );
-
-};
-// checkin.js
-// Parça 7/8
 
 manualCode.addEventListener(
 
@@ -204,16 +220,67 @@ e=>{
 
 if(e.key==="Enter"){
 
-processQR(
-
-manualCode.value.trim()
-
-);
+manualButton.click();
 
 }
 
-});
-// checkin.js
-// Parça 8/8 (Son)
+}
+);
+// checkin.js Düzeltme Paketi
+// Parça 7/8
+
+window.addEventListener(
+
+"DOMContentLoaded",
+
+()=>{
 
 updateStats();
+
+startScanner();
+
+manualCode.focus();
+
+}
+
+);
+
+window.addEventListener(
+
+"beforeunload",
+
+async()=>{
+
+if(scanner){
+
+try{
+
+await scanner.stop();
+
+await scanner.clear();
+
+}catch(e){}
+
+}
+
+}
+);
+// checkin.js Düzeltme Paketi
+// Parça 8/8 (Son)
+
+document.addEventListener(
+
+"visibilitychange",
+
+()=>{
+
+if(document.hidden){
+
+return;
+
+}
+
+updateStats();
+
+}
+);
