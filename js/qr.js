@@ -1,223 +1,160 @@
-// qr.js
-// Profesyonel Sürüm
-// Parça 1/6
+import QRCode from "https://cdn.jsdelivr.net/npm/qrcode@1.5.4/+esm";
 
-let qrInstance=null;
+export async function generateQRCode(text, canvas) {
 
-export function generateQR(
+    if (!canvas) {
+        throw new Error("Canvas bulunamadı.");
+    }
 
-text,
+    await QRCode.toCanvas(canvas, text, {
 
-elementId="qrcode"
+        width: 300,
 
-){
+        margin: 2,
 
-const container=
+        errorCorrectionLevel: "H",
 
-document.getElementById(
+        color: {
 
-elementId
+            dark: "#000000",
 
-);
+            light: "#FFFFFF"
 
-container.innerHTML="";
+        }
 
-qrInstance=
+    });
 
-new QRCode(
-
-container,
-
-{
-
-text,
-
-width:220,
-
-height:220,
-
-colorDark:"#000",
-
-colorLight:"#fff",
-
-correctLevel:
-
-QRCode.CorrectLevel.H
+    return canvas;
 
 }
 
-);
+export async function registrationQR(registration) {
 
-}
-// qr.js
-// Parça 2/6
+    return JSON.stringify({
 
-export function clearQR(
+        id: registration.id,
 
-elementId="qrcode"
+        registerNumber: registration.registerNumber,
 
-){
+        name: registration.name,
 
-const container=
+        tc: registration.tc
 
-document.getElementById(
-
-elementId
-
-);
-
-container.innerHTML="";
-
-qrInstance=null;
+    });
 
 }
 
-export function hasQR(){
+export async function drawRegistrationQR(registration, canvas) {
 
-return qrInstance!==null;
+    const text = await registrationQR(registration);
+
+    return await generateQRCode(text, canvas);
 
 }
-// qr.js
-// Parça 3/6
+export function downloadQR(canvas, fileName = "qr.png") {
 
-export function getQRImage(
+    const link = document.createElement("a");
 
-elementId="qrcode"
+    link.download = fileName;
 
-){
+    link.href = canvas.toDataURL("image/png");
 
-const container=
-
-document.getElementById(
-
-elementId
-
-);
-
-const img=
-
-container.querySelector("img");
-
-if(img){
-
-return img.src;
+    link.click();
 
 }
 
-const canvas=
+export function qrToImage(canvas) {
 
-container.querySelector("canvas");
-
-if(canvas){
-
-return canvas.toDataURL(
-
-"image/png"
-
-);
+    return canvas.toDataURL("image/png");
 
 }
 
-return null;
+export function clearQR(canvas) {
+
+    const ctx = canvas.getContext("2d");
+
+    ctx.clearRect(
+
+        0,
+
+        0,
+
+        canvas.width,
+
+        canvas.height
+
+    );
 
 }
-// qr.js
-// Parça 4/6
+export function parseQR(text) {
 
-export function downloadQR(
+    try {
 
-filename="qr.png",
+        return JSON.parse(text);
 
-elementId="qrcode"
+    }
 
-){
+    catch {
 
-const image=
+        return null;
 
-getQRImage(
-
-elementId
-
-);
-
-if(!image)return;
-
-const a=
-
-document.createElement("a");
-
-a.href=image;
-
-a.download=filename;
-
-a.click();
+    }
 
 }
-// qr.js
-// Parça 5/6
 
-export function printQR(
+export function isValidQR(data) {
 
-elementId="qrcode"
+    if (!data) return false;
 
-){
+    return (
 
-const image=
+        data.id &&
 
-getQRImage(
+        data.registerNumber &&
 
-elementId
+        data.name &&
 
-);
+        data.tc
 
-if(!image)return;
-
-const w=
-
-window.open(
-
-"",
-
-"_blank"
-
-);
-
-w.document.write(`
-
-<img
-src="${image}"
-style="width:300px">
-
-`);
-
-w.document.close();
-
-w.print();
+    );
 
 }
-// qr.js
-// Parça 6/6 (Son)
+export async function createRegistrationQR(registration, canvas) {
 
-export function regenerateQR(
+    await drawRegistrationQR(
 
-text,
+        registration,
 
-elementId="qrcode"
+        canvas
 
-){
+    );
 
-clearQR(
+    return {
 
-elementId
+        image: qrToImage(canvas),
 
-);
+        canvas
 
-generateQR(
-
-text,
-
-elementId
-
-);
+    };
 
 }
+
+export default {
+
+    generateQRCode,
+
+    registrationQR,
+
+    drawRegistrationQR,
+
+    createRegistrationQR,
+
+    downloadQR,
+
+    parseQR,
+
+    isValidQR,
+
+    clearQR
+
+};
