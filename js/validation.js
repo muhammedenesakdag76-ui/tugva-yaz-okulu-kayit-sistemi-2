@@ -89,7 +89,7 @@ export function validateEmail(email) {
 
 }
 const MIN_AGE = 7;
-const MAX_AGE = 90;
+const MAX_AGE = 18;
 
 export function validateTc(tc) {
 
