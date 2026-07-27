@@ -1,226 +1,320 @@
-// ===============================
-// Empty Check
-// ===============================
+// validation.js
+// Profesyonel Sürüm
+// Parça 1/8
 
-export function isEmpty(value) {
+export function isEmpty(value){
 
-    return value === undefined ||
-           value === null ||
-           value.toString().trim() === "";
+return value
+===undefined||
 
-}
+value===null||
 
-
-// ===============================
-// Name Validation
-// ===============================
-
-export function validateName(name) {
-
-    if (isEmpty(name))
-        return "Ad Soyad boş bırakılamaz.";
-
-    if (name.trim().length < 3)
-        return "Ad Soyad en az 3 karakter olmalıdır.";
-
-    return "";
+value.toString().trim()==="";
 
 }
 
+export function validateName(name){
 
-// ===============================
-// TC Validation
-// ===============================
+if(isEmpty(name)){
 
-export function validateTC(tc) {
-
-    if (!/^[0-9]{11}$/.test(tc))
-        return "TC Kimlik Numarası 11 haneli olmalıdır.";
-
-    if (tc[0] === "0")
-        return "TC Kimlik Numarası 0 ile başlayamaz.";
-
-    let odd = 0;
-    let even = 0;
-
-    for (let i = 0; i < 9; i++) {
-
-        if (i % 2 === 0)
-            odd += Number(tc[i]);
-        else
-            even += Number(tc[i]);
-
-    }
-
-    const digit10 =
-        ((odd * 7) - even) % 10;
-
-    if (digit10 !== Number(tc[9]))
-        return "Geçersiz TC Kimlik Numarası.";
-
-    let total = 0;
-
-    for (let i = 0; i < 10; i++)
-        total += Number(tc[i]);
-
-    if ((total % 10) !== Number(tc[10]))
-        return "Geçersiz TC Kimlik Numarası.";
-
-    return "";
+return "Ad Soyad boş bırakılamaz.";
 
 }
 
+const regex=
 
-// ===============================
-// Phone Validation
-// ===============================
+/^[a-zA-ZÇçĞğİıÖöŞşÜü\s]{3,60}$/;
 
-export function validatePhone(phone) {
+if(!regex.test(name)){
 
-    if (!/^0[0-9]{10}$/.test(phone))
-        return "Telefon numarası hatalı.";
-
-    return "";
+return "Geçerli bir ad soyad giriniz.";
 
 }
 
-
-// ===============================
-// Email Validation
-// ===============================
-
-export function validateEmail(email) {
-
-    if (email.trim() === "")
-        return "";
-
-    const regex =
-        /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-    if (!regex.test(email))
-        return "Geçersiz e-posta adresi.";
-
-    return "";
+return "";
 
 }
-// ===============================
-// Birth Date Validation
-// ===============================
+// validation.js
+// Parça 2/8
 
-export function validateBirth(date) {
+export function validateTC(tc){
 
-    if (!date)
-        return "Doğum tarihi seçiniz.";
+if(!/^[0-9]{11}$/.test(tc))
 
-    const birth =
-        new Date(date);
+return "TC Kimlik No 11 haneli olmalıdır.";
 
-    const today =
-        new Date();
+const digits=
 
-    let age =
-        today.getFullYear() -
-        birth.getFullYear();
+tc.split("").map(Number);
 
-    const month =
-        today.getMonth() -
-        birth.getMonth();
+if(digits[0]===0)
 
-    if (
-        month < 0 ||
-        (month === 0 &&
-            today.getDate() < birth.getDate())
-    ) {
+return "TC Kimlik No geçersiz.";
 
-        age--;
+let odd=0;
 
-    }
+let even=0;
 
-    if (age < 6)
-        return "Katılımcı çok küçük.";
+for(let i=0;i<9;i++){
 
-    if (age > 18)
-        return "Yaş sınırı aşıldı.";
+if(i%2===0){
 
-    return "";
+odd+=digits[i];
+
+}else{
+
+even+=digits[i];
 
 }
 
+}
 
-// ===============================
-// Required Validation
-// ===============================
+const digit10=
 
-export function validateRequired(data) {
+((odd*7)-even)%10;
 
-    const fields = [
+if(digit10!==digits[9])
 
-        "adSoyad",
+return "TC Kimlik No geçersiz.";
 
-        "tc",
+const total=
 
-        "telefon",
+digits.slice(0,10)
 
-        "dogumTarihi",
+.reduce((a,b)=>a+b,0);
 
-        "cinsiyet",
+if(total%10!==digits[10])
 
-        "okul",
+return "TC Kimlik No geçersiz.";
 
-        "sinif",
+return "";
 
-        "veliAdi",
+}
+// validation.js
+// Parça 3/8
 
-        "veliTelefon",
+export function validatePhone(phone){
 
-        "adres"
+if(!/^0\d{10}$/.test(phone)){
 
-    ];
-
-    for (const field of fields) {
-
-        if (isEmpty(data[field])) {
-
-            return "Lütfen tüm zorunlu alanları doldurunuz.";
-
-        }
-
-    }
-
-    return "";
+return "Telefon numarası hatalı.";
 
 }
 
+return "";
 
-// ===============================
-// Form Validation
-// ===============================
+}
 
-export function validateForm(data) {
+export function validateEmail(email){
 
-    let error;
+if(email==="")
 
-    error = validateRequired(data);
-    if (error) return error;
+return "";
 
-    error = validateName(data.adSoyad);
-    if (error) return error;
+const regex=
 
-    error = validateTC(data.tc);
-    if (error) return error;
+/^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
-    error = validatePhone(data.telefon);
-    if (error) return error;
+if(!regex.test(email))
 
-    error = validatePhone(data.veliTelefon);
-    if (error) return error;
+return "E-Posta adresi hatalı.";
 
-    error = validateEmail(data.email || "");
-    if (error) return error;
+return "";
 
-    error = validateBirth(data.dogumTarihi);
-    if (error) return error;
+}
+// validation.js
+// Parça 4/8
 
-    return "";
+export function validateBirth(date){
+
+if(date===""){
+
+return "Doğum tarihi seçiniz.";
+
+}
+
+const birth=
+
+new Date(date);
+
+const today=
+
+new Date();
+
+let age=
+
+today.getFullYear()
+
+-
+
+birth.getFullYear();
+
+const m=
+
+today.getMonth()
+
+-
+
+birth.getMonth();
+
+if(m<0||
+
+(m===0&&today.getDate()<birth.getDate()))
+
+age--;
+
+if(age<6||age>18)
+
+return "Yaş aralığı uygun değil.";
+
+return "";
+
+}
+// validation.js
+// Parça 5/8
+
+export function validateRequired(form){
+
+const fields=[
+
+"adSoyad",
+
+"tc",
+
+"telefon",
+
+"dogumTarihi",
+
+"cinsiyet",
+
+"okul",
+
+"sinif",
+
+"veliAdi",
+
+"veliTelefon",
+
+"adres"
+
+];
+
+for(const field of fields){
+
+if(isEmpty(form[field])){
+
+return "Lütfen tüm zorunlu alanları doldurunuz.";
+
+}
+
+}
+
+return "";
+
+}
+// validation.js
+// Parça 6/8
+
+export function validateCheckboxes(){
+
+const kvkk=
+
+document.getElementById("kvkk");
+
+const parent=
+
+document.getElementById("parent");
+
+if(!kvkk.checked)
+
+return "KVKK onayı gereklidir.";
+
+if(!parent.checked)
+
+return "Veli onayı gereklidir.";
+
+return "";
+
+}
+// validation.js
+// Parça 7/8
+
+export function validateForm(data){
+
+let error="";
+
+error=validateRequired(data);
+
+if(error)return error;
+
+error=validateName(data.adSoyad);
+
+if(error)return error;
+
+error=validateTC(data.tc);
+
+if(error)return error;
+
+error=validatePhone(data.telefon);
+
+if(error)return error;
+
+error=validatePhone(data.veliTelefon);
+
+if(error)return error;
+
+error=validateEmail(data.email);
+
+if(error)return error;
+
+error=validateBirth(data.dogumTarihi);
+
+if(error)return error;
+
+error=validateCheckboxes();
+
+if(error)return error;
+
+return "";
+
+}
+// validation.js
+// Parça 8/8 (Son)
+
+export function onlyNumber(event){
+
+const key=
+
+event.key;
+
+if(
+
+!/[0-9]/.test(key)
+
+&&
+
+key!=="Backspace"
+
+&&
+
+key!=="Delete"
+
+&&
+
+key!=="ArrowLeft"
+
+&&
+
+key!=="ArrowRight"
+
+&&
+
+key!=="Tab"
+
+){
+
+event.preventDefault();
+
+}
 
 }
