@@ -1,68 +1,89 @@
-import {
-    db,
-    REGISTRATION_COLLECTION
-} from "./config.js";
+/* ==========================================
+   qr.js
+========================================== */
 
 import {
-    doc,
-    getDoc
-} from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
+    getRegistrationById
+} from "./firebase.js";
 
-/* -------------------- QR OLUŞTUR -------------------- */
+let qrInstance = null;
 
-export function createQRCode(elementId, registration) {
+let scanner = null;
 
-    const container = document.getElementById(elementId);
+/* ---------------------------------------- */
+/* QR OLUŞTUR */
+/* ---------------------------------------- */
 
-    if (!container) return;
+export function createQRCode(
+    container,
+    firestoreId
+) {
 
-    container.innerHTML = "";
+    clearQRCode(container);
 
-    const qrData = JSON.stringify({
+    qrInstance = new QRCode(
 
-        id: registration.id,
+        container,
 
-        registerNumber: registration.registerNumber
+        {
 
-    });
+            text: JSON.stringify({
 
-    new QRCode(container, {
+                id: firestoreId
 
-        text: qrData,
+            }),
 
-        width: 240,
+            width: 220,
 
-        height: 240,
+            height: 220,
 
-        correctLevel: QRCode.CorrectLevel.H
+            colorDark: "#000000",
 
-    });
+            colorLight: "#ffffff",
+
+            correctLevel:
+                QRCode.CorrectLevel.H
+
+        }
+
+    );
 
 }
 
-/* -------------------- QR TEMİZLE -------------------- */
+/* ---------------------------------------- */
+/* QR TEMİZLE */
+/* ---------------------------------------- */
 
-export function clearQRCode(elementId) {
+export function clearQRCode(container){
 
-    const container = document.getElementById(elementId);
+    container.innerHTML="";
 
-    if (!container) return;
-
-    container.innerHTML = "";
+    qrInstance=null;
 
 }
 
-/* -------------------- QR METNİNİ AYIKLA -------------------- */
+/* ---------------------------------------- */
+/* QR İÇERİĞİNİ AYRIŞTIR */
+/* ---------------------------------------- */
 
-export function parseQRCode(text) {
+export function parseQRCode(text){
 
-    try {
+    try{
 
-        return JSON.parse(text);
+        const data=
+            JSON.parse(text);
+
+        if(!data.id){
+
+            return null;
+
+        }
+
+        return data;
 
     }
 
-    catch {
+    catch{
 
         return null;
 
@@ -70,41 +91,35 @@ export function parseQRCode(text) {
 
 }
 
-/* -------------------- FIRESTORE'DAN KAYIT GETİR -------------------- */
+/* ---------------------------------------- */
+/* FIRESTORE'DAN KAYDI GETİR */
+/* ---------------------------------------- */
 
-export async function getRegistrationFromQR(text) {
+export async function registrationFromQR(text){
 
-    const qr = parseQRCode(text);
+    const payload=
 
-    if (!qr)
+        parseQRCode(text);
 
-        throw new Error(
-
-            "Geçersiz QR."
-
-        );
-
-    if (!qr.id)
+    if(!payload){
 
         throw new Error(
 
-            "QR içinde belge kimliği yok."
+            "Geçersiz QR Kod."
 
         );
 
-    const ref = doc(
+    }
 
-        db,
+    const registration=
 
-        REGISTRATION_COLLECTION,
+        await getRegistrationById(
 
-        qr.id
+            payload.id
 
-    );
+        );
 
-    const snap = await getDoc(ref);
-
-    if (!snap.exists())
+    if(!registration){
 
         throw new Error(
 
@@ -112,37 +127,26 @@ export async function getRegistrationFromQR(text) {
 
         );
 
-    return {
+    }
 
-        id: snap.id,
-
-        ...snap.data()
-
-    };
+    return registration;
 
 }
-
-/* -------------------- TELEFON KAMERASI -------------------- */
-
-let scanner = null;
+/* ---------------------------------------- */
+/* QR OKUYUCUYU BAŞLAT */
+/* ---------------------------------------- */
 
 export async function startScanner(
 
-    readerId,
+    elementId,
 
     onSuccess
 
-) {
+){
 
-    if (scanner) {
+    scanner=new Html5Qrcode(
 
-        await stopScanner();
-
-    }
-
-    scanner = new Html5Qrcode(
-
-        readerId
+        elementId
 
     );
 
@@ -150,31 +154,25 @@ export async function startScanner(
 
         {
 
-            facingMode: "environment"
+            facingMode:"environment"
 
         },
 
         {
 
-            fps: 10,
+            fps:10,
 
-            qrbox: {
-
-                width: 260,
-
-                height: 260
-
-            }
+            qrbox:250
 
         },
 
-        async(decodedText) => {
+        async(decodedText)=>{
 
-            try {
+            try{
 
-                const registration =
+                const registration=
 
-                    await getRegistrationFromQR(
+                    await registrationFromQR(
 
                         decodedText
 
@@ -190,9 +188,9 @@ export async function startScanner(
 
             }
 
-            catch (err) {
+            catch(error){
 
-                console.error(err);
+                console.error(error);
 
             }
 
@@ -202,15 +200,17 @@ export async function startScanner(
 
 }
 
-/* -------------------- KAMERAYI DURDUR -------------------- */
+/* ---------------------------------------- */
+/* QR OKUYUCUYU DURDUR */
+/* ---------------------------------------- */
 
-export async function stopScanner() {
+export async function stopScanner(){
 
-    if (!scanner)
+    if(!scanner)
 
         return;
 
-    try {
+    try{
 
         await scanner.stop();
 
@@ -218,33 +218,33 @@ export async function stopScanner() {
 
     }
 
-    finally {
+    finally{
 
-        scanner = null;
+        scanner=null;
 
     }
 
 }
 
-/* -------------------- QR'DAN KAYIT BİLGİSİ HTML -------------------- */
+/* ---------------------------------------- */
+/* HTML TABLOSU */
+/* ---------------------------------------- */
 
-export function registrationToHTML(data) {
+export function registrationToHTML(data){
 
     return `
 
-<div class="card shadow border-0">
-
-<div class="card-body">
-
-<h4 class="mb-4">
-
-${data.registerNumber}
-
-</h4>
-
-<table class="table">
+<table class="table table-bordered">
 
 <tbody>
+
+<tr>
+
+<th>Kayıt No</th>
+
+<td>${data.registerNumber}</td>
+
+</tr>
 
 <tr>
 
@@ -272,9 +272,9 @@ ${data.registerNumber}
 
 <tr>
 
-<th>Doğum Tarihi</th>
+<th>Yaş</th>
 
-<td>${data.birthDate}</td>
+<td>${data.age}</td>
 
 </tr>
 
@@ -314,7 +314,7 @@ ${data.registerNumber}
 
 <th>Okul</th>
 
-<td>${data.school || "-"}</td>
+<td>${data.school||"-"}</td>
 
 </tr>
 
@@ -322,7 +322,7 @@ ${data.registerNumber}
 
 <th>Sınıf</th>
 
-<td>${data.className || "-"}</td>
+<td>${data.className||"-"}</td>
 
 </tr>
 
@@ -330,7 +330,7 @@ ${data.registerNumber}
 
 <th>Veli</th>
 
-<td>${data.parentName || "-"}</td>
+<td>${data.parentName||"-"}</td>
 
 </tr>
 
@@ -338,7 +338,7 @@ ${data.registerNumber}
 
 <th>Veli Telefonu</th>
 
-<td>${data.parentPhone || "-"}</td>
+<td>${data.parentPhone||"-"}</td>
 
 </tr>
 
@@ -346,25 +346,13 @@ ${data.registerNumber}
 
 <th>Koltuk</th>
 
-<td>
-
-<strong>
-
-${data.seatNumber || "-"}
-
-</strong>
-
-</td>
+<td>${data.seatNumber||"Henüz atanmadı"}</td>
 
 </tr>
 
 </tbody>
 
 </table>
-
-</div>
-
-</div>
 
 `;
 
