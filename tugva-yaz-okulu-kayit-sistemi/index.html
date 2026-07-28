@@ -1,1 +1,558 @@
-g
+<!DOCTYPE html>
+<html lang="tr">
+
+<head>
+
+    <meta charset="UTF-8">
+
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>TÜGVA Yaz Okulu Kayıt Sistemi</title>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
+
+    <link rel="stylesheet" href="css/style.css">
+
+</head>
+
+<body>
+
+<div id="loadingScreen" class="loading-screen d-none">
+
+    <div class="spinner-border text-primary"></div>
+
+    <p class="mt-3 mb-0">İşlem yapılıyor...</p>
+
+</div>
+
+<nav class="navbar navbar-dark bg-dark shadow-sm">
+
+    <div class="container">
+
+        <span class="navbar-brand fw-bold">
+
+            TÜGVA Yaz Okulu Kayıt Sistemi
+
+        </span>
+
+    </div>
+
+</nav>
+
+<section class="py-5">
+
+<div class="container">
+
+<div class="row justify-content-center">
+
+<div class="col-xl-8">
+
+<div class="card shadow-lg border-0">
+
+<div class="card-body p-4 p-lg-5">
+
+<h2 class="text-center fw-bold mb-2">
+
+Yaz Okulu Başvuru Formu
+
+</h2>
+
+<p class="text-center text-muted mb-5">
+
+Lütfen tüm bilgileri eksiksiz doldurunuz.
+
+</p>
+
+<form id="registrationForm" novalidate>
+
+<div class="row g-3">
+
+<div class="col-md-6">
+
+<label class="form-label">
+
+Ad
+
+</label>
+
+<input
+
+type="text"
+
+id="name"
+
+class="form-control"
+
+required
+
+>
+
+</div>
+
+<div class="col-md-6">
+
+<label class="form-label">
+
+Soyad
+
+</label>
+
+<input
+
+type="text"
+
+id="surname"
+
+class="form-control"
+
+required
+
+>
+
+</div>
+
+<div class="col-md-6">
+
+<label class="form-label">
+
+TC Kimlik No
+
+</label>
+
+<input
+
+type="text"
+
+id="tc"
+
+maxlength="11"
+
+class="form-control"
+
+required
+
+>
+
+</div>
+
+<div class="col-md-6">
+
+<label class="form-label">
+
+Telefon
+
+</label>
+
+<input
+
+type="tel"
+
+id="phone"
+
+class="form-control"
+
+placeholder="05XXXXXXXXX"
+
+required
+
+>
+
+</div>
+
+<div class="col-md-6">
+
+<label class="form-label">
+
+Doğum Tarihi
+
+</label>
+
+<input
+
+type="date"
+
+id="birthDate"
+
+class="form-control"
+
+required
+
+>
+
+</div>
+
+<div class="col-md-6">
+
+<label class="form-label">
+
+Cinsiyet
+
+</label>
+
+<select
+
+id="gender"
+
+class="form-select"
+
+required>
+
+<option value="">
+
+Seçiniz
+
+</option>
+
+<option value="Erkek">
+
+Erkek
+
+</option>
+
+<option value="Kadın">
+
+Kadın
+
+</option>
+
+</select>
+
+</div>
+
+<div class="col-md-6">
+
+<label class="form-label">
+
+İlçe
+
+</label>
+
+<input
+
+type="text"
+
+id="district"
+
+class="form-control"
+
+required
+
+>
+
+</div>
+
+<div class="col-md-6">
+
+<label class="form-label">
+
+Mahalle
+
+</label>
+
+<input
+
+type="text"
+
+id="neighborhood"
+
+class="form-control"
+
+required
+
+>
+
+</div>
+
+<div class="col-12">
+
+<label class="form-label">
+
+Adres
+
+</label>
+
+<textarea
+
+id="address"
+
+rows="3"
+
+class="form-control"
+
+required
+
+></textarea>
+
+</div>
+
+<div id="studentFields">
+
+<!-- Devam edecek -->
+
+</div>
+<div class="col-12 mt-4">
+
+<hr>
+
+<h5 class="fw-bold">
+
+Öğrenci Bilgileri
+
+</h5>
+
+<p class="text-muted small mb-3">
+
+18 yaş ve üzeri kişiler için bu alanlar otomatik gizlenecektir.
+
+</p>
+
+</div>
+
+<div class="col-md-6 student-field">
+
+<label class="form-label">
+
+Okul
+
+</label>
+
+<input
+
+type="text"
+
+id="school"
+
+class="form-control"
+
+>
+
+</div>
+
+<div class="col-md-6 student-field">
+
+<label class="form-label">
+
+Sınıf
+
+</label>
+
+<select
+
+id="className"
+
+class="form-select"
+
+>
+
+<option value="">
+
+Seçiniz
+
+</option>
+
+<option>1</option>
+<option>2</option>
+<option>3</option>
+<option>4</option>
+<option>5</option>
+<option>6</option>
+<option>7</option>
+<option>8</option>
+<option>9</option>
+<option>10</option>
+<option>11</option>
+<option>12</option>
+
+</select>
+
+</div>
+
+<div class="col-12 mt-4">
+
+<hr>
+
+<h5 class="fw-bold">
+
+Veli Bilgileri
+
+</h5>
+
+</div>
+
+<div class="col-md-6 student-field">
+
+<label class="form-label">
+
+Veli Ad Soyad
+
+</label>
+
+<input
+
+type="text"
+
+id="parentName"
+
+class="form-control"
+
+>
+
+</div>
+
+<div class="col-md-6 student-field">
+
+<label class="form-label">
+
+Veli Telefonu
+
+</label>
+
+<input
+
+type="tel"
+
+id="parentPhone"
+
+class="form-control"
+
+placeholder="05XXXXXXXXX"
+
+>
+
+</div>
+
+</div>
+
+<div class="mt-5">
+
+<button
+
+type="submit"
+
+id="submitButton"
+
+class="btn btn-primary btn-lg w-100">
+
+<i class="bi bi-check-circle-fill me-2"></i>
+
+Kaydı Tamamla
+
+</button>
+
+</div>
+
+</form>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+<section
+
+id="successSection"
+
+class="container py-5 d-none">
+
+<div class="row justify-content-center">
+
+<div class="col-lg-7">
+
+<div class="card border-0 shadow-lg">
+
+<div class="card-body text-center p-5">
+
+<div class="display-2 text-success">
+
+<i class="bi bi-check-circle-fill"></i>
+
+</div>
+
+<h2 class="fw-bold mt-3">
+
+Kayıt Başarılı
+
+</h2>
+
+<p class="text-muted">
+
+Başvurunuz başarıyla alınmıştır.
+
+</p>
+
+<h4
+
+id="registerNumber"
+
+class="fw-bold text-primary my-4">
+
+</h4>
+
+<div
+
+id="qrContainer"
+
+class="d-flex justify-content-center my-4">
+
+</div>
+
+<div class="d-grid gap-3">
+
+<button
+
+id="downloadPdf"
+
+class="btn btn-danger">
+
+<i class="bi bi-file-earmark-pdf-fill me-2"></i>
+
+PDF İndir
+
+</button>
+
+<button
+
+id="newRegistration"
+
+class="btn btn-outline-primary">
+
+<i class="bi bi-plus-circle me-2"></i>
+
+Yeni Kayıt
+
+</button>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</div>
+
+</section>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
+<script src="https://unpkg.com/html5-qrcode"></script>
+
+<script type="module" src="js/app.js"></script>
+
+</body>
+
+</html>
