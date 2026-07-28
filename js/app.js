@@ -88,11 +88,7 @@ function saveDraft() {
 
 function restoreDraft() {
 
-    const draft = localStorage.getItem(
-
-        "registrationDraft"
-
-    );
+    const draft = localStorage.getItem("registrationDraft");
 
     if (!draft) return;
 
@@ -100,9 +96,13 @@ function restoreDraft() {
 
     Object.keys(data).forEach(key => {
 
-        if (form[key])
+        const field = form.elements.namedItem(key);
 
-            form[key].value = data[key];
+        if(field){
+
+            field.value = data[key];
+
+        }
 
     });
 
