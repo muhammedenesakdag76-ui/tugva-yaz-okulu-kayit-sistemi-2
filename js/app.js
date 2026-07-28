@@ -1,392 +1,442 @@
+/* ===========================================
+   app.js
+=========================================== */
 
-import { downloadPDF } from "./pdf.js";
 import {
-    addRegistration,
-    getRemainingCapacity,
-    isCapacityFull
+    addRegistration
 } from "./firebase.js";
 
-import { MAX_CAPACITY } from "./config.js";
+import {
+    validateForm,
+    prepareData,
+    isAdult
+} from "./validation.js";
 
-const form = document.getElementById("registrationForm");
+import {
+    showLoading,
+    hideLoading,
+    showToast,
+    saveDraft,
+    restoreDraft,
+    clearDraft,
+    clearForm,
+    toggleStudentFields,
+    capitalizeWords,
+    $
+} from "./utils.js";
 
-const capacityText = document.getElementById("capacityText");
-const capacityBar = document.getElementById("capacityBar");
+import {
+    createQRCode
+} from "./qr.js";
 
-const successSection = document.getElementById("successSection");
-const formSection = document.getElementById("formSection");
+import {
+    downloadPDF,
+    printRegistration
+} from "./pdf.js";
 
-const qrImage = document.getElementById("qrImage");
-const registerNumberText = document.getElementById("registerNumber");
+/* ===========================================
+   DOM
+=========================================== */
 
-const pdfButton = document.getElementById("downloadPdf");
+const form =
+    $("#registrationForm");
+
+const birthDate =
+    $("#birthDate");
+
+const successSection =
+    $("#successSection");
+
+const registerNumber =
+    $("#registerNumber");
+
+const qrContainer =
+    $("#qrContainer");
+
+const submitButton =
+    $("#submitButton");
+
+const downloadPdfButton =
+    $("#downloadPdf");
+
+const printButton =
+    $("#printRegistration");
+
+const newRegistrationButton =
+    $("#newRegistration");
+
+/* ===========================================
+   Global
+=========================================== */
 
 let lastRegistration = null;
 
-document.addEventListener("DOMContentLoaded", init);
+/* ===========================================
+   Form Verisini Oku
+=========================================== */
 
-/* ===================================================== */
+function getFormData() {
 
-async function init() {
+    return {
 
-    await updateCapacity();
+        name: $("#name").value,
 
-    restoreDraft();
+        surname: $("#surname").value,
 
-    form.addEventListener("submit", submitForm);
+        tc: $("#tc").value,
 
-}
+        phone: $("#phone").value,
 
-/* ===================================================== */
+        birthDate: $("#birthDate").value,
 
-async function updateCapacity() {
+        gender: $("#gender").value,
 
-    const remain = await getRemainingCapacity();
+        district: $("#district").value,
 
-    const used = MAX_CAPACITY - remain;
+        neighborhood: $("#neighborhood").value,
 
-    capacityText.textContent =
-        `${used} / ${MAX_CAPACITY}`;
+        address: $("#address").value,
 
-    const percent = (used / MAX_CAPACITY) * 100;
+        school: $("#school").value,
 
-    capacityBar.style.width = percent + "%";
+        className: $("#className").value,
 
-    if (await isCapacityFull()) {
+        parentName: $("#parentName").value,
 
-        form.querySelectorAll("input,select,textarea,button")
-            .forEach(x => x.disabled = true);
+        parentPhone: $("#parentPhone").value
 
-        capacityBar.classList.add("bg-danger");
-
-        capacityText.textContent = "Kontenjan Doldu";
-
-    }
+    };
 
 }
-/* ===================================================== */
+/* ===========================================
+   Doğum Tarihi
+=========================================== */
 
-form.addEventListener("input", saveDraft);
+birthDate.addEventListener(
 
-function saveDraft() {
+    "change",
 
-    const data = Object.fromEntries(
+    () => {
 
-        new FormData(form)
+        toggleStudentFields(
 
-    );
+            !isAdult(
 
-    localStorage.setItem(
+                birthDate.value
 
-        "registrationDraft",
+            )
 
-        JSON.stringify(data)
-
-    );
-
-}
-
-function restoreDraft() {
-
-    const draft = localStorage.getItem("registrationDraft");
-
-    if (!draft) return;
-
-    const data = JSON.parse(draft);
-
-    Object.keys(data).forEach(key => {
-
-        const field = form.elements.namedItem(key);
-
-        if(field){
-
-            field.value = data[key];
-
-        }
-
-    });
-
-}
-
-function clearDraft() {
-
-    localStorage.removeItem(
-
-        "registrationDraft"
-
-    );
-
-}
-/* =====================================================
-   DOĞRULAMA
-===================================================== */
-
-function validateForm() {
-
-    const data = Object.fromEntries(
-        new FormData(form)
-    );
-
-    if (!data.name.trim())
-        throw new Error("Ad Soyad zorunludur.");
-
-    if (!/^\d{11}$/.test(data.tc))
-        throw new Error("TC Kimlik No 11 haneli olmalıdır.");
-
-    if (!/^05\d{9}$/.test(data.phone))
-        throw new Error("Telefon numarası hatalı.");
-
-    if (!data.parent.trim())
-        throw new Error("Veli adı zorunludur.");
-
-    if (!/^05\d{9}$/.test(data.parentPhone))
-        throw new Error("Veli telefonu hatalı.");
-
-    if (!data.gender)
-        throw new Error("Cinsiyet seçiniz.");
-
-    if (!data.birth)
-        throw new Error("Doğum tarihi seçiniz.");
-
-    const birth = new Date(data.birth);
-
-    const today = new Date();
-
-    let age = today.getFullYear() - birth.getFullYear();
-
-    const month =
-        today.getMonth() - birth.getMonth();
-
-    if (
-        month < 0 ||
-        (month === 0 &&
-            today.getDate() < birth.getDate())
-    ) {
-        age--;
-    }
-
-    if (age < 7 || age > 18) {
-        throw new Error(
-            "Yaş aralığı uygun değildir."
         );
-    }
-
-    return data;
-
-}
-
-/* =====================================================
-   LOADING
-===================================================== */
-
-function setLoading(status) {
-
-    const button =
-        form.querySelector("button[type=submit]");
-
-    button.disabled = status;
-
-    if (status) {
-
-        button.dataset.old = button.innerHTML;
-
-        button.innerHTML =
-            '<span class="spinner-border spinner-border-sm"></span> Kaydediliyor...';
-
-    } else {
-
-        button.innerHTML =
-            button.dataset.old;
 
     }
 
-}
+);
+/* ===========================================
+   Draft
+=========================================== */
 
-/* =====================================================
-   TOAST
-===================================================== */
+form.addEventListener(
 
-function showToast(message, success = true) {
+    "input",
 
-    const toast =
-        document.getElementById("toast");
+    () => {
 
-    toast.className =
-        `toast align-items-center text-bg-${success ? "success" : "danger"} border-0 show`;
+        saveDraft(
 
-    toast.querySelector(".toast-body")
-        .textContent = message;
+            getFormData()
 
-    setTimeout(() => {
+        );
 
-        toast.classList.remove("show");
+    }
 
-    }, 3000);
-
-}
-/* =====================================================
-   FORM GÖNDER
-===================================================== */
+);
+/* ===========================================
+   Submit
+=========================================== */
 
 async function submitForm(e) {
-
-    alert("submit çalıştı");
 
     e.preventDefault();
 
     try {
 
-        setLoading(true);
+        showLoading();
 
-        const data = validateForm();
+        submitButton.disabled = true;
+
+        /* ------------------------------- */
+        /* Form Verisi */
+        /* ------------------------------- */
+
+        const formData =
+            getFormData();
+
+        /* ------------------------------- */
+        /* Doğrulama */
+        /* ------------------------------- */
+
+        validateForm(formData);
+
+        /* ------------------------------- */
+        /* Temizleme */
+        /* ------------------------------- */
+
+        const data =
+            prepareData(formData);
+
+        /* ------------------------------- */
+        /* Firebase */
+        /* ------------------------------- */
 
         const registration =
             await addRegistration(data);
 
-        lastRegistration = registration;
+        lastRegistration =
+            registration;
+
+        /* ------------------------------- */
+        /* Draft Sil */
+        /* ------------------------------- */
 
         clearDraft();
 
-        await updateCapacity();
+        /* ------------------------------- */
+        /* Başarı */
+        /* ------------------------------- */
 
         showSuccess(registration);
 
+    }
+
+    catch (error) {
+
+        console.error(error);
+
         showToast(
-            "Kayıt başarıyla oluşturuldu."
+
+            error.message,
+
+            "error"
+
         );
 
     }
 
-    catch (err) {
-
-    console.error(err);
-
-    alert(
-        JSON.stringify({
-            name: err.name,
-            code: err.code,
-            message: err.message
-        }, null, 2)
-    );
-
-}
-
     finally {
 
-        setLoading(false);
+        hideLoading();
+
+        submitButton.disabled = false;
 
     }
 
 }
-/* =====================================================
-   BAŞARI EKRANI
-===================================================== */
+/* ===========================================
+   Success
+=========================================== */
 
-function showSuccess(registration) {
+function showSuccess(registration){
 
-    formSection.classList.add("d-none");
-    successSection.classList.remove("d-none");
+    form.parentElement.parentElement
+        .style.display="none";
 
-    registerNumberText.textContent =
+    successSection.classList
+        .remove("d-none");
+
+    registerNumber.textContent=
+
         registration.registerNumber;
 
-    createQRCode(registration);
+    createQRCode(
+
+        qrContainer,
+
+        registration.id
+
+    );
+
+    showToast(
+
+        "Kayıt başarıyla oluşturuldu."
+
+    );
 
 }
+downloadPdfButton.addEventListener(
 
-/* =====================================================
-   QR OLUŞTUR
-===================================================== */
+    "click",
 
-function createQRCode(registration) {
+    ()=>{
 
-    qrImage.innerHTML = "";
+        if(!lastRegistration)
 
-    new QRCode(qrImage, {
+            return;
 
-        text: JSON.stringify({
+        downloadPDF(
 
-            id: registration.id,
-            registerNumber: registration.registerNumber,
-            name: registration.name
+            lastRegistration
 
-        }),
+        );
 
-        width: 220,
-        height: 220,
-        correctLevel: QRCode.CorrectLevel.H
+    }
 
-    });
+);
+printButton.addEventListener(
 
-}
+    "click",
 
-/* =====================================================
-   PDF
-===================================================== */
+    ()=>{
 
-if (pdfButton) {
+        printRegistration();
 
-    pdfButton.addEventListener("click", () => {
+    }
 
-        if (!lastRegistration) return;
+);
+newRegistrationButton.addEventListener(
 
-        downloadPDF(lastRegistration);
+    "click",
 
-    });
+    ()=>{
 
-}
+        clearForm(form);
 
-/* =====================================================
-   YENİ KAYIT
-===================================================== */
+        lastRegistration=null;
 
-const newRegistrationButton =
-    document.getElementById("newRegistration");
+        successSection.classList
 
-if (newRegistrationButton) {
+            .add("d-none");
 
-    newRegistrationButton.addEventListener("click", () => {
+        const formSection = $("#formSection");
 
-        form.reset();
+formSection.classList.add("d-none");
+successSection.classList.remove("d-none");
+    }
 
-        lastRegistration = null;
+);
+/* ===========================================
+   Sayısal Alanlar
+=========================================== */
 
-        successSection.classList.add("d-none");
+[
+    $("#tc"),
+    $("#phone"),
+    $("#parentPhone")
+].forEach(input => {
 
-        formSection.classList.remove("d-none");
-
-        qrImage.innerHTML = "";
-
-        restoreDraft();
-
-    });
-
-} 
-/* =====================================================
-   YAZDIR
-===================================================== */
-
-const printButton =
-    document.getElementById("printRegistration");
-
-if (printButton) {
-
-    printButton.addEventListener("click", () => {
-
-        window.print();
-
-    });
-
-}
-/* =====================================================
-   SAYFA KAPANIRKEN
-===================================================== */
-
-window.addEventListener("beforeunload", () => {
-
-    if (formSection.classList.contains("d-none"))
+    if (!input)
         return;
 
-    saveDraft();
+    input.addEventListener("input", () => {
+
+        input.value = input.value.replace(/\D/g, "");
+
+    });
 
 });
+/* ===========================================
+   Büyük Harf
+=========================================== */
+
+[
+    $("#name"),
+    $("#surname"),
+    $("#district"),
+    $("#neighborhood"),
+    $("#school"),
+    $("#parentName")
+].forEach(input => {
+
+    if (!input)
+        return;
+
+    input.addEventListener("blur", () => {
+
+        input.value =
+            capitalizeWords(input.value);
+
+    });
+
+});
+/* ===========================================
+   Draft Yükle
+=========================================== */
+
+function loadDraft() {
+
+    const draft =
+        restoreDraft();
+
+    if (!draft)
+        return;
+
+    Object.keys(draft).forEach(key => {
+
+        const element =
+            $("#" + key);
+
+        if (!element)
+            return;
+
+        element.value =
+            draft[key];
+
+    });
+
+    toggleStudentFields(
+
+        !isAdult(
+
+            $("#birthDate").value
+
+        )
+
+    );
+
+}
+/* ===========================================
+   Form Durumu
+=========================================== */
+
+function setFormEnabled(enabled) {
+
+    [...form.elements].forEach(element => {
+
+        element.disabled = !enabled;
+
+    });
+
+}
+/* ===========================================
+   Init
+=========================================== */
+
+function init() {
+
+    loadDraft();
+
+    toggleStudentFields(
+
+        !isAdult(
+
+            birthDate.value
+
+        )
+
+    );
+
+    form.addEventListener(
+
+        "submit",
+
+        submitForm
+
+    );
+
+}
+document.addEventListener(
+
+    "DOMContentLoaded",
+
+    init
+
+);
