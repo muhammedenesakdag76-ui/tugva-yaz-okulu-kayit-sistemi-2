@@ -160,10 +160,9 @@ async function submitForm(e) {
 
     try {
 
-        showLoading();
+        disableForm();
 
-        submitButton.disabled = true;
-
+showLoading();
         /* ------------------------------- */
         /* Form Verisi */
         /* ------------------------------- */
@@ -224,9 +223,9 @@ async function submitForm(e) {
 
     finally {
 
-        hideLoading();
+        enableForm();
 
-        submitButton.disabled = false;
+hideLoading();
 
     }
 
@@ -260,6 +259,13 @@ function showSuccess(registration){
         "Kayıt başarıyla oluşturuldu."
 
     );
+    window.scrollTo({
+
+    top:0,
+
+    behavior:"smooth"
+
+});
 
 }
 downloadPdfButton.addEventListener(
@@ -296,21 +302,7 @@ newRegistrationButton.addEventListener(
 
     "click",
 
-    ()=>{
-
-        clearForm(form);
-
-        lastRegistration=null;
-
-        successSection.classList
-
-            .add("d-none");
-
-        const formSection = $("#formSection");
-
-formSection.classList.add("d-none");
-successSection.classList.remove("d-none");
-    }
+    resetApplication
 
 );
 /* ===========================================
@@ -440,3 +432,240 @@ document.addEventListener(
     init
 
 );
+/* ===========================================
+   Form Bölümleri
+=========================================== */
+
+const formSection =
+    $("#formSection");
+
+/* ===========================================
+   Başarı Ekranı
+=========================================== */
+
+function showSuccess(registration) {
+
+    formSection.classList.add(
+        "d-none"
+    );
+
+    successSection.classList.remove(
+        "d-none"
+    );
+
+    registerNumber.textContent =
+        registration.registerNumber;
+
+    createQRCode(
+
+        qrContainer,
+
+        registration.id
+
+    );
+
+}
+/* ===========================================
+   Formu Baştan Hazırla
+=========================================== */
+
+function resetApplication() {
+
+    clearForm(form);
+
+    clearDraft();
+
+    lastRegistration = null;
+
+    qrContainer.innerHTML = "";
+
+    registerNumber.textContent = "";
+
+    successSection.classList.add(
+        "d-none"
+    );
+
+    formSection.classList.remove(
+        "d-none"
+    );
+
+    toggleStudentFields(true);
+
+}
+/* ===========================================
+   Global Error
+=========================================== */
+
+window.addEventListener(
+
+    "error",
+
+    event => {
+
+        console.error(
+
+            event.error
+
+        );
+
+    }
+
+);
+
+window.addEventListener(
+
+    "unhandledrejection",
+
+    event => {
+
+        console.error(
+
+            event.reason
+
+        );
+
+    }
+
+);
+/* ===========================================
+   Otomatik Büyük Harf
+=========================================== */
+
+[
+    $("#name"),
+    $("#surname"),
+    $("#district"),
+    $("#neighborhood"),
+    $("#school"),
+    $("#parentName")
+].forEach(input => {
+
+    if (!input) return;
+
+    input.addEventListener("input", () => {
+
+        const cursor = input.selectionStart;
+
+        input.value = capitalizeWords(input.value);
+
+        input.setSelectionRange(
+            cursor,
+            cursor
+        );
+
+    });
+
+});
+/* ===========================================
+   Telefon
+=========================================== */
+
+function normalizePhone(input){
+
+    let value = input.value.replace(/\D/g,"");
+
+    if(value.length>11){
+
+        value=value.substring(0,11);
+
+    }
+
+    input.value=value;
+
+}
+
+$("#phone").addEventListener(
+
+    "input",
+
+    e=>{
+
+        normalizePhone(e.target);
+
+    }
+
+);
+
+$("#parentPhone").addEventListener(
+
+    "input",
+
+    e=>{
+
+        normalizePhone(e.target);
+
+    }
+
+);
+/* ===========================================
+   TC
+=========================================== */
+
+$("#tc").addEventListener(
+
+    "input",
+
+    e=>{
+
+        let tc=e.target.value
+
+            .replace(/\D/g,"")
+
+            .substring(0,11);
+
+        e.target.value=tc;
+
+    }
+
+);
+/* ===========================================
+   Blur
+=========================================== */
+
+form.querySelectorAll(
+
+    "input[type=text],textarea"
+
+).forEach(input=>{
+
+    input.addEventListener(
+
+        "blur",
+
+        ()=>{
+
+            input.value=
+
+                input.value.trim();
+
+        }
+
+    );
+
+});
+/* ===========================================
+   Disable
+=========================================== */
+
+function disableForm(){
+
+    [...form.elements].forEach(element=>{
+
+        element.disabled=true;
+
+    });
+
+}
+/* ===========================================
+   Enable
+=========================================== */
+
+function enableForm(){
+
+    [...form.elements].forEach(element=>{
+
+        element.disabled=false;
+
+    });
+
+}
