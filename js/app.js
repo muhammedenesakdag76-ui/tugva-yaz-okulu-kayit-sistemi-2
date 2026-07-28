@@ -259,11 +259,17 @@ async function submitForm(e) {
 
     catch (err) {
 
-        console.error(err);
+    console.error(err);
 
-        alert(err.message);
+    alert(
+        JSON.stringify({
+            name: err.name,
+            code: err.code,
+            message: err.message
+        }, null, 2)
+    );
 
-    }
+}
 
     finally {
 
