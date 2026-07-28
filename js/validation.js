@@ -1,14 +1,19 @@
-const ONLY_DIGITS = /^\d+$/;
+/* ===========================================
+   validation.js
+   TÜGVA Yaz Okulu Kayıt Sistemi
+=========================================== */
 
-export function cleanText(value) {
+const ONLY_NUMBER_REGEX = /\D/g;
 
-    return String(value ?? "").trim();
+export function cleanText(value = "") {
+
+    return value.trim();
 
 }
 
-export function cleanPhone(value) {
+export function cleanPhone(value = "") {
 
-    return cleanText(value).replace(/\D/g, "");
+    return value.replace(ONLY_NUMBER_REGEX, "");
 
 }
 
@@ -26,9 +31,12 @@ export function calculateAge(birthDate) {
 
     if (
         month < 0 ||
-        (month === 0 && today.getDate() < birth.getDate())
+        (month === 0 &&
+            today.getDate() < birth.getDate())
     ) {
+
         age--;
+
     }
 
     return age;
@@ -41,17 +49,25 @@ export function isAdult(birthDate) {
 
 }
 
+/* ===========================================
+   TC KİMLİK DOĞRULAMA
+=========================================== */
+
 export function validateTC(tc) {
 
-    tc = cleanText(tc);
+    tc = cleanPhone(tc);
 
-    if (!ONLY_DIGITS.test(tc)) return false;
+    if (tc.length !== 11)
+        return false;
 
-    if (tc.length !== 11) return false;
+    if (!/^[0-9]+$/.test(tc))
+        return false;
 
-    if (tc[0] === "0") return false;
+    if (tc[0] === "0")
+        return false;
 
-    const digits = tc.split("").map(Number);
+    const digits =
+        tc.split("").map(Number);
 
     const odd =
         digits[0] +
@@ -66,32 +82,55 @@ export function validateTC(tc) {
         digits[5] +
         digits[7];
 
-    const digit10 = ((odd * 7) - even) % 10;
+    const digit10 =
+        ((odd * 7) - even) % 10;
 
-    if (digit10 !== digits[9]) return false;
+    if (digit10 !== digits[9])
+        return false;
 
     const total =
         digits
             .slice(0, 10)
             .reduce((a, b) => a + b, 0);
 
-    return total % 10 === digits[10];
+    if (total % 10 !== digits[10])
+        return false;
+
+    return true;
 
 }
+
+/* ===========================================
+   TELEFON
+=========================================== */
 
 export function validatePhone(phone) {
 
     phone = cleanPhone(phone);
 
-    return /^05\d{9}$/.test(phone);
+    if (phone.length !== 11)
+        return false;
+
+    if (!phone.startsWith("05"))
+        return false;
+
+    return true;
 
 }
+
+/* ===========================================
+   ZORUNLU ALAN
+=========================================== */
 
 export function validateRequired(value) {
 
-    return cleanText(value).length > 0;
+    return cleanText(value) !== "";
 
 }
+
+/* ===========================================
+   FORM DOĞRULAMA
+=========================================== */
 
 export function validateForm(data) {
 
@@ -105,10 +144,10 @@ export function validateForm(data) {
         throw new Error("Geçerli TC Kimlik No giriniz.");
 
     if (!validatePhone(data.phone))
-        throw new Error("Geçerli telefon giriniz.");
+        throw new Error("Telefon numarası hatalı.");
 
     if (!validateRequired(data.birthDate))
-        throw new Error("Doğum tarihi seçiniz.");
+        throw new Error("Doğum tarihi zorunludur.");
 
     if (!validateRequired(data.gender))
         throw new Error("Cinsiyet seçiniz.");
@@ -134,7 +173,7 @@ export function validateForm(data) {
             throw new Error("Veli adı zorunludur.");
 
         if (!validatePhone(data.parentPhone))
-            throw new Error("Geçerli veli telefonu giriniz.");
+            throw new Error("Veli telefonu hatalı.");
 
     }
 
@@ -142,37 +181,52 @@ export function validateForm(data) {
 
 }
 
-export function prepareData(formData) {
+/* ===========================================
+   VERİYİ TEMİZLE
+=========================================== */
+
+export function prepareData(data) {
+
+    const adult =
+        isAdult(data.birthDate);
 
     return {
 
-        name: cleanText(formData.name),
+        name: cleanText(data.name),
 
-        surname: cleanText(formData.surname),
+        surname: cleanText(data.surname),
 
-        tc: cleanText(formData.tc),
+        tc: cleanPhone(data.tc),
 
-        phone: cleanPhone(formData.phone),
+        phone: cleanPhone(data.phone),
 
-        birthDate: formData.birthDate,
+        birthDate: data.birthDate,
 
-        age: calculateAge(formData.birthDate),
+        age: calculateAge(data.birthDate),
 
-        gender: formData.gender,
+        gender: data.gender,
 
-        district: cleanText(formData.district),
+        district: cleanText(data.district),
 
-        neighborhood: cleanText(formData.neighborhood),
+        neighborhood: cleanText(data.neighborhood),
 
-        address: cleanText(formData.address),
+        address: cleanText(data.address),
 
-        school: cleanText(formData.school),
+        school: adult
+            ? ""
+            : cleanText(data.school),
 
-        className: cleanText(formData.className),
+        className: adult
+            ? ""
+            : cleanText(data.className),
 
-        parentName: cleanText(formData.parentName),
+        parentName: adult
+            ? ""
+            : cleanText(data.parentName),
 
-        parentPhone: cleanPhone(formData.parentPhone)
+        parentPhone: adult
+            ? ""
+            : cleanPhone(data.parentPhone)
 
     };
 
