@@ -1,26 +1,55 @@
-/* ==========================================
-   GENEL
-========================================== */
-
 :root{
 
     --primary:#0d6efd;
+
+    --primary-dark:#0b5ed7;
+
     --success:#198754;
+
     --danger:#dc3545;
+
     --warning:#ffc107;
 
+    --dark:#1f2937;
+
+    --light:#f8f9fa;
+
+    --border:#dee2e6;
+
     --radius:18px;
+
+    --transition:.25s;
+
+    --shadow:0 12px 35px rgba(0,0,0,.08);
+
+}
+
+*{
+
+    margin:0;
+
+    padding:0;
+
+    box-sizing:border-box;
+
+}
+
+html{
+
+    scroll-behavior:smooth;
 
 }
 
 body{
 
-    background:#f5f7fb;
+    background:#eef2f7;
 
     font-family:
+    Inter,
     "Segoe UI",
-    Tahoma,
     sans-serif;
+
+    color:#222;
 
     min-height:100vh;
 
@@ -28,60 +57,47 @@ body{
 
 .navbar{
 
-    box-shadow:0 8px 20px rgba(0,0,0,.12);
+    backdrop-filter:blur(12px);
 
 }
 
-/* ==========================================
-   CARD
-========================================== */
-
 .card{
-
-    border:none;
 
     border-radius:var(--radius);
 
-    overflow:hidden;
+    border:none;
+
+    box-shadow:var(--shadow);
 
 }
 
 .card-body{
 
-    padding:35px;
+    padding:45px;
 
 }
 
-/* ==========================================
-   BAŞLIK
-========================================== */
-
-h2{
-
-    font-weight:700;
-
-}
-
-label{
+.form-label{
 
     font-weight:600;
 
-    margin-bottom:6px;
-
 }
-/* ==========================================
-   FORM
-========================================== */
 
 .form-control,
 
 .form-select{
 
+    height:52px;
+
     border-radius:12px;
 
-    min-height:50px;
+    transition:var(--transition);
 
-    border:1px solid #d9dee8;
+}
+
+textarea.form-control{
+
+    min-height:120px;
 
 }
 
@@ -91,28 +107,15 @@ label{
 
     border-color:var(--primary);
 
-    box-shadow:
-
-    0 0 0 .2rem
-
-    rgba(13,110,253,.15);
+    box-shadow:0 0 0 .2rem rgba(13,110,253,.15);
 
 }
-
-textarea{
-
-    min-height:100px;
-
-}
-/* ==========================================
-   BUTTON
-========================================== */
 
 .btn{
 
-    border-radius:12px;
+    height:55px;
 
-    min-height:50px;
+    border-radius:12px;
 
     font-weight:600;
 
@@ -120,255 +123,173 @@ textarea{
 
 .btn-primary{
 
-    transition:.3s;
+    background:var(--primary);
+
+    border:none;
 
 }
 
 .btn-primary:hover{
 
-    transform:translateY(-2px);
-
-}
-/* ==========================================
-   PROGRESS
-========================================== */
-
-.progress{
-
-    border-radius:100px;
-
-    overflow:hidden;
+    background:var(--primary-dark);
 
 }
 
-.progress-bar{
+.student-field{
 
-    transition:width .4s;
+    transition:.35s;
 
 }
-/* ==========================================
-   BAŞARI EKRANI
-========================================== */
 
-#successSection{
+.hidden{
 
-    animation:fadeIn .5s ease;
+    display:none!important;
+
+}
+
+.loading-screen{
+
+    position:fixed;
+
+    inset:0;
+
+    background:rgba(255,255,255,.82);
+
+    backdrop-filter:blur(6px);
+
+    display:flex;
+
+    align-items:center;
+
+    justify-content:center;
+
+    flex-direction:column;
+
+    z-index:9999;
+
+}
+
+.loading-screen .spinner-border{
+
+    width:4rem;
+
+    height:4rem;
+
+}
+
+#successSection .card{
+
+    text-align:center;
 
 }
 
 #registerNumber{
 
-    font-size:42px;
+    font-size:34px;
 
     letter-spacing:2px;
 
 }
 
-#qrImage{
+#qrContainer{
 
-    background:#fff;
+    min-height:250px;
 
-    display:inline-flex;
-
-    justify-content:center;
+    display:flex;
 
     align-items:center;
 
-    padding:20px;
-
-    border-radius:18px;
-
-    box-shadow:0 10px 30px rgba(0,0,0,.08);
-
-    min-height:260px;
-
-    min-width:260px;
-
-    margin:auto;
+    justify-content:center;
 
 }
 
-/* ==========================================
-   TOAST
-========================================== */
+#qrContainer canvas,
 
-.toast{
+#qrContainer img{
 
-    border-radius:14px;
-
-    overflow:hidden;
-
-    min-width:300px;
-
-    box-shadow:0 12px 30px rgba(0,0,0,.18);
-
-}
-
-/* ==========================================
-   ALERT
-========================================== */
-
-.alert{
-
-    border:none;
+    border:10px solid white;
 
     border-radius:15px;
 
-}
-
-/* ==========================================
-   FOOTER
-========================================== */
-
-footer{
-
-    color:#6c757d;
-
-    margin-top:40px;
+    box-shadow:0 5px 25px rgba(0,0,0,.12);
 
 }
 
-/* ==========================================
-   ANİMASYON
-========================================== */
+.table{
 
-@keyframes fadeIn{
-
-    from{
-
-        opacity:0;
-
-        transform:translateY(20px);
-
-    }
-
-    to{
-
-        opacity:1;
-
-        transform:translateY(0);
-
-    }
+    vertical-align:middle;
 
 }
 
-.card{
+.badge{
 
-    animation:fadeIn .35s ease;
+    font-size:.85rem;
 
 }
 
-/* ==========================================
-   MOBİL
-========================================== */
+.invalid-feedback{
+
+    display:block;
+
+}
+
+@media(max-width:992px){
+
+.card-body{
+
+padding:30px;
+
+}
+
+}
 
 @media(max-width:768px){
 
 .card-body{
 
-    padding:20px;
+padding:22px;
 
 }
 
 h2{
 
-    font-size:26px;
+font-size:28px;
 
 }
 
 #registerNumber{
 
-    font-size:30px;
-
-}
-
-#qrImage{
-
-    min-width:220px;
-
-    min-height:220px;
-
-    padding:15px;
+font-size:24px;
 
 }
 
 .btn{
 
-    width:100%;
-
-    margin-bottom:10px;
+height:52px;
 
 }
 
 }
 
-/* ==========================================
-   KÜÇÜK TELEFONLAR
-========================================== */
+@media(max-width:576px){
 
-@media(max-width:480px){
+.navbar-brand{
 
-.container{
-
-    padding-left:12px;
-
-    padding-right:12px;
+font-size:17px;
 
 }
 
-.card-body{
+.form-control,
 
-    padding:15px;
+.form-select{
 
-}
-
-label{
-
-    font-size:14px;
-
-}
-
-}
-
-/* ==========================================
-   YAZDIRMA
-========================================== */
-
-@media print{
-
-nav,
-
-footer,
-
-.toast-container,
-
-#newRegistration,
-
-#downloadPdf,
-
-#printRegistration{
-
-    display:none !important;
-
-}
-
-body{
-
-    background:white;
+height:50px;
 
 }
 
 .card{
 
-    box-shadow:none !important;
-
-    border:none !important;
-
-}
-
-#successSection{
-
-    display:block !important;
+border-radius:14px;
 
 }
 
