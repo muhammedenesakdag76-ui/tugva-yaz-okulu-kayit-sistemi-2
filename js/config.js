@@ -1,8 +1,8 @@
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-app.js";
+// Firebase Ayarları
 
-import { getFirestore } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
-
-import { getAuth } from "https://www.gstatic.com/firebasejs/10.13.2/firebase-auth.js";
+import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
+import { getFirestore } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+import { getAuth } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
 
 export const firebaseConfig = {
 
@@ -26,12 +26,20 @@ export const db = getFirestore(app);
 
 export const auth = getAuth(app);
 
+// Sistemin maksimum kapasitesi
+
 export const MAX_CAPACITY = 45;
+
+// Kayıt numarası ön eki
 
 export const REGISTER_PREFIX = "TYO";
 
-export const REGISTRATION_COLLECTION = "registrations";
+// Firestore koleksiyonları
 
-export const COUNTER_COLLECTION = "counters";
+export const COLLECTIONS = {
 
-export const SETTINGS_COLLECTION = "settings";
+    registrations: "registrations",
+
+    counters: "counters"
+
+};
