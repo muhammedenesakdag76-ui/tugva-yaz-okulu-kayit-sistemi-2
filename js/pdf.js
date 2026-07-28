@@ -1,182 +1,218 @@
+// js/pdf.js
 
-const { jsPDF } = window.jspdf;
+import { formatDate, formatPhone } from "./utils.js";
 
-/* ==========================================
-   PDF OLUŞTUR
-========================================== */
+export async function downloadPDF(registration) {
 
-export async function downloadPDF(student){
+    const { jsPDF } = window.jspdf;
 
-    const pdf = new jsPDF({
+    const doc = new jsPDF({
 
         orientation: "portrait",
-
         unit: "mm",
-
         format: "a4"
 
     });
 
-    const pageWidth = pdf.internal.pageSize.getWidth();
+    const pageWidth = doc.internal.pageSize.getWidth();
 
-    pdf.setFont("helvetica","bold");
+    let y = 18;
 
-    pdf.setFontSize(20);
-
-    pdf.text("TÜGVA Yaz Okulu", pageWidth/2,20,{
-        align:"center"
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(20);
+    doc.text("TÜGVA YAZ OKULU", pageWidth / 2, y, {
+        align: "center"
     });
 
-    pdf.setFontSize(15);
+    y += 8;
 
-    pdf.text("Kayıt Belgesi",pageWidth/2,30,{
-        align:"center"
+    doc.setFontSize(13);
+    doc.text("Kayıt Bilgileri", pageWidth / 2, y, {
+        align: "center"
     });
 
-    pdf.setDrawColor(0);
+    y += 12;
 
-    pdf.line(20,35,190,35);
+    doc.setDrawColor(220);
+    doc.line(15, y, 195, y);
 
-    pdf.setFont("helvetica","normal");
+    y += 8;
 
-    pdf.setFontSize(12);
-        let y = 50;
+    const rows = [
 
-    const row = (title,value)=>{
+        ["Kayıt No", registration.registerNumber],
 
-        pdf.setFont("helvetica","bold");
+        ["Ad Soyad",
+            `${registration.name} ${registration.surname}`],
 
-        pdf.text(title,20,y);
+        ["TC Kimlik",
+            registration.tc],
 
-        pdf.setFont("helvetica","normal");
+        ["Telefon",
+            formatPhone(registration.phone)],
 
-        pdf.text(String(value ?? "-"),70,y);
+        ["Doğum Tarihi",
+            formatDate(registration.birthDate)],
 
-        y += 10;
+        ["Yaş",
+            String(registration.age)],
 
-    };
+        ["Cinsiyet",
+            registration.gender],
 
-    row("Ad Soyad",student.name);
+        ["İlçe",
+            registration.district],
 
-    row("TC Kimlik",student.tc);
+        ["Mahalle",
+            registration.neighborhood],
 
-    row("Telefon",student.phone);
+        ["Adres",
+            registration.address],
 
-    row("Veli",student.parent);
+        ["Okul",
+            registration.school || "-"],
 
-    row("Veli Telefon",student.parentPhone);
+        ["Sınıf",
+            registration.className || "-"],
 
-    row("Okul",student.school);
+        ["Veli",
+            registration.parentName || "-"],
 
-    row("Sınıf",student.class);
+        ["Veli Telefonu",
+            registration.parentPhone
+                ? formatPhone(registration.parentPhone)
+                : "-"],
 
-    row("Kayıt No",student.registerNumber);
+        ["Koltuk",
+            registration.seatNumber || "-"]
 
-    row("Koltuk No",student.seatNumber || "-");
+    ];
 
-    row("Kayıt Tarihi",student.createdAtText);
-        const qrCanvas = document.querySelector("#qr canvas");
+    doc.setFontSize(11);
 
-    if(qrCanvas){
+    rows.forEach(row => {
 
-        const image = qrCanvas.toDataURL("image/png");
+        doc.setFont("helvetica", "bold");
 
-        pdf.addImage(
+        doc.text(
+            row[0],
+            18,
+            y
+        );
+
+        doc.setFont("helvetica", "normal");
+
+        doc.text(
+            String(row[1]),
+            65,
+            y
+        );
+
+        y += 8;
+
+    });
+
+    y += 5;
+
+    doc.setDrawColor(220);
+
+    doc.line(
+        15,
+        y,
+        195,
+        y
+    );
+
+    y += 12;
+
+    const qrCanvas =
+        document
+        .querySelector("#qrContainer canvas");
+
+    if (qrCanvas) {
+
+        const image =
+            qrCanvas.toDataURL("image/png");
+
+        doc.addImage(
 
             image,
 
             "PNG",
 
-            145,
+            72,
 
-            45,
+            y,
 
-            40,
+            65,
 
-            40
+            65
 
         );
 
     }
-        y += 10;
 
-    pdf.setDrawColor(180);
+    y += 78;
 
-    pdf.line(20, y, 190, y);
-
-    y += 15;
-
-    pdf.setFont("helvetica", "bold");
-
-    pdf.text("Bilgilendirme", 20, y);
-
-    y += 8;
-
-    pdf.setFont("helvetica", "normal");
-
-    pdf.setFontSize(11);
-
-    pdf.text(
-        "Bu belge TÜGVA Yaz Okulu kayıt sistemi tarafından oluşturulmuştur.",
-        20,
-        y
+    doc.setFont(
+        "helvetica",
+        "italic"
     );
 
-    y += 7;
+    doc.setFontSize(10);
 
-    pdf.text(
-        "Kayıt sırasında verilen QR kodu giriş yoklamasında kullanılacaktır.",
-        20,
-        y
-    );
+    doc.text(
 
-    y += 7;
+        "Bu belge TÜGVA Yaz Okulu Kayıt Sistemi tarafından oluşturulmuştur.",
 
-    pdf.text(
-        "Lütfen bu belgeyi saklayınız.",
-        20,
-        y
-    );
+        pageWidth / 2,
 
-    y += 20;
+        y,
 
-    pdf.line(25, y, 80, y);
-
-    pdf.line(130, y, 185, y);
-
-    pdf.setFontSize(10);
-
-    pdf.text("Veli İmzası", 40, y + 6);
-
-    pdf.text("Görevli İmzası", 143, y + 6);
-        const createdDate =
-        new Date().toLocaleString("tr-TR");
-
-    pdf.setFontSize(9);
-
-    pdf.setTextColor(120);
-
-    pdf.text(
-        `Belge Oluşturulma Tarihi: ${createdDate}`,
-        20,
-        285
-    );
-
-    pdf.text(
-        "© TÜGVA Yaz Okulu Kayıt Sistemi",
-        190,
-        285,
         {
-            align: "right"
-        }
-    );
-        const fileName = `${
-        student.registerNumber || "Kayit"
-    }-${
-        (student.name || "Ogrenci")
-            .replace(/\s+/g, "_")
-    }.pdf`;
 
-    pdf.save(fileName);
+            align: "center"
+
+        }
+
+    );
+
+    y += 18;
+
+    doc.setFont(
+
+        "helvetica",
+
+        "normal"
+
+    );
+
+    doc.text(
+
+        "İmza",
+
+        165,
+
+        y
+
+    );
+
+    doc.line(
+
+        145,
+
+        y + 2,
+
+        195,
+
+        y + 2
+
+    );
+
+    doc.save(
+
+        `${registration.registerNumber}.pdf`
+
+    );
 
 }
