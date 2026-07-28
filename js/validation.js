@@ -1,39 +1,55 @@
-/* ==========================================
-   AD SOYAD
-========================================== */
+const ONLY_DIGITS = /^\d+$/;
 
-export function validateName(name){
+export function cleanText(value) {
 
-    name = name.trim();
-
-    if(name.length < 3){
-
-        return false;
-
-    }
-
-    return /^[a-zA-ZçÇğĞıİöÖşŞüÜ\s]+$/.test(name);
+    return String(value ?? "").trim();
 
 }
-/* ==========================================
-   TC KİMLİK
-========================================== */
 
-export function validateTC(tc){
+export function cleanPhone(value) {
 
-    tc = tc.replace(/\D/g,"");
+    return cleanText(value).replace(/\D/g, "");
 
-    if(tc.length !== 11){
+}
 
-        return false;
+export function calculateAge(birthDate) {
 
+    if (!birthDate) return 0;
+
+    const today = new Date();
+
+    const birth = new Date(birthDate);
+
+    let age = today.getFullYear() - birth.getFullYear();
+
+    const month = today.getMonth() - birth.getMonth();
+
+    if (
+        month < 0 ||
+        (month === 0 && today.getDate() < birth.getDate())
+    ) {
+        age--;
     }
 
-    if(tc[0] === "0"){
+    return age;
 
-        return false;
+}
 
-    }
+export function isAdult(birthDate) {
+
+    return calculateAge(birthDate) >= 18;
+
+}
+
+export function validateTC(tc) {
+
+    tc = cleanText(tc);
+
+    if (!ONLY_DIGITS.test(tc)) return false;
+
+    if (tc.length !== 11) return false;
+
+    if (tc[0] === "0") return false;
 
     const digits = tc.split("").map(Number);
 
@@ -50,140 +66,113 @@ export function validateTC(tc){
         digits[5] +
         digits[7];
 
-    const digit10 =
-        ((odd * 7) - even) % 10;
+    const digit10 = ((odd * 7) - even) % 10;
 
-    if(digit10 !== digits[9]){
-
-        return false;
-
-    }
+    if (digit10 !== digits[9]) return false;
 
     const total =
-        digits.slice(0,10)
-        .reduce((a,b)=>a+b,0);
+        digits
+            .slice(0, 10)
+            .reduce((a, b) => a + b, 0);
 
     return total % 10 === digits[10];
 
 }
-/* ==========================================
-   TELEFON
-========================================== */
 
-export function validatePhone(phone){
+export function validatePhone(phone) {
 
-    phone = phone.replace(/\D/g,"");
+    phone = cleanPhone(phone);
 
-    return /^5\d{9}$/.test(phone);
+    return /^05\d{9}$/.test(phone);
 
 }
-/* ==========================================
-   EMAİL
-========================================== */
 
-export function validateEmail(email){
+export function validateRequired(value) {
 
-    if(!email){
+    return cleanText(value).length > 0;
 
-        return true;
+}
+
+export function validateForm(data) {
+
+    if (!validateRequired(data.name))
+        throw new Error("Ad zorunludur.");
+
+    if (!validateRequired(data.surname))
+        throw new Error("Soyad zorunludur.");
+
+    if (!validateTC(data.tc))
+        throw new Error("Geçerli TC Kimlik No giriniz.");
+
+    if (!validatePhone(data.phone))
+        throw new Error("Geçerli telefon giriniz.");
+
+    if (!validateRequired(data.birthDate))
+        throw new Error("Doğum tarihi seçiniz.");
+
+    if (!validateRequired(data.gender))
+        throw new Error("Cinsiyet seçiniz.");
+
+    if (!validateRequired(data.district))
+        throw new Error("İlçe zorunludur.");
+
+    if (!validateRequired(data.neighborhood))
+        throw new Error("Mahalle zorunludur.");
+
+    if (!validateRequired(data.address))
+        throw new Error("Adres zorunludur.");
+
+    if (!isAdult(data.birthDate)) {
+
+        if (!validateRequired(data.school))
+            throw new Error("Okul zorunludur.");
+
+        if (!validateRequired(data.className))
+            throw new Error("Sınıf zorunludur.");
+
+        if (!validateRequired(data.parentName))
+            throw new Error("Veli adı zorunludur.");
+
+        if (!validatePhone(data.parentPhone))
+            throw new Error("Geçerli veli telefonu giriniz.");
 
     }
 
-    return /^[^\s@]+@[^\s@]+\.[^\s@]+$/
-        .test(email);
-
-}
-/* ==========================================
-   ZORUNLU ALAN
-========================================== */
-
-export function required(value){
-
-    return String(value ?? "").trim().length > 0;
+    return true;
 
 }
 
-/* ==========================================
-   METİN TEMİZLEME
-========================================== */
-
-export function cleanText(text){
-
-    return String(text ?? "")
-        .trim()
-        .replace(/\s+/g," ");
-
-}
-/* ==========================================
-   TELEFON FORMATI
-========================================== */
-
-export function formatPhone(phone){
-
-    phone = phone.replace(/\D/g,"");
-
-    if(phone.length !== 10){
-
-        return phone;
-
-    }
-
-    return phone.replace(
-        /(\d{3})(\d{3})(\d{2})(\d{2})/,
-        "$1 $2 $3 $4"
-    );
-
-}
-/* ==========================================
-   SADECE RAKAM
-========================================== */
-
-export function onlyDigits(value){
-
-    return String(value ?? "").replace(/\D/g,"");
-
-}
-/* ==========================================
-   FORM DOĞRULAMA
-========================================== */
-
-export function validateForm(data){
-
-    if(!required(data.name))
-        return {
-            valid:false,
-            message:"Ad Soyad zorunludur."
-        };
-
-    if(!validateName(data.name))
-        return {
-            valid:false,
-            message:"Geçerli bir ad soyad giriniz."
-        };
-
-    if(!validateTC(data.tc))
-        return {
-            valid:false,
-            message:"Geçersiz T.C. Kimlik Numarası."
-        };
-
-    if(!validatePhone(data.phone))
-        return {
-            valid:false,
-            message:"Telefon numarası geçersiz."
-        };
-
-    if(data.email && !validateEmail(data.email))
-        return {
-            valid:false,
-            message:"E-posta adresi geçersiz."
-        };
+export function prepareData(formData) {
 
     return {
 
-        valid:true,
+        name: cleanText(formData.name),
 
-        message:""
+        surname: cleanText(formData.surname),
+
+        tc: cleanText(formData.tc),
+
+        phone: cleanPhone(formData.phone),
+
+        birthDate: formData.birthDate,
+
+        age: calculateAge(formData.birthDate),
+
+        gender: formData.gender,
+
+        district: cleanText(formData.district),
+
+        neighborhood: cleanText(formData.neighborhood),
+
+        address: cleanText(formData.address),
+
+        school: cleanText(formData.school),
+
+        className: cleanText(formData.className),
+
+        parentName: cleanText(formData.parentName),
+
+        parentPhone: cleanPhone(formData.parentPhone)
 
     };
 
