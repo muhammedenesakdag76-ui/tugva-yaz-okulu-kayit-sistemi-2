@@ -1,4 +1,8 @@
-const STORAGE_KEY = "tugva_yaz_okulu_form";
+/* ===========================================
+   utils.js
+=========================================== */
+
+/* ---------- DOM ---------- */
 
 export function $(selector) {
 
@@ -12,69 +16,115 @@ export function $$(selector) {
 
 }
 
+/* ---------- Loading ---------- */
+
 export function showLoading() {
 
-    $("#loadingScreen").classList.remove("d-none");
+    $("#loadingOverlay")
+        ?.classList
+        .remove("d-none");
 
 }
 
 export function hideLoading() {
 
-    $("#loadingScreen").classList.add("d-none");
+    $("#loadingOverlay")
+        ?.classList
+        .add("d-none");
 
 }
 
-export function showSuccess(message) {
+/* ---------- Toast ---------- */
 
-    alert(message);
+export function showToast(
+    message,
+    type = "success"
+) {
 
-}
+    const toast = document.createElement("div");
 
-export function showError(message) {
+    toast.className =
+        `toast-message toast-${type}`;
 
-    alert(message);
+    toast.innerText = message;
 
-}
+    document.body.appendChild(toast);
 
-export function formatPhone(phone) {
+    requestAnimationFrame(() => {
 
-    phone = String(phone).replace(/\D/g, "");
-
-    if (phone.length !== 11) return phone;
-
-    return `${phone.substring(0,4)} ${phone.substring(4,7)} ${phone.substring(7,9)} ${phone.substring(9,11)}`;
-
-}
-
-export function formatDate(date) {
-
-    if (!date) return "";
-
-    const d = new Date(date);
-
-    return d.toLocaleDateString("tr-TR");
-
-}
-
-export function saveDraft(form) {
-
-    const data = {};
-
-    [...form.elements].forEach(element => {
-
-        if (!element.id) return;
-
-        if (element.type === "button") return;
-
-        if (element.type === "submit") return;
-
-        data[element.id] = element.value;
+        toast.classList.add("show");
 
     });
 
+    setTimeout(() => {
+
+        toast.classList.remove("show");
+
+        setTimeout(() => {
+
+            toast.remove();
+
+        },300);
+
+    },3000);
+
+}
+
+/* ---------- Telefon ---------- */
+
+export function formatPhone(phone="") {
+
+    phone =
+        phone.replace(/\D/g,"");
+
+    if(phone.length!==11)
+        return phone;
+
+    return `${phone.substring(0,4)} ${phone.substring(4,7)} ${phone.substring(7,9)} ${phone.substring(9)}`;
+
+}
+
+/* ---------- Tarih ---------- */
+
+export function formatDate(dateString){
+
+    if(!dateString)
+        return "";
+
+    const date =
+        new Date(dateString);
+
+    return date.toLocaleDateString(
+        "tr-TR"
+    );
+
+}
+
+/* ---------- Büyük Harf ---------- */
+
+export function capitalizeWords(text=""){
+
+    return text
+
+        .toLocaleLowerCase("tr")
+
+        .replace(/\b\w/g,function(letter){
+
+            return letter.toLocaleUpperCase("tr");
+
+        });
+
+}
+/* ---------- Draft ---------- */
+
+const DRAFT_KEY =
+    "tugva_registration_draft";
+
+export function saveDraft(data){
+
     localStorage.setItem(
 
-        STORAGE_KEY,
+        DRAFT_KEY,
 
         JSON.stringify(data)
 
@@ -82,185 +132,106 @@ export function saveDraft(form) {
 
 }
 
-export function restoreDraft(form) {
+export function restoreDraft(){
 
-    const raw = localStorage.getItem(
-
-        STORAGE_KEY
-
-    );
-
-    if (!raw) return;
-
-    const data = JSON.parse(raw);
-
-    Object.keys(data).forEach(key => {
-
-        const input = form.querySelector(
-
-            "#" + key
-
+    const draft =
+        localStorage.getItem(
+            DRAFT_KEY
         );
 
-        if (input) {
+    if(!draft)
+        return null;
 
-            input.value = data[key];
+    try{
 
-        }
+        return JSON.parse(draft);
 
-    });
+    }
+
+    catch{
+
+        return null;
+
+    }
 
 }
 
-export function clearDraft() {
+export function clearDraft(){
 
     localStorage.removeItem(
-
-        STORAGE_KEY
-
+        DRAFT_KEY
     );
 
 }
 
-export function generateQRData(registration) {
+/* ---------- Form ---------- */
+
+export function clearForm(form){
+
+    form.reset();
+
+}
+
+export function toggleStudentFields(show){
+
+    document
+
+        .querySelectorAll(
+            ".student-field"
+        )
+
+        .forEach(field=>{
+
+            field.style.display =
+                show
+                ? ""
+                : "none";
+
+        });
+
+}
+
+/* ---------- QR ---------- */
+
+export function createQRPayload(id){
 
     return JSON.stringify({
 
-        id: registration.id,
-
-        registerNumber:
-
-            registration.registerNumber
+        id
 
     });
 
 }
 
-export function calculateAge(date) {
+/* ---------- Random ---------- */
 
-    const birth = new Date(date);
+export function randomId(){
 
-    const today = new Date();
+    return Math.random()
 
-    let age =
+        .toString(36)
 
-        today.getFullYear()
-
-        -
-
-        birth.getFullYear();
-
-    const month =
-
-        today.getMonth()
-
-        -
-
-        birth.getMonth();
-
-    if (
-
-        month < 0 ||
-
-        (
-
-            month === 0 &&
-
-            today.getDate() < birth.getDate()
-
-        )
-
-    ) {
-
-        age--;
-
-    }
-
-    return age;
+        .substring(2,10);
 
 }
 
-export function toggleStudentFields(form) {
+/* ---------- Clipboard ---------- */
 
-    const age = calculateAge(
+export async function copy(text){
 
-        form.birthDate.value
-
+    await navigator.clipboard.writeText(
+        text
     );
 
-    const fields =
-
-        document.querySelectorAll(
-
-            ".student-field"
-
-        );
-
-    fields.forEach(field => {
-
-        field.classList.toggle(
-
-            "hidden",
-
-            age >= 18
-
-        );
-
-    });
-
 }
 
-export function randomId(length = 8) {
+/* ---------- Sleep ---------- */
 
-    const chars =
+export function sleep(ms){
 
-        "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
+    return new Promise(resolve=>{
 
-    let result = "";
-
-    for (
-
-        let i = 0;
-
-        i < length;
-
-        i++
-
-    ) {
-
-        result +=
-
-            chars[
-
-                Math.floor(
-
-                    Math.random()
-
-                    *
-
-                    chars.length
-
-                )
-
-            ];
-
-    }
-
-    return result;
-
-}
-
-export function copy(text) {
-
-    navigator.clipboard.writeText(text);
-
-}
-
-export function sleep(ms) {
-
-    return new Promise(resolve => {
-
-        setTimeout(resolve, ms);
+        setTimeout(resolve,ms);
 
     });
 
