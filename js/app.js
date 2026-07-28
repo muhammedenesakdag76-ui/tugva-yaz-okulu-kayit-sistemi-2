@@ -324,46 +324,60 @@ function createQRCode(registration) {
    PDF
 ===================================================== */
 
-pdfButton.addEventListener("click", () => {
+if (pdfButton) {
 
-    if (!lastRegistration) return;
+    pdfButton.addEventListener("click", () => {
 
-    downloadPDF(lastRegistration);
+        if (!lastRegistration) return;
 
-});
+        downloadPDF(lastRegistration);
+
+    });
+
+}
 
 /* =====================================================
    YENİ KAYIT
 ===================================================== */
 
-document
-.getElementById("newRegistration")
-.addEventListener("click", () => {
+const newRegistrationButton =
+    document.getElementById("newRegistration");
 
-    form.reset();
+if (newRegistrationButton) {
 
-    lastRegistration = null;
+    newRegistrationButton.addEventListener("click", () => {
 
-    successSection.classList.add("d-none");
+        form.reset();
 
-    formSection.classList.remove("d-none");
+        lastRegistration = null;
 
-    qrImage.innerHTML = "";
+        successSection.classList.add("d-none");
 
-    restoreDraft();
+        formSection.classList.remove("d-none");
 
-});
+        qrImage.innerHTML = "";
+
+        restoreDraft();
+
+    });
+
+} 
 /* =====================================================
    YAZDIR
 ===================================================== */
 
-document
-.getElementById("printRegistration")
-?.addEventListener("click", () => {
+const printButton =
+    document.getElementById("printRegistration");
 
-    window.print();
+if (printButton) {
 
-});
+    printButton.addEventListener("click", () => {
+
+        window.print();
+
+    });
+
+}
 /* =====================================================
    SAYFA KAPANIRKEN
 ===================================================== */
