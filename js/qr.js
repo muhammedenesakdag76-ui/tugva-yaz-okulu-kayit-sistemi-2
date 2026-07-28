@@ -1,9 +1,16 @@
+import {
+    db,
+    REGISTRATION_COLLECTION
+} from "./config.js";
 
-/* ==========================================
-   QR OLUŞTUR
-========================================== */
+import {
+    doc,
+    getDoc
+} from "https://www.gstatic.com/firebasejs/10.13.2/firebase-firestore.js";
 
-export function createQR(text, elementId = "qr") {
+/* -------------------- QR OLUŞTUR -------------------- */
+
+export function createQRCode(elementId, registration) {
 
     const container = document.getElementById(elementId);
 
@@ -11,61 +18,181 @@ export function createQR(text, elementId = "qr") {
 
     container.innerHTML = "";
 
+    const qrData = JSON.stringify({
+
+        id: registration.id,
+
+        registerNumber: registration.registerNumber
+
+    });
+
     new QRCode(container, {
-        text: String(text),
-        width: 220,
-        height: 220,
+
+        text: qrData,
+
+        width: 240,
+
+        height: 240,
+
         correctLevel: QRCode.CorrectLevel.H
+
     });
 
 }
-/* ==========================================
-   QR TEMİZLE
-========================================== */
 
-export function clearQR(elementId = "qr") {
+/* -------------------- QR TEMİZLE -------------------- */
+
+export function clearQRCode(elementId) {
 
     const container = document.getElementById(elementId);
 
-    if (container) {
+    if (!container) return;
 
-        container.innerHTML = "";
+    container.innerHTML = "";
+
+}
+
+/* -------------------- QR METNİNİ AYIKLA -------------------- */
+
+export function parseQRCode(text) {
+
+    try {
+
+        return JSON.parse(text);
+
+    }
+
+    catch {
+
+        return null;
 
     }
 
 }
-/* ==========================================
-   QR OKUYUCU
-========================================== */
+
+/* -------------------- FIRESTORE'DAN KAYIT GETİR -------------------- */
+
+export async function getRegistrationFromQR(text) {
+
+    const qr = parseQRCode(text);
+
+    if (!qr)
+
+        throw new Error(
+
+            "Geçersiz QR."
+
+        );
+
+    if (!qr.id)
+
+        throw new Error(
+
+            "QR içinde belge kimliği yok."
+
+        );
+
+    const ref = doc(
+
+        db,
+
+        REGISTRATION_COLLECTION,
+
+        qr.id
+
+    );
+
+    const snap = await getDoc(ref);
+
+    if (!snap.exists())
+
+        throw new Error(
+
+            "Kayıt bulunamadı."
+
+        );
+
+    return {
+
+        id: snap.id,
+
+        ...snap.data()
+
+    };
+
+}
+
+/* -------------------- TELEFON KAMERASI -------------------- */
 
 let scanner = null;
 
-export async function startScanner(onSuccess) {
+export async function startScanner(
+
+    readerId,
+
+    onSuccess
+
+) {
 
     if (scanner) {
 
-        return;
+        await stopScanner();
 
     }
 
-    scanner = new Html5Qrcode("qr-reader");
+    scanner = new Html5Qrcode(
+
+        readerId
+
+    );
 
     await scanner.start(
 
         {
+
             facingMode: "environment"
+
         },
 
         {
+
             fps: 10,
-            qrbox: 250
+
+            qrbox: {
+
+                width: 260,
+
+                height: 260
+
+            }
+
         },
 
-        decodedText => {
+        async(decodedText) => {
 
-            if (typeof onSuccess === "function") {
+            try {
 
-                onSuccess(decodedText);
+                const registration =
+
+                    await getRegistrationFromQR(
+
+                        decodedText
+
+                    );
+
+                await stopScanner();
+
+                onSuccess(
+
+                    registration
+
+                );
+
+            }
+
+            catch (err) {
+
+                console.error(err);
 
             }
 
@@ -74,105 +201,171 @@ export async function startScanner(onSuccess) {
     );
 
 }
-/* ==========================================
-   DURDUR
-========================================== */
+
+/* -------------------- KAMERAYI DURDUR -------------------- */
 
 export async function stopScanner() {
 
-    if (!scanner) return;
+    if (!scanner)
 
-    await scanner.stop();
+        return;
 
-    await scanner.clear();
+    try {
 
-    scanner = null;
+        await scanner.stop();
 
-}
-/* ==========================================
-   QR VERİSİNİ AYRIŞTIR
-========================================== */
+        await scanner.clear();
 
-export function parseQR(text){
-
-    if(!text){
-        return null;
     }
 
-    try{
+    finally {
 
-        const data = JSON.parse(text);
-
-        return data.registerNumber;
-
-    }catch{
-
-        return String(text).trim();
+        scanner = null;
 
     }
 
 }
-/* ==========================================
-   TEK OKUMA
-========================================== */
 
-export async function scanOnce(callback){
+/* -------------------- QR'DAN KAYIT BİLGİSİ HTML -------------------- */
 
-    await startScanner(async result=>{
+export function registrationToHTML(data) {
 
-        try{
+    return `
 
-            await stopScanner();
+<div class="card shadow border-0">
 
-        }catch(e){}
+<div class="card-body">
 
-        if(typeof callback==="function"){
+<h4 class="mb-4">
 
-            callback(parseQR(result));
+${data.registerNumber}
 
-        }
+</h4>
 
-    });
+<table class="table">
 
-}
-/* ==========================================
-   GEÇERLİ QR
-========================================== */
+<tbody>
 
-export function isValidQR(text){
+<tr>
 
-    if(!text){
+<th>Ad Soyad</th>
 
-        return false;
+<td>${data.name} ${data.surname}</td>
 
-    }
+</tr>
 
-    const value=String(text).trim();
+<tr>
 
-    return value.length>0;
+<th>TC</th>
 
-}
-/* ==========================================
-   DURUM
-========================================== */
+<td>${data.tc}</td>
 
-export function scannerRunning(){
+</tr>
 
-    return scanner!==null;
+<tr>
 
-}
-/* ==========================================
-   RESTART
-========================================== */
+<th>Telefon</th>
 
-export async function restartScanner(callback){
+<td>${data.phone}</td>
 
-    if(scanner){
+</tr>
 
-        await stopScanner();
+<tr>
 
-    }
+<th>Doğum Tarihi</th>
 
-    await startScanner(callback);
+<td>${data.birthDate}</td>
+
+</tr>
+
+<tr>
+
+<th>Cinsiyet</th>
+
+<td>${data.gender}</td>
+
+</tr>
+
+<tr>
+
+<th>İlçe</th>
+
+<td>${data.district}</td>
+
+</tr>
+
+<tr>
+
+<th>Mahalle</th>
+
+<td>${data.neighborhood}</td>
+
+</tr>
+
+<tr>
+
+<th>Adres</th>
+
+<td>${data.address}</td>
+
+</tr>
+
+<tr>
+
+<th>Okul</th>
+
+<td>${data.school || "-"}</td>
+
+</tr>
+
+<tr>
+
+<th>Sınıf</th>
+
+<td>${data.className || "-"}</td>
+
+</tr>
+
+<tr>
+
+<th>Veli</th>
+
+<td>${data.parentName || "-"}</td>
+
+</tr>
+
+<tr>
+
+<th>Veli Telefonu</th>
+
+<td>${data.parentPhone || "-"}</td>
+
+</tr>
+
+<tr>
+
+<th>Koltuk</th>
+
+<td>
+
+<strong>
+
+${data.seatNumber || "-"}
+
+</strong>
+
+</td>
+
+</tr>
+
+</tbody>
+
+</table>
+
+</div>
+
+</div>
+
+`;
 
 }
