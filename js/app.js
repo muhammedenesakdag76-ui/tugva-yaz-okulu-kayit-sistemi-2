@@ -234,8 +234,6 @@ async function submitForm(e) {
 
     e.preventDefault();
 
-}
-
     try {
 
         setLoading(true);
@@ -260,9 +258,12 @@ async function submitForm(e) {
     }
 
     catch (err) {
-    console.error(err);
-    alert(err.message);
-}
+
+        console.error(err);
+
+        alert(err.message);
+
+    }
 
     finally {
 
