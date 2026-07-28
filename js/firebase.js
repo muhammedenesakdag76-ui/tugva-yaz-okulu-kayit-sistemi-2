@@ -98,25 +98,21 @@ async function generateRegisterNumber() {
 
         const counterSnap = await transaction.get(counterRef);
 
-        let nextNumber = 1;
-
         let nextNumber;
 
 if (!counterSnap.exists()) {
 
     nextNumber = 1;
 
-    transaction.set(counterRef,{
-        value:1
-    });
-
-}else{
+} else {
 
     nextNumber = counterSnap.data().value + 1;
 
-    transaction.update(counterRef,{
-        value:nextNumber
-    });
+}
+
+transaction.set(counterRef,{
+    value: nextNumber
+});
 
 }
 
