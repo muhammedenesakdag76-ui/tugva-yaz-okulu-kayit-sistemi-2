@@ -96,12 +96,20 @@ export async function stopScanner() {
 export function parseQR(text){
 
     if(!text){
-
         return null;
-
     }
 
-    return String(text).trim();
+    try{
+
+        const data = JSON.parse(text);
+
+        return data.registerNumber;
+
+    }catch{
+
+        return String(text).trim();
+
+    }
 
 }
 /* ==========================================
