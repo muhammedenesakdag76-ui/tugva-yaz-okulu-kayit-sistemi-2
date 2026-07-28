@@ -1,173 +1,315 @@
-// js/pdf.js
+/* ===========================================
+   pdf.js
+=========================================== */
 
-import { formatDate, formatPhone } from "./utils.js";
+import {
+    formatPhone,
+    formatDate
+} from "./utils.js";
 
-export async function downloadPDF(registration) {
+const { jsPDF } = window.jspdf;
 
-    const { jsPDF } = window.jspdf;
+/* ----------------------------------------- */
+/* QR Görselini Al */
+/* ----------------------------------------- */
 
-    const doc = new jsPDF({
+function getQRCodeImage() {
 
-        orientation: "portrait",
-        unit: "mm",
-        format: "a4"
+    const qr = document.querySelector(
+        "#qrContainer img,#qrContainer canvas"
+    );
 
-    });
+    if (!qr)
+        return null;
 
-    const pageWidth = doc.internal.pageSize.getWidth();
+    if (qr.tagName === "IMG") {
 
-    let y = 18;
+        return qr.src;
 
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(20);
-    doc.text("TÜGVA YAZ OKULU", pageWidth / 2, y, {
-        align: "center"
-    });
+    }
 
-    y += 8;
+    return qr.toDataURL("image/png");
 
-    doc.setFontSize(13);
-    doc.text("Kayıt Bilgileri", pageWidth / 2, y, {
-        align: "center"
-    });
+}
 
-    y += 12;
+/* ----------------------------------------- */
+/* Başlık */
+/* ----------------------------------------- */
 
-    doc.setDrawColor(220);
-    doc.line(15, y, 195, y);
+function drawHeader(pdf) {
 
-    y += 8;
+    pdf.setFont("helvetica", "bold");
 
-    const rows = [
+    pdf.setFontSize(18);
 
-        ["Kayıt No", registration.registerNumber],
+    pdf.text(
+        "TÜGVA YAZ OKULU",
+        105,
+        20,
+        {
+            align: "center"
+        }
+    );
 
-        ["Ad Soyad",
-            `${registration.name} ${registration.surname}`],
+    pdf.setFontSize(15);
 
-        ["TC Kimlik",
-            registration.tc],
+    pdf.text(
+        "KAYIT BELGESİ",
+        105,
+        30,
+        {
+            align: "center"
+        }
+    );
 
-        ["Telefon",
-            formatPhone(registration.phone)],
+    pdf.line(
+        20,
+        36,
+        190,
+        36
+    );
 
-        ["Doğum Tarihi",
-            formatDate(registration.birthDate)],
+}
 
-        ["Yaş",
-            String(registration.age)],
+/* ----------------------------------------- */
+/* Bilgi Satırı */
+/* ----------------------------------------- */
 
-        ["Cinsiyet",
-            registration.gender],
+function writeRow(
+    pdf,
+    label,
+    value,
+    y
+) {
 
-        ["İlçe",
-            registration.district],
+    pdf.setFont(
+        "helvetica",
+        "bold"
+    );
 
-        ["Mahalle",
-            registration.neighborhood],
-
-        ["Adres",
-            registration.address],
-
-        ["Okul",
-            registration.school || "-"],
-
-        ["Sınıf",
-            registration.className || "-"],
-
-        ["Veli",
-            registration.parentName || "-"],
-
-        ["Veli Telefonu",
-            registration.parentPhone
-                ? formatPhone(registration.parentPhone)
-                : "-"],
-
-        ["Koltuk",
-            registration.seatNumber || "-"]
-
-    ];
-
-    doc.setFontSize(11);
-
-    rows.forEach(row => {
-
-        doc.setFont("helvetica", "bold");
-
-        doc.text(
-            row[0],
-            18,
-            y
-        );
-
-        doc.setFont("helvetica", "normal");
-
-        doc.text(
-            String(row[1]),
-            65,
-            y
-        );
-
-        y += 8;
-
-    });
-
-    y += 5;
-
-    doc.setDrawColor(220);
-
-    doc.line(
-        15,
-        y,
-        195,
+    pdf.text(
+        label,
+        20,
         y
     );
 
-    y += 12;
+    pdf.setFont(
+        "helvetica",
+        "normal"
+    );
 
-    const qrCanvas =
-        document
-        .querySelector("#qrContainer canvas");
+    pdf.text(
+        value || "-",
+        70,
+        y
+    );
 
-    if (qrCanvas) {
+}
 
-        const image =
-            qrCanvas.toDataURL("image/png");
+/* ----------------------------------------- */
+/* PDF Oluştur */
+/* ----------------------------------------- */
 
-        doc.addImage(
+export async function downloadPDF(data) {
 
-            image,
+    const pdf =
+        new jsPDF({
+
+            orientation: "portrait",
+
+            unit: "mm",
+
+            format: "a4"
+
+        });
+
+    drawHeader(pdf);
+
+    let y = 48;
+
+    writeRow(
+        pdf,
+        "Kayıt No",
+        data.registerNumber,
+        y
+    );
+
+    y += 10;
+
+    writeRow(
+        pdf,
+        "Ad Soyad",
+        `${data.name} ${data.surname}`,
+        y
+    );
+
+    y += 10;
+
+    writeRow(
+        pdf,
+        "TC Kimlik",
+        data.tc,
+        y
+    );
+
+    y += 10;
+
+    writeRow(
+        pdf,
+        "Telefon",
+        formatPhone(data.phone),
+        y
+    );
+
+    y += 10;
+
+    writeRow(
+        pdf,
+        "Doğum Tarihi",
+        formatDate(data.birthDate),
+        y
+    );
+
+    y += 10;
+
+    writeRow(
+        pdf,
+        "Yaş",
+        String(data.age),
+        y
+    );
+
+    y += 10;
+
+    writeRow(
+        pdf,
+        "Cinsiyet",
+        data.gender,
+        y
+    );
+
+    y += 10;
+
+    writeRow(
+        pdf,
+        "İlçe",
+        data.district,
+        y
+    );
+
+    y += 10;
+
+    writeRow(
+        pdf,
+        "Mahalle",
+        data.neighborhood,
+        y
+    );
+
+    y += 10;
+
+    writeRow(
+        pdf,
+        "Adres",
+        data.address,
+        y
+    );
+
+    y += 10;
+
+    if (data.school) {
+
+        writeRow(
+            pdf,
+            "Okul",
+            data.school,
+            y
+        );
+
+        y += 10;
+
+    }
+
+    if (data.className) {
+
+        writeRow(
+            pdf,
+            "Sınıf",
+            data.className,
+            y
+        );
+
+        y += 10;
+
+    }
+
+    if (data.parentName) {
+
+        writeRow(
+            pdf,
+            "Veli",
+            data.parentName,
+            y
+        );
+
+        y += 10;
+
+    }
+
+    if (data.parentPhone) {
+
+        writeRow(
+            pdf,
+            "Veli Telefonu",
+            formatPhone(
+                data.parentPhone
+            ),
+            y
+        );
+
+        y += 10;
+
+    }
+
+    writeRow(
+        pdf,
+        "Koltuk No",
+        data.seatNumber || "-",
+        y
+    );
+
+    const qrImage =
+        getQRCodeImage();
+
+    if (qrImage) {
+
+        pdf.addImage(
+
+            qrImage,
 
             "PNG",
 
-            72,
+            140,
 
-            y,
+            45,
 
-            65,
+            45,
 
-            65
+            45
 
         );
 
     }
 
-    y += 78;
+    pdf.setFontSize(10);
 
-    doc.setFont(
-        "helvetica",
-        "italic"
-    );
+    pdf.text(
 
-    doc.setFontSize(10);
+        "Bu belge sistem tarafından otomatik oluşturulmuştur.",
 
-    doc.text(
+        105,
 
-        "Bu belge TÜGVA Yaz Okulu Kayıt Sistemi tarafından oluşturulmuştur.",
-
-        pageWidth / 2,
-
-        y,
+        280,
 
         {
 
@@ -177,42 +319,20 @@ export async function downloadPDF(registration) {
 
     );
 
-    y += 18;
+    pdf.save(
 
-    doc.setFont(
-
-        "helvetica",
-
-        "normal"
+        `${data.registerNumber}.pdf`
 
     );
 
-    doc.text(
+}
 
-        "İmza",
+/* ----------------------------------------- */
+/* Yazdır */
+/* ----------------------------------------- */
 
-        165,
+export function printRegistration() {
 
-        y
-
-    );
-
-    doc.line(
-
-        145,
-
-        y + 2,
-
-        195,
-
-        y + 2
-
-    );
-
-    doc.save(
-
-        `${registration.registerNumber}.pdf`
-
-    );
+    window.print();
 
 }
